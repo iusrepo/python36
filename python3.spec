@@ -24,7 +24,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -412,8 +412,8 @@ rm -fr $RPM_BUILD_ROOT
 %{pylibdir}/xml
 %{pylibdir}/xmlrpc
 %if "%{_lib}" == "lib64"
-%attr(0755,root,root) %dir /usr/lib/python%{pybasever}
-%attr(0755,root,root) %dir /usr/lib/python%{pybasever}/site-packages
+%attr(0755,root,root) %dir %{_prefix}/lib/python%{pybasever}
+%attr(0755,root,root) %dir %{_prefix}/lib/python%{pybasever}/site-packages
 %endif
 
 # "Makefile" and the config-32/64.h file are needed by
@@ -421,8 +421,8 @@ rm -fr $RPM_BUILD_ROOT
 # package, along with their parent directories (bug 531901):
 %dir %{pylibdir}/config
 %{pylibdir}/config/Makefile
-%dir /usr/include/python%{pybasever}
-/usr/include/python%{pybasever}/%{_pyconfig_h}
+%dir %{_includedir}/python%{pybasever}
+%{_includedir}/python%{pybasever}/%{_pyconfig_h}
 
 %files libs
 %defattr(-,root,root,-)
@@ -476,6 +476,10 @@ rm -fr $RPM_BUILD_ROOT
 %{pylibdir}/tkinter/test
 
 %changelog
+* Wed Jan 13 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-14
+- replace references to /usr with %%{_prefix}; replace references to
+/usr/include with %%{_includedir} (Toshio)
+
 * Mon Jan 11 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-13
 - fix permission on find-provides-without-python-sonames.sh from 775 to 755
 
