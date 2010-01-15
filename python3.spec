@@ -24,7 +24,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -163,6 +163,15 @@ chmod +x %{SOURCE1}
 
 %patch200 -p1 -b .pathfix
 
+# Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
+# are many differences between 2.6 and the Python 3 library.
+#
+# Fix up the URLs within pydoc to point at the documentation for this
+# MAJOR.MINOR version:
+#
+sed --in-place \
+    --expression="s|http://docs.python.org/library|http://docs.python.org/%{pybasever}/library|g" \
+    Lib/pydoc.py || exit 1
 
 %build
 export CFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC"
@@ -476,6 +485,10 @@ rm -fr $RPM_BUILD_ROOT
 %{pylibdir}/tkinter/test
 
 %changelog
+* Fri Jan 15 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-15
+- fix the URLs output by pydoc so they point at python.org's 3.1 build of the
+docs, rather than the 2.6 build
+
 * Wed Jan 13 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-14
 - replace references to /usr with %%{_prefix}; replace references to
 /usr/include with %%{_includedir} (Toshio)
