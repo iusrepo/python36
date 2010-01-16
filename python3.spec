@@ -24,7 +24,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 15%{?dist}
+Release: 16%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -107,7 +107,7 @@ This package contains files used to embed Python 3 into applications.
 %package devel
 Summary: Libraries and header files needed for Python 3 development
 Group: Development/Libraries
-Requires: %{name} = %{version}-%{release}
+Requires: %{name}%{?_isa} = %{version}-%{release}
 Conflicts: %{name} < %{version}-%{release}
 
 %description devel
@@ -150,6 +150,13 @@ python 3 code that uses more than just unittest and/or test_support.py.
 %prep
 %setup -q -n Python-%{version}
 chmod +x %{SOURCE1}
+
+# Ensure that we're using the system copy of libffi, rather than the copy
+# shipped by upstream in the tarball:
+for SUBDIR in darwin libffi libffi_arm_wince libffi_msvc libffi_osx ; do
+  rm -r Modules/_ctypes/$SUBDIR || exit 1 ;
+done
+
 %patch0 -p1 -b .config
 %patch1 -p1 -b .rpath
 %patch2 -p0 -b .fix-handling-of-readonly-pyc-files
@@ -485,6 +492,11 @@ rm -fr $RPM_BUILD_ROOT
 %{pylibdir}/tkinter/test
 
 %changelog
+* Fri Jan 15 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-16
+- use the %%{_isa} macro to ensure that the python-devel dependency on python
+is for the correct multilib arch (#555943)
+- delete bundled copy of libffi to make sure we use the system one
+
 * Fri Jan 15 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-15
 - fix the URLs output by pydoc so they point at python.org's 3.1 build of the
 docs, rather than the 2.6 build
