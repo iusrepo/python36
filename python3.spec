@@ -24,7 +24,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 16%{?dist}
+Release: 17%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -68,6 +68,10 @@ Patch4: python-3.1.1-apply-our-changes-to-expected-shebang-for-test_imp.patch
 Patch5: python-3.1.1-install-tkinter-tests.patch
 # (The resulting test support code is in the tkinter subpackage, but
 # this is not a major problem)
+
+# Patch the Makefile.pre.in so that the generated Makefile doesn't try to build
+# a libpythonMAJOR.MINOR.a (bug 550692):
+Patch6: python-3.1.1-no-static-lib.patch
 
 Patch102: python-3.1.1-lib64.patch
 
@@ -163,6 +167,7 @@ done
 %patch3 -p1 -b .remove-mimeaudio-tests
 %patch4 -p1 -b .apply-our-changes-to-expected-shebang
 %patch5 -p1 -b .install-tkinter-tests
+%patch6 -p1 -b .no-static-lib
 
 %if "%{_lib}" == "lib64"
 %patch102 -p1 -b .lib64
@@ -492,6 +497,9 @@ rm -fr $RPM_BUILD_ROOT
 %{pylibdir}/tkinter/test
 
 %changelog
+* Sun Jan 17 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-17
+- patch Makefile.pre.in to avoid building static library (patch 6, bug 556092)
+
 * Fri Jan 15 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-16
 - use the %%{_isa} macro to ensure that the python-devel dependency on python
 is for the correct multilib arch (#555943)
