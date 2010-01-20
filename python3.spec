@@ -24,7 +24,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 17%{?dist}
+Release: 18%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -420,6 +420,8 @@ rm -fr $RPM_BUILD_ROOT
 %{pylibdir}/importlib/*.py*
 %dir %{pylibdir}/json
 %{pylibdir}/json/*.py*
+%{pylibdir}/lib2to3
+%exclude %{pylibdir}/lib2to3/tests
 %{pylibdir}/logging
 %{pylibdir}/multiprocessing
 %{pylibdir}/plat-linux2
@@ -464,8 +466,6 @@ rm -fr $RPM_BUILD_ROOT
 
 %files tools
 %defattr(-,root,root,755)
-%{pylibdir}/lib2to3
-%exclude %{pylibdir}/lib2to3/tests
 %{_bindir}/2to3*
 %{_bindir}/idle*
 %{pylibdir}/Tools
@@ -497,6 +497,9 @@ rm -fr $RPM_BUILD_ROOT
 %{pylibdir}/tkinter/test
 
 %changelog
+* Wed Jan 20 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-18
+- move lib2to3 from -tools subpackage to main package (bug 556667)
+
 * Sun Jan 17 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-17
 - patch Makefile.pre.in to avoid building static library (patch 6, bug 556092)
 
