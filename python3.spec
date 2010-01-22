@@ -24,7 +24,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 18%{?dist}
+Release: 19%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -497,6 +497,10 @@ rm -fr $RPM_BUILD_ROOT
 %{pylibdir}/tkinter/test
 
 %changelog
+* Fri Jan 22 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-19
+- add %%py3dir macro to macros.python3 (to be used during unified python 2/3
+builds for setting up the python3 copy of the source tree)
+
 * Wed Jan 20 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-18
 - move lib2to3 from -tools subpackage to main package (bug 556667)
 
