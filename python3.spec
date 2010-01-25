@@ -24,7 +24,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 19%{?dist}
+Release: 20%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -326,6 +326,12 @@ find $RPM_BUILD_ROOT \
 mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/rpm
 install -m 644 %{SOURCE2} $RPM_BUILD_ROOT/%{_sysconfdir}/rpm
 
+# Ensure that the curses module was linked against libncursesw.so, rather than
+# libncurses.so (bug 539917)
+ldd $RPM_BUILD_ROOT/%{_libdir}/python%{pybasever}/lib-dynload/_curses*.so \
+    | grep curses \
+    | grep libncurses.so && (echo "_curses.so linked against libncurses.so" ; exit 1)
+
 %check
 # Run the upstream test suite, using the "runtests.sh" harness from the upstream
 # tarball.
@@ -497,6 +503,14 @@ rm -fr $RPM_BUILD_ROOT
 %{pylibdir}/tkinter/test
 
 %changelog
+* Mon Jan 25 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-20
+- change python-3.1.1-config.patch to remove our downstream change to curses
+configuration in Modules/Setup.dist, so that the curses modules are built using
+setup.py with the downstream default (linking against libncursesw.so, rather
+than libncurses.so), rather than within the Makefile; add a test to %%install
+to verify the dso files that the curses module is linked against the correct
+DSO (bug 539917; changes _cursesmodule.so -> _curses.so)
+
 * Fri Jan 22 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-19
 - add %%py3dir macro to macros.python3 (to be used during unified python 2/3
 builds for setting up the python3 copy of the source tree)
