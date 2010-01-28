@@ -25,7 +25,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 21%{?dist}
+Release: 22%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -78,6 +78,10 @@ Patch5: python-3.1.1-install-tkinter-tests.patch
 # Patch the Makefile.pre.in so that the generated Makefile doesn't try to build
 # a libpythonMAJOR.MINOR.a (bug 550692):
 Patch6: python-3.1.1-no-static-lib.patch
+
+# Fixup configure.in and setup.py to build against system expat library.
+# Adapted from http://svn.python.org/view?view=rev&revision=77170
+Patch7: python-3.1.1-with-system-expat.patch
 
 Patch102: python-3.1.1-lib64.patch
 
@@ -161,12 +165,22 @@ python 3 code that uses more than just unittest and/or test_support.py.
 %setup -q -n Python-%{version}
 chmod +x %{SOURCE1}
 
-# Ensure that we're using the system copy of libffi, rather than the copy
-# shipped by upstream in the tarball:
+# Ensure that we're using the system copy of various libraries, rather than
+# copies shipped by upstream in the tarball:
+#   Remove embedded copy of expat:
+rm -r Modules/expat || exit 1
+
+#   Remove embedded copy of libffi:
 for SUBDIR in darwin libffi libffi_arm_wince libffi_msvc libffi_osx ; do
   rm -r Modules/_ctypes/$SUBDIR || exit 1 ;
 done
 
+#   Remove embedded copy of zlib:
+rm -r Modules/zlib || exit 1
+
+#
+# Apply patches:
+#
 %patch0 -p1 -b .config
 %patch1 -p1 -b .rpath
 %patch2 -p0 -b .fix-handling-of-readonly-pyc-files
@@ -174,6 +188,7 @@ done
 %patch4 -p1 -b .apply-our-changes-to-expected-shebang
 %patch5 -p1 -b .install-tkinter-tests
 %patch6 -p1 -b .no-static-lib
+%patch7 -p1 -b .expat
 
 %if "%{_lib}" == "lib64"
 %patch102 -p1 -b .lib64
@@ -201,7 +216,7 @@ export CFLAGS="$CFLAGS `pkg-config --cflags openssl`"
 export LDFLAGS="$LDFLAGS `pkg-config --libs-only-L openssl`"
 
 autoconf
-%configure --enable-ipv6 --with-wide-unicode --enable-shared --with-system-ffi
+%configure --enable-ipv6 --with-wide-unicode --enable-shared --with-system-ffi --with-system-expat
 
 make OPT="$CFLAGS" %{?_smp_mflags}
 
@@ -566,6 +581,13 @@ rm -fr $RPM_BUILD_ROOT
 %{pylibdir}/tkinter/test
 
 %changelog
+* Thu Jan 28 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-22
+- update python-3.1.1-config.patch to remove downstream customization of build
+of pyexpat and elementtree modules
+- add patch adapted from upstream (patch 7) to add support for building against
+system expat; add --with-system-expat to "configure" invocation
+- remove embedded copies of expat and zlib from source tree during "prep"
+
 * Mon Jan 25 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-21
 - introduce %%{dynload_dir} macro
 - explicitly list all lib-dynload files, rather than dynamically gathering the
