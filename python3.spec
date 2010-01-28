@@ -1,5 +1,6 @@
 %global pybasever 3.1
 %global pylibdir %{_libdir}/python%{pybasever}
+%global dynload_dir %{pylibdir}/lib-dynload
 
 # We want to byte-compile the .py files within the packages using the new
 # python3 binary.
@@ -24,7 +25,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 20%{?dist}
+Release: 21%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -38,6 +39,11 @@ Source1: find-provides-without-python-sonames.sh
 # Supply various useful macros for building python 3 modules:
 #  __python3, python3_sitelib, python3_sitearch
 Source2: macros.python3
+
+# Supply an RPM macro "py_byte_compile" for the python3-devel subpackage
+# to enable specfiles to selectively byte-compile individual files and paths
+# with different Python runtimes as necessary:
+Source3: macros.pybytecompile
 
 Patch0: python-3.1.1-config.patch
 
@@ -208,7 +214,7 @@ make install DESTDIR=$RPM_BUILD_ROOT
 
 mkdir -p ${RPM_BUILD_ROOT}%{pylibdir}/site-packages
 
-mv ${RPM_BUILD_ROOT}%{_bindir}/2to3 ${RPM_BUILD_ROOT}%{_bindir}/2to3-3
+mv ${RPM_BUILD_ROOT}%{_bindir}/2to3 ${RPM_BUILD_ROOT}%{_bindir}/python3-2to3
 
 # Development tools
 install -m755 -d ${RPM_BUILD_ROOT}%{pylibdir}/Tools
@@ -225,13 +231,6 @@ cp -ar Doc/tools $RPM_BUILD_ROOT%{pylibdir}/Doc/
 
 # Demo scripts
 cp -ar Demo $RPM_BUILD_ROOT%{pylibdir}/
-
-find $RPM_BUILD_ROOT%{pylibdir}/lib-dynload -type d | sed "s|$RPM_BUILD_ROOT|%dir |" > dynfiles
-find $RPM_BUILD_ROOT%{pylibdir}/lib-dynload -type f | \
-  grep -v "_tkinter.so$" | \
-  grep -v "_ctypes_test.so$" | \
-  grep -v "_testcapimodule.so$" | \
-  sed "s|$RPM_BUILD_ROOT||" >> dynfiles
 
 # Fix for bug #136654
 rm -f $RPM_BUILD_ROOT%{pylibdir}/email/test/data/audiotest.au $RPM_BUILD_ROOT%{pylibdir}/test/audiotest.au
@@ -325,10 +324,11 @@ find $RPM_BUILD_ROOT \
 
 mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/rpm
 install -m 644 %{SOURCE2} $RPM_BUILD_ROOT/%{_sysconfdir}/rpm
+install -m 644 %{SOURCE3} $RPM_BUILD_ROOT/%{_sysconfdir}/rpm
 
 # Ensure that the curses module was linked against libncursesw.so, rather than
 # libncurses.so (bug 539917)
-ldd $RPM_BUILD_ROOT/%{_libdir}/python%{pybasever}/lib-dynload/_curses*.so \
+ldd $RPM_BUILD_ROOT/%{dynload_dir}/_curses*.so \
     | grep curses \
     | grep libncurses.so && (echo "_curses.so linked against libncurses.so" ; exit 1)
 
@@ -392,7 +392,7 @@ rm -fr $RPM_BUILD_ROOT
 
 %postun libs -p /sbin/ldconfig
 
-%files -f dynfiles
+%files
 %defattr(-, root, root)
 %doc LICENSE README
 %{_bindir}/pydoc*
@@ -400,6 +400,68 @@ rm -fr $RPM_BUILD_ROOT
 %{_bindir}/python%{pybasever}
 %{_mandir}/*/*
 %dir %{pylibdir}
+%dir %{dynload_dir}
+%{dynload_dir}/Python-%{version}-py%{pybasever}.egg-info
+%{dynload_dir}/_bisectmodule.so
+%{dynload_dir}/_codecs_cn.so
+%{dynload_dir}/_codecs_hk.so
+%{dynload_dir}/_codecs_iso2022.so
+%{dynload_dir}/_codecs_jp.so
+%{dynload_dir}/_codecs_kr.so
+%{dynload_dir}/_codecs_tw.so
+%{dynload_dir}/_collectionsmodule.so
+%{dynload_dir}/_csv.so
+%{dynload_dir}/_ctypes.so
+%{dynload_dir}/_curses.so
+%{dynload_dir}/_curses_panel.so
+%{dynload_dir}/_dbm.so
+%{dynload_dir}/_elementtree.so
+%{dynload_dir}/_gdbmmodule.so
+%{dynload_dir}/_hashlib.so
+%{dynload_dir}/_heapqmodule.so
+%{dynload_dir}/_json.so
+%{dynload_dir}/_lsprof.so
+%{dynload_dir}/_multibytecodecmodule.so
+%{dynload_dir}/_multiprocessing.so
+%{dynload_dir}/_pickle.so
+%{dynload_dir}/_randommodule.so
+%{dynload_dir}/_sha1module.so
+%{dynload_dir}/_sha256module.so
+%{dynload_dir}/_sha512module.so
+%{dynload_dir}/_socketmodule.so
+%{dynload_dir}/_sqlite3.so
+%{dynload_dir}/_ssl.so
+%{dynload_dir}/_struct.so
+%{dynload_dir}/_weakref.so
+%{dynload_dir}/arraymodule.so
+%{dynload_dir}/atexitmodule.so
+%{dynload_dir}/audioop.so
+%{dynload_dir}/binascii.so
+%{dynload_dir}/bz2.so
+%{dynload_dir}/cmathmodule.so
+%{dynload_dir}/cryptmodule.so
+%{dynload_dir}/datetime.so
+%{dynload_dir}/fcntlmodule.so
+%{dynload_dir}/grpmodule.so
+%{dynload_dir}/itertoolsmodule.so
+%{dynload_dir}/mathmodule.so
+%{dynload_dir}/mmapmodule.so
+%{dynload_dir}/nismodule.so
+%{dynload_dir}/operator.so
+%{dynload_dir}/ossaudiodev.so
+%{dynload_dir}/parsermodule.so
+%{dynload_dir}/pyexpat.so
+%{dynload_dir}/readline.so
+%{dynload_dir}/resource.so
+%{dynload_dir}/selectmodule.so
+%{dynload_dir}/spwdmodule.so
+%{dynload_dir}/syslogmodule.so
+%{dynload_dir}/termios.so
+%{dynload_dir}/timemodule.so
+%{dynload_dir}/unicodedata.so
+%{dynload_dir}/xxsubtype.so
+%{dynload_dir}/zlibmodule.so
+
 %dir %{pylibdir}/site-packages
 %{pylibdir}/site-packages/README
 %{pylibdir}/*.py*
@@ -469,10 +531,11 @@ rm -fr $RPM_BUILD_ROOT
 %{_libdir}/libpython%{pybasever}.so
 %{_libdir}/pkgconfig/python*.pc
 %config(noreplace) %{_sysconfdir}/rpm/macros.python3
+%config(noreplace) %{_sysconfdir}/rpm/macros.pybytecompile
 
 %files tools
 %defattr(-,root,root,755)
-%{_bindir}/2to3*
+%{_bindir}/python3-2to3
 %{_bindir}/idle*
 %{pylibdir}/Tools
 %doc %{pylibdir}/Demo
@@ -484,7 +547,7 @@ rm -fr $RPM_BUILD_ROOT
 %defattr(-,root,root,755)
 %{pylibdir}/tkinter
 %exclude %{pylibdir}/tkinter/test
-%{pylibdir}/lib-dynload/_tkinter.so
+%{dynload_dir}/_tkinter.so
 
 %files test
 %defattr(-, root, root)
@@ -495,14 +558,24 @@ rm -fr $RPM_BUILD_ROOT
 %{pylibdir}/json/tests
 %{pylibdir}/sqlite3/test
 %{pylibdir}/test
-%{pylibdir}/lib-dynload/_ctypes_test.so
-%{pylibdir}/lib-dynload/_testcapimodule.so
+%{dynload_dir}/_ctypes_test.so
+%{dynload_dir}/_testcapimodule.so
 %{pylibdir}/lib2to3/tests
 %doc %{pylibdir}/Demo/distutils
 %doc %{pylibdir}/Demo/md5test
 %{pylibdir}/tkinter/test
 
 %changelog
+* Mon Jan 25 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-21
+- introduce %%{dynload_dir} macro
+- explicitly list all lib-dynload files, rather than dynamically gathering the
+payload into a temporary text file, so that we can be sure what we are
+shipping
+- introduce a macros.pybytecompile source file, to help with packaging python3
+modules (Source3; written by Toshio)
+- rename "2to3-3" to "python3-2to3" to better reflect python 3 module packaging
+plans
+
 * Mon Jan 25 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-20
 - change python-3.1.1-config.patch to remove our downstream change to curses
 configuration in Modules/Setup.dist, so that the curses modules are built using
