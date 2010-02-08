@@ -2,6 +2,8 @@
 %global pylibdir %{_libdir}/python%{pybasever}
 %global dynload_dir %{pylibdir}/lib-dynload
 
+%global with_gdb_hooks 1
+
 # We want to byte-compile the .py files within the packages using the new
 # python3 binary.
 # 
@@ -25,7 +27,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 22%{?dist}
+Release: 23%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -44,6 +46,26 @@ Source2: macros.python3
 # to enable specfiles to selectively byte-compile individual files and paths
 # with different Python runtimes as necessary:
 Source3: macros.pybytecompile
+
+# We install a collection of hooks for gdb that make it easier to debug
+# executables linked against libpython (such as /usr/lib/python itself)
+#
+# These hooks are implemented in Python itself
+#
+# We'll install them into the same path as the library, with a -gdb.py suffix
+# e.g.
+#  /usr/lib/libpython3.1.so.1.0-gdb.py
+#
+# It would be better to put them in the -debuginfo subpackage e.g. here:
+#  /usr/lib/debug/usr/lib/libpython3.1.so.1.0.debug-gdb.py
+# but unfortunately it's hard to add custom content to a debuginfo subpackage
+#
+# See https://fedoraproject.org/wiki/Features/EasierPythonDebugging for more
+# information
+#
+# Downloaded from:
+# http://fedorapeople.org/gitweb?p=dmalcolm/public_git/libpython.git;a=snapshot;h=36a517ef7848cbd0b3dcc7371f32e47ac4c87eba;sf=tgz
+Source4: libpython-36a517ef7848cbd0b3dcc7371f32e47ac4c87eba.tar.gz
 
 Patch0: python-3.1.1-config.patch
 
@@ -164,6 +186,12 @@ python 3 code that uses more than just unittest and/or test_support.py.
 %prep
 %setup -q -n Python-%{version}
 chmod +x %{SOURCE1}
+
+# Unpack source archive 4 into this same dir without deleting (-D; -T suppress
+# trying to unpack source 0 again):
+%if 0%{?with_gdb_hooks}
+%setup -q -n Python-%{version} -T -D -a 4
+%endif # with_gdb_hooks
 
 # Ensure that we're using the system copy of various libraries, rather than
 # copies shipped by upstream in the tarball:
@@ -346,6 +374,22 @@ install -m 644 %{SOURCE3} $RPM_BUILD_ROOT/%{_sysconfdir}/rpm
 ldd $RPM_BUILD_ROOT/%{dynload_dir}/_curses*.so \
     | grep curses \
     | grep libncurses.so && (echo "_curses.so linked against libncurses.so" ; exit 1)
+
+# Copy up the gdb hooks into place; the python file will be autoloaded by gdb
+# when visiting libpython.so, provided that the python file is installed to the
+# same path as the library (or its .debug file) plus a "-gdb.py" suffix, e.g:
+#  /usr/lib/libpython3.1.so.1.0-gdb.py
+#
+# Long term, this should probably go in the debuginfo subpackage, e.g:
+#  /usr/lib/debug/usr/lib/libpython3.1.so.1.0.debug-gdb.py
+#
+# We use a for loop here to avoid having the RHS of the cp command be quoted,
+# leading to a filename with a "*" character embedded in it
+%if 0%{?with_gdb_hooks}
+for lib in %{buildroot}%{_libdir}/libpython%{pybasever}.so.* ; do
+    cp libpython/libpython.py ${lib}-gdb.py
+done
+%endif # with_gdb_hooks
 
 %check
 # Run the upstream test suite, using the "runtests.sh" harness from the upstream
@@ -533,6 +577,9 @@ rm -fr $RPM_BUILD_ROOT
 %files libs
 %defattr(-,root,root,-)
 %{_libdir}/libpython%{pybasever}.so.*
+%if 0%{?with_gdb_hooks}
+%{_libdir}/libpython%{pybasever}.so.*-gdb.py*
+%endif # with_gdb_hooks
 
 %files devel
 %defattr(-,root,root)
@@ -581,6 +628,9 @@ rm -fr $RPM_BUILD_ROOT
 %{pylibdir}/tkinter/test
 
 %changelog
+* Mon Feb  8 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-23
+- add gdb hooks for easier debugging (Source 4)
+
 * Thu Jan 28 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-22
 - update python-3.1.1-config.patch to remove downstream customization of build
 of pyexpat and elementtree modules
