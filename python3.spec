@@ -2,6 +2,16 @@
 %global pylibdir %{_libdir}/python%{pybasever}
 %global dynload_dir %{pylibdir}/lib-dynload
 
+# Python's configure script defines SOVERSION, and this is used in the Makefile
+# to determine INSTSONAME, the name of the libpython DSO:
+#   LDLIBRARY='libpython$(VERSION).so'
+#   INSTSONAME="$LDLIBRARY".$SOVERSION
+# We mirror this here in order to make it easier to add the -gdb.py hooks.
+# (if these get out of sync, the payload of the libs subpackage will fail
+# and halt the build)
+%global py_SOVERSION 1.0
+%global py_INSTSONAME libpython%{pybasever}.so.%{py_SOVERSION}
+
 %global with_gdb_hooks 1
 
 # We want to byte-compile the .py files within the packages using the new
@@ -27,7 +37,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 23%{?dist}
+Release: 24%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -50,15 +60,12 @@ Source3: macros.pybytecompile
 # We install a collection of hooks for gdb that make it easier to debug
 # executables linked against libpython (such as /usr/lib/python itself)
 #
-# These hooks are implemented in Python itself
+# These hooks are implemented in Python itself (though they are for the version
+# of python that gdb is linked with, in this case Python 2.6)
 #
-# We'll install them into the same path as the library, with a -gdb.py suffix
-# e.g.
-#  /usr/lib/libpython3.1.so.1.0-gdb.py
-#
-# It would be better to put them in the -debuginfo subpackage e.g. here:
+# gdb-archer looks for them in the same path as the ELF file, with a -gdb.py suffix.
+# We put them in the debuginfo package by installing them to e.g.:
 #  /usr/lib/debug/usr/lib/libpython3.1.so.1.0.debug-gdb.py
-# but unfortunately it's hard to add custom content to a debuginfo subpackage
 #
 # See https://fedoraproject.org/wiki/Features/EasierPythonDebugging for more
 # information
@@ -378,17 +385,16 @@ ldd $RPM_BUILD_ROOT/%{dynload_dir}/_curses*.so \
 # Copy up the gdb hooks into place; the python file will be autoloaded by gdb
 # when visiting libpython.so, provided that the python file is installed to the
 # same path as the library (or its .debug file) plus a "-gdb.py" suffix, e.g:
+#  /usr/lib/debug/usr/lib64/libpython3.1.so.1.0.debug-gdb.py
+# (note that the debug path is /usr/lib/debug for both 32/64 bit)
+# 
+# Initially I tried:
 #  /usr/lib/libpython3.1.so.1.0-gdb.py
+# but doing so generated noise when ldconfig was rerun (rhbz:562980)
 #
-# Long term, this should probably go in the debuginfo subpackage, e.g:
-#  /usr/lib/debug/usr/lib/libpython3.1.so.1.0.debug-gdb.py
-#
-# We use a for loop here to avoid having the RHS of the cp command be quoted,
-# leading to a filename with a "*" character embedded in it
 %if 0%{?with_gdb_hooks}
-for lib in %{buildroot}%{_libdir}/libpython%{pybasever}.so.* ; do
-    cp libpython/libpython.py ${lib}-gdb.py
-done
+mkdir -p %{buildroot}%{_prefix}/lib/debug/%{_libdir}
+cp libpython/libpython.py %{buildroot}%{_prefix}/lib/debug/%{_libdir}/%{py_INSTSONAME}.debug-gdb.py
 %endif # with_gdb_hooks
 
 %check
@@ -576,10 +582,7 @@ rm -fr $RPM_BUILD_ROOT
 
 %files libs
 %defattr(-,root,root,-)
-%{_libdir}/libpython%{pybasever}.so.*
-%if 0%{?with_gdb_hooks}
-%{_libdir}/libpython%{pybasever}.so.*-gdb.py*
-%endif # with_gdb_hooks
+%{_libdir}/%{py_INSTSONAME}
 
 %files devel
 %defattr(-,root,root)
@@ -627,7 +630,30 @@ rm -fr $RPM_BUILD_ROOT
 %doc %{pylibdir}/Demo/md5test
 %{pylibdir}/tkinter/test
 
+# We put the debug-gdb.py file inside /usr/lib/debug to avoid noise from
+# ldconfig (rhbz:562980).
+# 
+# The /usr/lib/rpm/redhat/macros defines %__debug_package to use
+# debugfiles.list, and it appears that everything below /usr/lib/debug and
+# (/usr/src/debug) gets added to this file (via LISTFILES) in
+# /usr/lib/rpm/find-debuginfo.sh
+# 
+# Hence by installing it below /usr/lib/debug we ensure it is added to the
+# -debuginfo subpackage
+# (if it doesn't, then the rpmbuild ought to fail since the debug-gdb.py 
+# payload file would be unpackaged)
+
+
 %changelog
+* Mon Feb  8 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-24
+- move the -gdb.py file from %%{_libdir}/INSTSONAME-gdb.py to
+%%{_prefix}/lib/debug/%%{_libdir}/INSTSONAME.debug-gdb.py to avoid noise from
+ldconfig (bug 562980), and which should also ensure it becomes part of the
+debuginfo subpackage, rather than the libs subpackage
+- introduce %%{py_SOVERSION} and %%{py_INSTSONAME} to reflect the upstream
+configure script, and to avoid fragile scripts that try to figure this out
+dynamically (e.g. for the -gdb.py change)
+
 * Mon Feb  8 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-23
 - add gdb hooks for easier debugging (Source 4)
 
