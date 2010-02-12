@@ -14,6 +14,8 @@
 
 %global with_gdb_hooks 1
 
+%global with_systemtap 1
+
 # We want to byte-compile the .py files within the packages using the new
 # python3 binary.
 # 
@@ -37,7 +39,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 24%{?dist}
+Release: 25%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -73,6 +75,15 @@ Source3: macros.pybytecompile
 # Downloaded from:
 # http://fedorapeople.org/gitweb?p=dmalcolm/public_git/libpython.git;a=snapshot;h=36a517ef7848cbd0b3dcc7371f32e47ac4c87eba;sf=tgz
 Source4: libpython-36a517ef7848cbd0b3dcc7371f32e47ac4c87eba.tar.gz
+
+# Systemtap tapset to make it easier to use the systemtap static probes
+# (actually a template; LIBRARY_PATH will get fixed up during install)
+# Written by dmalcolm; not yet sent upstream
+Source5: libpython.stp
+
+# Example systemtap script using the tapset
+# Written by wcohen, mjw, dmalcolm; not yet sent upstream
+Source6: systemtap-example.stp
 
 Patch0: python-3.1.1-config.patch
 
@@ -112,6 +123,13 @@ Patch6: python-3.1.1-no-static-lib.patch
 # Adapted from http://svn.python.org/view?view=rev&revision=77170
 Patch7: python-3.1.1-with-system-expat.patch
 
+# Systemtap support: add statically-defined probe points
+# Patch based on upstream bug: http://bugs.python.org/issue4111
+# fixed up by mjw and wcohen for 2.6.2, then fixed up by dmalcolm for 2.6.4
+# then rewritten by mjw (attachment 390110 of rhbz 545179); ported to 3.1.1 by
+# dmalcolm
+Patch8: python-3.1.1-systemtap.patch
+
 Patch102: python-3.1.1-lib64.patch
 
 # http://bugs.python.org/issue6999 -- fixed in r75062
@@ -127,6 +145,11 @@ BuildRequires: tix-devel bzip2-devel sqlite-devel
 BuildRequires: autoconf
 BuildRequires: db4-devel >= 4.7
 BuildRequires: libffi-devel
+
+%if 0%{?with_systemtap}
+BuildRequires: systemtap-sdt-devel
+%global tapsetdir      /usr/share/systemtap/tapset
+%endif
 
 URL: http://www.python.org/
 
@@ -200,6 +223,11 @@ chmod +x %{SOURCE1}
 %setup -q -n Python-%{version} -T -D -a 4
 %endif # with_gdb_hooks
 
+%if 0%{?with_systemtap}
+# Provide an example of usage of the tapset:
+cp -a %{SOURCE6} .
+%endif # with_systemtap
+
 # Ensure that we're using the system copy of various libraries, rather than
 # copies shipped by upstream in the tarball:
 #   Remove embedded copy of expat:
@@ -224,6 +252,9 @@ rm -r Modules/zlib || exit 1
 %patch5 -p1 -b .install-tkinter-tests
 %patch6 -p1 -b .no-static-lib
 %patch7 -p1 -b .expat
+%if 0%{?with_systemtap}
+%patch8 -p1 -b .systemtap
+%endif
 
 %if "%{_lib}" == "lib64"
 %patch102 -p1 -b .lib64
@@ -251,7 +282,21 @@ export CFLAGS="$CFLAGS `pkg-config --cflags openssl`"
 export LDFLAGS="$LDFLAGS `pkg-config --libs-only-L openssl`"
 
 autoconf
-%configure --enable-ipv6 --with-wide-unicode --enable-shared --with-system-ffi --with-system-expat
+
+# For patch 8 (systemtap), we need to get a new header for configure to use:
+autoheader
+
+%configure \
+  --enable-ipv6 \
+  --with-wide-unicode \
+  --enable-shared \
+%if 0%{?with_systemtap}
+  --with-dtrace \
+  --with-tapset-install-dir=%{tapsetdir} \
+%endif
+  --with-system-ffi \
+  --with-system-expat
+
 
 make OPT="$CFLAGS" %{?_smp_mflags}
 
@@ -396,6 +441,25 @@ ldd $RPM_BUILD_ROOT/%{dynload_dir}/_curses*.so \
 mkdir -p %{buildroot}%{_prefix}/lib/debug/%{_libdir}
 cp libpython/libpython.py %{buildroot}%{_prefix}/lib/debug/%{_libdir}/%{py_INSTSONAME}.debug-gdb.py
 %endif # with_gdb_hooks
+
+#
+# Systemtap hooks:
+#
+%if 0%{?with_systemtap}
+# Install a tapset for this libpython into tapsetdir, fixing up the path to the
+# library:
+mkdir -p %{buildroot}%{tapsetdir}
+%ifarch ppc64 s390x x86_64 ia64 alpha sparc64
+%global libpython_stp libpython%{pybasever}-64.stp
+%else
+%global libpython_stp libpython%{pybasever}-32.stp
+%endif
+
+sed \
+   -e "s|LIBRARY_PATH|%{_libdir}/%{py_INSTSONAME}|" \
+   %{SOURCE5} \
+   > %{buildroot}%{tapsetdir}/%{libpython_stp}
+%endif # with_systemtap
 
 %check
 # Run the upstream test suite, using the "runtests.sh" harness from the upstream
@@ -583,6 +647,10 @@ rm -fr $RPM_BUILD_ROOT
 %files libs
 %defattr(-,root,root,-)
 %{_libdir}/%{py_INSTSONAME}
+%if 0%{?with_systemtap}
+%{tapsetdir}/%{libpython_stp}
+%doc systemtap-example.stp
+%endif
 
 %files devel
 %defattr(-,root,root)
@@ -645,6 +713,13 @@ rm -fr $RPM_BUILD_ROOT
 
 
 %changelog
+* Fri Feb 12 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-25
+- split configure options into multiple lines for easy of editing
+- add systemtap static markers (wcohen, mjw, dmalcolm; patch 8), a systemtap
+tapset defining "python.function.entry" and "python.function.return" to make
+the markers easy to use (dmalcolm; source 5), and an example of using the
+tapset to the docs (dmalcolm; source 6) (rhbz:545179)
+
 * Mon Feb  8 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-24
 - move the -gdb.py file from %%{_libdir}/INSTSONAME-gdb.py to
 %%{_prefix}/lib/debug/%%{_libdir}/INSTSONAME.debug-gdb.py to avoid noise from
