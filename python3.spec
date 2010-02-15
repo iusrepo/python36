@@ -39,7 +39,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 25%{?dist}
+Release: 26%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -305,7 +305,7 @@ make OPT="$CFLAGS" %{?_smp_mflags}
 rm -fr $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT%{_prefix} $RPM_BUILD_ROOT%{_mandir}
 
-make install DESTDIR=$RPM_BUILD_ROOT
+make install DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p"
 
 mkdir -p ${RPM_BUILD_ROOT}%{pylibdir}/site-packages
 
@@ -713,6 +713,10 @@ rm -fr $RPM_BUILD_ROOT
 
 
 %changelog
+* Mon Feb 15 2010 Thomas Spura <tomspur@fedoraproject.org> - 3.1.1-26
+- rebuild for new package of redhat-rpm-config (rhbz:564527)
+- use 'install -p' when running 'make install'
+
 * Fri Feb 12 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-25
 - split configure options into multiple lines for easy of editing
 - add systemtap static markers (wcohen, mjw, dmalcolm; patch 8), a systemtap
