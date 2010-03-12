@@ -39,7 +39,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 26%{?dist}
+Release: 27%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -84,6 +84,11 @@ Source5: libpython.stp
 # Example systemtap script using the tapset
 # Written by wcohen, mjw, dmalcolm; not yet sent upstream
 Source6: systemtap-example.stp
+
+# Another example systemtap script that uses the tapset
+# Written by dmalcolm; not yet sent upstream
+Source7: pyfuntop.stp
+
 
 Patch0: python-3.1.1-config.patch
 
@@ -226,6 +231,7 @@ chmod +x %{SOURCE1}
 %if 0%{?with_systemtap}
 # Provide an example of usage of the tapset:
 cp -a %{SOURCE6} .
+cp -a %{SOURCE7} .
 %endif # with_systemtap
 
 # Ensure that we're using the system copy of various libraries, rather than
@@ -302,10 +308,10 @@ make OPT="$CFLAGS" %{?_smp_mflags}
 
 
 %install
-rm -fr $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT%{_prefix} $RPM_BUILD_ROOT%{_mandir}
+rm -fr %{buildroot}
+mkdir -p %{buildroot}%{_prefix} %{buildroot}%{_mandir}
 
-make install DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p"
+make install DESTDIR=%{buildroot} INSTALL="install -p"
 
 mkdir -p ${RPM_BUILD_ROOT}%{pylibdir}/site-packages
 
@@ -321,17 +327,17 @@ cp -ar Tools/pynche ${RPM_BUILD_ROOT}%{pylibdir}/Tools/
 cp -ar Tools/scripts ${RPM_BUILD_ROOT}%{pylibdir}/Tools/
 
 # Documentation tools
-install -m755 -d $RPM_BUILD_ROOT%{pylibdir}/Doc
-cp -ar Doc/tools $RPM_BUILD_ROOT%{pylibdir}/Doc/
+install -m755 -d %{buildroot}%{pylibdir}/Doc
+cp -ar Doc/tools %{buildroot}%{pylibdir}/Doc/
 
 # Demo scripts
-cp -ar Demo $RPM_BUILD_ROOT%{pylibdir}/
+cp -ar Demo %{buildroot}%{pylibdir}/
 
 # Fix for bug #136654
-rm -f $RPM_BUILD_ROOT%{pylibdir}/email/test/data/audiotest.au $RPM_BUILD_ROOT%{pylibdir}/test/audiotest.au
+rm -f %{buildroot}%{pylibdir}/email/test/data/audiotest.au %{buildroot}%{pylibdir}/test/audiotest.au
 
 %if "%{_lib}" == "lib64"
-install -d $RPM_BUILD_ROOT/usr/lib/python%{pybasever}/site-packages
+install -d %{buildroot}/usr/lib/python%{pybasever}/site-packages
 %endif
 
 # Make python3-devel multilib-ready (bug #192747, #139911)
@@ -343,9 +349,9 @@ install -d $RPM_BUILD_ROOT/usr/lib/python%{pybasever}/site-packages
 %else
 %global _pyconfig_h %{_pyconfig32_h}
 %endif
-mv $RPM_BUILD_ROOT%{_includedir}/python%{pybasever}/pyconfig.h \
-   $RPM_BUILD_ROOT%{_includedir}/python%{pybasever}/%{_pyconfig_h}
-cat > $RPM_BUILD_ROOT%{_includedir}/python%{pybasever}/pyconfig.h << EOF
+mv %{buildroot}%{_includedir}/python%{pybasever}/pyconfig.h \
+   %{buildroot}%{_includedir}/python%{pybasever}/%{_pyconfig_h}
+cat > %{buildroot}%{_includedir}/python%{pybasever}/pyconfig.h << EOF
 #include <bits/wordsize.h>
 
 #if __WORDSIZE == 32
@@ -358,51 +364,51 @@ cat > $RPM_BUILD_ROOT%{_includedir}/python%{pybasever}/pyconfig.h << EOF
 EOF
 
 # Fix for bug 201434: make sure distutils looks at the right pyconfig.h file
-sed -i -e "s/'pyconfig.h'/'%{_pyconfig_h}'/" $RPM_BUILD_ROOT%{pylibdir}/distutils/sysconfig.py
+sed -i -e "s/'pyconfig.h'/'%{_pyconfig_h}'/" %{buildroot}%{pylibdir}/distutils/sysconfig.py
 
 # Switch all shebangs to refer to the specific Python version.
-LD_LIBRARY_PATH=. ./python Tools/scripts/pathfix.py -i "%{_bindir}/python%{pybasever}" $RPM_BUILD_ROOT
+LD_LIBRARY_PATH=. ./python Tools/scripts/pathfix.py -i "%{_bindir}/python%{pybasever}" %{buildroot}
 
 # Remove shebang lines from .py files that aren't executable, and
 # remove executability from .py files that don't have a shebang line:
-find $RPM_BUILD_ROOT -name \*.py \
+find %{buildroot} -name \*.py \
   \( \( \! -perm /u+x,g+x,o+x -exec sed -e '/^#!/Q 0' -e 'Q 1' {} \; \
   -print -exec sed -i '1d' {} \; \) -o \( \
   -perm /u+x,g+x,o+x ! -exec grep -m 1 -q '^#!' {} \; \
   -exec chmod a-x {} \; \) \)
 
 # .xpm and .xbm files should not be executable:
-find $RPM_BUILD_ROOT \
+find %{buildroot} \
   \( -name \*.xbm -o -name \*.xpm -o -name \*.xpm.1 \) \
   -exec chmod a-x {} \;
 
 # Remove executable flag from files that shouldn't have it:
 chmod a-x \
-  $RPM_BUILD_ROOT%{pylibdir}/Demo/comparisons/patterns \
-  $RPM_BUILD_ROOT%{pylibdir}/distutils/tests/Setup.sample \
-  $RPM_BUILD_ROOT%{pylibdir}/Demo/rpc/test \
-  $RPM_BUILD_ROOT%{pylibdir}/Tools/README \
-  $RPM_BUILD_ROOT%{pylibdir}/Demo/scripts/newslist.doc \
-  $RPM_BUILD_ROOT%{pylibdir}/Demo/md5test/foo
+  %{buildroot}%{pylibdir}/Demo/comparisons/patterns \
+  %{buildroot}%{pylibdir}/distutils/tests/Setup.sample \
+  %{buildroot}%{pylibdir}/Demo/rpc/test \
+  %{buildroot}%{pylibdir}/Tools/README \
+  %{buildroot}%{pylibdir}/Demo/scripts/newslist.doc \
+  %{buildroot}%{pylibdir}/Demo/md5test/foo
 
 # Get rid of DOS batch files:
-find $RPM_BUILD_ROOT -name \*.bat -exec rm {} \;
+find %{buildroot} -name \*.bat -exec rm {} \;
 
 # Get rid of backup files:
-find $RPM_BUILD_ROOT/ -name "*~" -exec rm -f {} \;
+find %{buildroot}/ -name "*~" -exec rm -f {} \;
 find . -name "*~" -exec rm -f {} \;
-rm -f $RPM_BUILD_ROOT%{pylibdir}/LICENSE.txt
+rm -f %{buildroot}%{pylibdir}/LICENSE.txt
 # Junk, no point in putting in -test sub-pkg
 rm -f ${RPM_BUILD_ROOT}/%{pylibdir}/idlelib/testcode.py*
 
 # Get rid of stray patch file from buildroot:
-rm -f $RPM_BUILD_ROOT%{pylibdir}/test/test_imp.py.apply-our-changes-to-expected-shebang # from patch 4
+rm -f %{buildroot}%{pylibdir}/test/test_imp.py.apply-our-changes-to-expected-shebang # from patch 4
 
 # Fix end-of-line encodings:
-find $RPM_BUILD_ROOT/ -name \*.py -exec sed -i 's/\r//' {} \;
+find %{buildroot}/ -name \*.py -exec sed -i 's/\r//' {} \;
 
 # Fix an encoding:
-iconv -f iso8859-1 -t utf-8 $RPM_BUILD_ROOT/%{pylibdir}/Demo/rpc/README > README.conv && mv -f README.conv $RPM_BUILD_ROOT/%{pylibdir}/Demo/rpc/README
+iconv -f iso8859-1 -t utf-8 %{buildroot}/%{pylibdir}/Demo/rpc/README > README.conv && mv -f README.conv %{buildroot}/%{pylibdir}/Demo/rpc/README
 
 # Note that 
 #  %{pylibdir}/Demo/distutils/test2to3/setup.py
@@ -414,16 +420,16 @@ iconv -f iso8859-1 -t utf-8 $RPM_BUILD_ROOT/%{pylibdir}/Demo/rpc/README > README
 LD_LIBRARY_PATH=. /usr/lib/rpm/brp-python-bytecompile ./python
 
 # Fixup permissions for shared libraries from non-standard 555 to standard 755:
-find $RPM_BUILD_ROOT \
+find %{buildroot} \
     -perm 555 -exec chmod 755 {} \;
 
-mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/rpm
-install -m 644 %{SOURCE2} $RPM_BUILD_ROOT/%{_sysconfdir}/rpm
-install -m 644 %{SOURCE3} $RPM_BUILD_ROOT/%{_sysconfdir}/rpm
+mkdir -p %{buildroot}/%{_sysconfdir}/rpm
+install -m 644 %{SOURCE2} %{buildroot}/%{_sysconfdir}/rpm
+install -m 644 %{SOURCE3} %{buildroot}/%{_sysconfdir}/rpm
 
 # Ensure that the curses module was linked against libncursesw.so, rather than
 # libncurses.so (bug 539917)
-ldd $RPM_BUILD_ROOT/%{dynload_dir}/_curses*.so \
+ldd %{buildroot}/%{dynload_dir}/_curses*.so \
     | grep curses \
     | grep libncurses.so && (echo "_curses.so linked against libncurses.so" ; exit 1)
 
@@ -515,7 +521,7 @@ done
 # the build, due to permissions issues.
 
 %clean
-rm -fr $RPM_BUILD_ROOT
+rm -fr %{buildroot}
 
 %post libs -p /sbin/ldconfig
 
@@ -649,7 +655,7 @@ rm -fr $RPM_BUILD_ROOT
 %{_libdir}/%{py_INSTSONAME}
 %if 0%{?with_systemtap}
 %{tapsetdir}/%{libpython_stp}
-%doc systemtap-example.stp
+%doc systemtap-example.stp pyfuntop.stp
 %endif
 
 %files devel
@@ -713,6 +719,11 @@ rm -fr $RPM_BUILD_ROOT
 
 
 %changelog
+* Fri Mar 12 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-27
+- add pyfuntop.stp example (source 7)
+- convert usage of $$RPM_BUILD_ROOT to %%{buildroot} throughout, for
+consistency with python.spec
+
 * Mon Feb 15 2010 Thomas Spura <tomspur@fedoraproject.org> - 3.1.1-26
 - rebuild for new package of redhat-rpm-config (rhbz:564527)
 - use 'install -p' when running 'make install'
