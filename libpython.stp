@@ -9,7 +9,7 @@ probe python.function.entry = process("python3").library("LIBRARY_PATH").mark("f
     funcname = user_string($arg2);
     lineno = $arg3;
 }
-probe python.function.return = process("python3").("LIBRARY_PATH").mark("function__return")
+probe python.function.return = process("python3").library("LIBRARY_PATH").mark("function__return")
 {
     filename = user_string($arg1);
     funcname = user_string($arg2);

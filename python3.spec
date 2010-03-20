@@ -39,7 +39,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 27%{?dist}
+Release: 28%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -719,6 +719,9 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Sat Mar 20 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-28
+- fix typo in libpython.stp (rhbz:575336)
+
 * Fri Mar 12 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-27
 - add pyfuntop.stp example (source 7)
 - convert usage of $$RPM_BUILD_ROOT to %%{buildroot} throughout, for
