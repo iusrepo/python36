@@ -38,8 +38,8 @@
 
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
-Version: %{pybasever}.1
-Release: 28%{?dist}
+Version: %{pybasever}.2
+Release: 1%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -97,11 +97,6 @@ Patch0: python-3.1.1-config.patch
 # Was Patch0 in ivazquez' python3000 specfile:
 Patch1:         Python-3.1.1-rpath.patch
 
-# Fixup importlib/_bootstrap.py so that it correctly handles being unable to
-# open .pyc files for writing
-# Sent upstream as http://bugs.python.org/issue7187
-Patch2: python-3.1.1-importlib-fix-handling-of-readonly-pyc-files.patch
-
 # The four TestMIMEAudio tests fail due to "audiotest.au" not being packaged.
 # It's simplest to remove them:
 Patch3: python-3.1.1-remove-mimeaudio-tests.patch
@@ -112,13 +107,6 @@ Patch3: python-3.1.1-remove-mimeaudio-tests.patch
 # Since we modify the shebang lines in our packaging, we also need to modify
 # the expected value in this test:
 Patch4: python-3.1.1-apply-our-changes-to-expected-shebang-for-test_imp.patch
-
-# test_tk test_ttk_guionly and test_ttk_textonly all rely on tkinter/test, but
-# upstream's Makefile.pre.in doesn't install that subdirectory; patch it so that
-# it does:
-Patch5: python-3.1.1-install-tkinter-tests.patch
-# (The resulting test support code is in the tkinter subpackage, but
-# this is not a major problem)
 
 # Patch the Makefile.pre.in so that the generated Makefile doesn't try to build
 # a libpythonMAJOR.MINOR.a (bug 550692):
@@ -136,9 +124,6 @@ Patch7: python-3.1.1-with-system-expat.patch
 Patch8: python-3.1.1-systemtap.patch
 
 Patch102: python-3.1.1-lib64.patch
-
-# http://bugs.python.org/issue6999 -- fixed in r75062
-Patch200: python-3.1.1-pathfix.patch
 
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
@@ -252,10 +237,8 @@ rm -r Modules/zlib || exit 1
 #
 %patch0 -p1 -b .config
 %patch1 -p1 -b .rpath
-%patch2 -p0 -b .fix-handling-of-readonly-pyc-files
 %patch3 -p1 -b .remove-mimeaudio-tests
 %patch4 -p1 -b .apply-our-changes-to-expected-shebang
-%patch5 -p1 -b .install-tkinter-tests
 %patch6 -p1 -b .no-static-lib
 %patch7 -p1 -b .expat
 %if 0%{?with_systemtap}
@@ -265,8 +248,6 @@ rm -r Modules/zlib || exit 1
 %if "%{_lib}" == "lib64"
 %patch102 -p1 -b .lib64
 %endif
-
-%patch200 -p1 -b .pathfix
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -719,6 +700,12 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Sun Mar 21 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.2-1
+- update to 3.1.2: http://www.python.org/download/releases/3.1.2/
+- drop upstreamed patch 2 (.pyc permissions handling)
+- drop upstream patch 5 (fix for the test_tk and test_ttk_* selftests)
+- drop upstreamed patch 200 (path-fixing script)
+
 * Sat Mar 20 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.1-28
 - fix typo in libpython.stp (rhbz:575336)
 
