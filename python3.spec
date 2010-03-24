@@ -39,7 +39,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -73,8 +73,9 @@ Source3: macros.pybytecompile
 # information
 #
 # Downloaded from:
-# http://fedorapeople.org/gitweb?p=dmalcolm/public_git/libpython.git;a=snapshot;h=36a517ef7848cbd0b3dcc7371f32e47ac4c87eba;sf=tgz
-Source4: libpython-36a517ef7848cbd0b3dcc7371f32e47ac4c87eba.tar.gz
+#  http://bugs.python.org/issue8032
+# This is Tools/gdb/libpython.py from v3 of the patch
+Source4: python-gdb.py
 
 # Systemtap tapset to make it easier to use the systemtap static probes
 # (actually a template; LIBRARY_PATH will get fixed up during install)
@@ -206,12 +207,6 @@ python 3 code that uses more than just unittest and/or test_support.py.
 %prep
 %setup -q -n Python-%{version}
 chmod +x %{SOURCE1}
-
-# Unpack source archive 4 into this same dir without deleting (-D; -T suppress
-# trying to unpack source 0 again):
-%if 0%{?with_gdb_hooks}
-%setup -q -n Python-%{version} -T -D -a 4
-%endif # with_gdb_hooks
 
 %if 0%{?with_systemtap}
 # Provide an example of usage of the tapset:
@@ -426,7 +421,7 @@ ldd %{buildroot}/%{dynload_dir}/_curses*.so \
 #
 %if 0%{?with_gdb_hooks}
 mkdir -p %{buildroot}%{_prefix}/lib/debug/%{_libdir}
-cp libpython/libpython.py %{buildroot}%{_prefix}/lib/debug/%{_libdir}/%{py_INSTSONAME}.debug-gdb.py
+cp %{SOURCE4} %{buildroot}%{_prefix}/lib/debug/%{_libdir}/%{py_INSTSONAME}.debug-gdb.py
 %endif # with_gdb_hooks
 
 #
@@ -700,6 +695,9 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Wed Mar 24 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.2-2
+- refresh gdb hooks to v3 (reworking how they are packaged)
+
 * Sun Mar 21 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.2-1
 - update to 3.1.2: http://www.python.org/download/releases/3.1.2/
 - drop upstreamed patch 2 (.pyc permissions handling)
