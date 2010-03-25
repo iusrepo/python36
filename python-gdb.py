@@ -35,6 +35,7 @@ import gdb
 
 # Look up the gdb.Type for some standard types:
 _type_char_ptr = gdb.lookup_type('char').pointer() # char*
+_type_unsigned_char_ptr = gdb.lookup_type('unsigned char').pointer() # unsigned char*
 _type_void_ptr = gdb.lookup_type('void').pointer() # void*
 _type_size_t = gdb.lookup_type('size_t')
 
@@ -140,7 +141,7 @@ class PyObjectPtr(object):
             # Can't even read the object at all?
             return 'unknown'
 
-    def proxyval(self):
+    def proxyval(self, visited):
         '''
         Scrape a value from the inferior process, and try to represent it
         within the gdb process, whilst (hopefully) avoiding crashes when
@@ -150,6 +151,11 @@ class PyObjectPtr(object):
 
         For example, a PyIntObject* with ob_ival 42 in the inferior process
         should result in an int(42) in this process.
+
+        visited: a set of all gdb.Value pyobject pointers already visited
+        whilst generating this value (to guard against infinite recursion when
+        visiting object graphs with loops).  Analogous to Py_ReprEnter and
+        Py_ReprLeave
         '''
 
         class FakeRepr(object):
@@ -209,6 +215,8 @@ class PyObjectPtr(object):
                     'instance': PyInstanceObjectPtr,
                     'NoneType': PyNoneStructPtr,
                     'frame': PyFrameObjectPtr,
+                    'set' : PySetObjectPtr,
+                    'frozenset' : PySetObjectPtr,
                     }
         if tp_name in name_map:
             return name_map[tp_name]
@@ -230,8 +238,8 @@ class PyObjectPtr(object):
             return PyUnicodeObjectPtr
         if tp_flags & Py_TPFLAGS_DICT_SUBCLASS:
             return PyDictObjectPtr
-        #if tp_flags & Py_TPFLAGS_BASE_EXC_SUBCLASS:
-        #    return something
+        if tp_flags & Py_TPFLAGS_BASE_EXC_SUBCLASS:
+            return PyBaseExceptionObjectPtr
         #if tp_flags & Py_TPFLAGS_TYPE_SUBCLASS:
         #    return PyTypeObjectPtr
 
@@ -258,6 +266,22 @@ class PyObjectPtr(object):
     def get_gdb_type(cls):
         return gdb.lookup_type(cls._typename).pointer()
 
+    def as_address(self):
+        return long(self._gdbval)
+
+
+class ProxyAlreadyVisited(object):
+    '''
+    Placeholder proxy to use when protecting against infinite recursion due to
+    loops in the object graph.
+
+    Analogous to the values emitted by the users of Py_ReprEnter and Py_ReprLeave
+    '''
+    def __init__(self, rep):
+        self._rep = rep
+    
+    def __repr__(self):
+        return self._rep
 
 class InstanceProxy(object):
 
@@ -287,15 +311,19 @@ def _PyObject_VAR_SIZE(typeobj, nitems):
 class HeapTypeObjectPtr(PyObjectPtr):
     _typename = 'PyObject'
 
-    def proxyval(self):
+    def proxyval(self, visited):
         '''
         Support for new-style classes.
 
         Currently we just locate the dictionary using a transliteration to
         python of _PyObject_GetDictPtr, ignoring descriptors
         '''
-        attr_dict = {}
+        # Guard against infinite loops:
+        if self.as_address() in visited:
+            return ProxyAlreadyVisited('<...>')
+        visited.add(self.as_address())
 
+        attr_dict = {}
         try:
             typeobj = self.type()
             dictoffset = int_from_int(typeobj.field('tp_dictoffset'))
@@ -313,16 +341,39 @@ class HeapTypeObjectPtr(PyObjectPtr):
                 dictptr = self._gdbval.cast(_type_char_ptr) + dictoffset
                 PyObjectPtrPtr = PyObjectPtr.get_gdb_type().pointer()
                 dictptr = dictptr.cast(PyObjectPtrPtr)
-                attr_dict = PyObjectPtr.from_pyobject_ptr(dictptr.dereference()).proxyval()
+                attr_dict = PyObjectPtr.from_pyobject_ptr(dictptr.dereference()).proxyval(visited)
         except RuntimeError:
             # Corrupt data somewhere; fail safe
-            pass    
+            pass
 
         tp_name = self.safe_tp_name()
 
         # New-style class:
         return InstanceProxy(tp_name, attr_dict, long(self._gdbval))
 
+class ProxyException(Exception):
+    def __init__(self, tp_name, args):
+        self.tp_name = tp_name
+        self.args = args
+
+    def __repr__(self):
+        return '%s%r' % (self.tp_name, self.args)
+
+class PyBaseExceptionObjectPtr(PyObjectPtr):
+    """
+    Class wrapping a gdb.Value that's a PyBaseExceptionObject* i.e. an exception
+    within the process being debugged.
+    """
+    _typename = 'PyBaseExceptionObject'
+
+    def proxyval(self, visited):
+        # Guard against infinite loops:
+        if self.as_address() in visited:
+            return ProxyAlreadyVisited('(...)')
+        visited.add(self.as_address())
+        arg_proxy = PyObjectPtr.from_pyobject_ptr(self.field('args')).proxyval(visited)
+        return ProxyException(self.safe_tp_name(),
+                              arg_proxy)
 
 class PyBoolObjectPtr(PyObjectPtr):
     """
@@ -331,7 +382,7 @@ class PyBoolObjectPtr(PyObjectPtr):
     """
     _typename = 'PyBoolObject'
 
-    def proxyval(self):
+    def proxyval(self, visited):
         if int_from_int(self.field('ob_ival')):
             return True
         else:
@@ -360,7 +411,7 @@ class PyCodeObjectPtr(PyObjectPtr):
         Analogous to PyCode_Addr2Line; translated from pseudocode in
         Objects/lnotab_notes.txt
         '''
-        co_lnotab = PyObjectPtr.from_pyobject_ptr(self.field('co_lnotab')).proxyval()
+        co_lnotab = PyObjectPtr.from_pyobject_ptr(self.field('co_lnotab')).proxyval(set())
 
         # Initialize lineno to co_firstlineno as per PyCode_Addr2Line
         # not 0, as lnotab_notes.txt has it:
@@ -381,27 +432,37 @@ class PyDictObjectPtr(PyObjectPtr):
     """
     _typename = 'PyDictObject'
 
-    def proxyval(self):
+    def proxyval(self, visited):
+        # Guard against infinite loops:
+        if self.as_address() in visited:
+            return ProxyAlreadyVisited('{...}')
+        visited.add(self.as_address())
+
         result = {}
         for i in safe_range(self.field('ma_mask') + 1):
             ep = self.field('ma_table') + i
             pvalue = PyObjectPtr.from_pyobject_ptr(ep['me_value'])
             if not pvalue.is_null():
                 pkey = PyObjectPtr.from_pyobject_ptr(ep['me_key'])
-                result[pkey.proxyval()] = pvalue.proxyval()
+                result[pkey.proxyval(visited)] = pvalue.proxyval(visited)
         return result
 
 
 class PyInstanceObjectPtr(PyObjectPtr):
     _typename = 'PyInstanceObject'
 
-    def proxyval(self):
+    def proxyval(self, visited):
+        # Guard against infinite loops:
+        if self.as_address() in visited:
+            return ProxyAlreadyVisited('<...>')
+        visited.add(self.as_address())
+
         # Get name of class:
         in_class = PyObjectPtr.from_pyobject_ptr(self.field('in_class'))
-        cl_name = PyObjectPtr.from_pyobject_ptr(in_class.field('cl_name')).proxyval()
+        cl_name = PyObjectPtr.from_pyobject_ptr(in_class.field('cl_name')).proxyval(visited)
 
         # Get dictionary of instance attributes:
-        in_dict = PyObjectPtr.from_pyobject_ptr(self.field('in_dict')).proxyval()
+        in_dict = PyObjectPtr.from_pyobject_ptr(self.field('in_dict')).proxyval(visited)
 
         # Old-style class:
         return InstanceProxy(cl_name, in_dict, long(self._gdbval))
@@ -410,10 +471,9 @@ class PyInstanceObjectPtr(PyObjectPtr):
 class PyIntObjectPtr(PyObjectPtr):
     _typename = 'PyIntObject'
 
-    def proxyval(self):
+    def proxyval(self, visited):
         result = int_from_int(self.field('ob_ival'))
         return result
-
 
 class PyListObjectPtr(PyObjectPtr):
     _typename = 'PyListObject'
@@ -423,8 +483,13 @@ class PyListObjectPtr(PyObjectPtr):
         field_ob_item = self.field('ob_item')
         return field_ob_item[i]
 
-    def proxyval(self):
-        result = [PyObjectPtr.from_pyobject_ptr(self[i]).proxyval()
+    def proxyval(self, visited):
+        # Guard against infinite loops:
+        if self.as_address() in visited:
+            return ProxyAlreadyVisited('[...]')
+        visited.add(self.as_address())
+        
+        result = [PyObjectPtr.from_pyobject_ptr(self[i]).proxyval(visited)
                   for i in safe_range(int_from_int(self.field('ob_size')))]
         return result
 
@@ -432,7 +497,7 @@ class PyListObjectPtr(PyObjectPtr):
 class PyLongObjectPtr(PyObjectPtr):
     _typename = 'PyLongObject'
 
-    def proxyval(self):
+    def proxyval(self, visited):
         '''
         Python's Include/longobjrep.h has this declaration:
            struct _longobject {
@@ -477,7 +542,7 @@ class PyNoneStructPtr(PyObjectPtr):
     """
     _typename = 'PyObject'
 
-    def proxyval(self):
+    def proxyval(self, visited):
         return None
 
 
@@ -489,16 +554,39 @@ class PyFrameObjectPtr(PyObjectPtr):
         return str(fi)
 
 
+class PySetObjectPtr(PyObjectPtr):
+    _typename = 'PySetObject'
+
+    def proxyval(self, visited):
+        # Guard against infinite loops:
+        if self.as_address() in visited:
+            return ProxyAlreadyVisited('%s(...)' % self.safe_tp_name())
+        visited.add(self.as_address())
+
+        members = []
+        table = self.field('table')
+        for i in safe_range(self.field('mask')+1):
+            setentry = table[i]
+            key = setentry['key']
+            if key != 0:
+                key_proxy = PyObjectPtr.from_pyobject_ptr(key).proxyval(visited)
+                if key_proxy != '<dummy key>':
+                    members.append(key_proxy)
+        if self.safe_tp_name() == 'frozenset':
+            return frozenset(members)
+        else:
+            return set(members)
+
 class PyStringObjectPtr(PyObjectPtr):
     _typename = 'PyStringObject'
 
     def __str__(self):
         field_ob_size = self.field('ob_size')
         field_ob_sval = self.field('ob_sval')
-        char_ptr = field_ob_sval.address.cast(_type_char_ptr)
-        return ''.join([chr(field_ob_sval[i]) for i in safe_range(field_ob_size)])
+        char_ptr = field_ob_sval.address.cast(_type_unsigned_char_ptr)
+        return ''.join([chr(char_ptr[i]) for i in safe_range(field_ob_size)])
 
-    def proxyval(self):
+    def proxyval(self, visited):
         return str(self)
 
 
@@ -510,8 +598,13 @@ class PyTupleObjectPtr(PyObjectPtr):
         field_ob_item = self.field('ob_item')
         return field_ob_item[i]
 
-    def proxyval(self):
-        result = tuple([PyObjectPtr.from_pyobject_ptr(self[i]).proxyval()
+    def proxyval(self, visited):
+        # Guard against infinite loops:
+        if self.as_address() in visited:
+            return ProxyAlreadyVisited('(...)')
+        visited.add(self.as_address())
+
+        result = tuple([PyObjectPtr.from_pyobject_ptr(self[i]).proxyval(visited)
                         for i in safe_range(int_from_int(self.field('ob_size')))])
         return result
 
@@ -523,7 +616,7 @@ class PyTypeObjectPtr(PyObjectPtr):
 class PyUnicodeObjectPtr(PyObjectPtr):
     _typename = 'PyUnicodeObject'
 
-    def proxyval(self):
+    def proxyval(self, visited):
         # From unicodeobject.h:
         #     Py_ssize_t length;  /* Length of raw Unicode data in buffer */
         #     Py_UNICODE *str;    /* Raw Unicode buffer */
@@ -576,13 +669,13 @@ class FrameInfo:
             if not value.is_null():
                 name = PyObjectPtr.from_pyobject_ptr(self.co_varnames[i])
                 #print 'name=%s' % name
-                value = value.proxyval()
+                value = value.proxyval(set())
                 #print 'value=%s' % value
                 self.locals.append((str(name), value))
 
     def filename(self):
         '''Get the path of the current Python source file, as a string'''
-        return self.co_filename.proxyval()
+        return self.co_filename.proxyval(set())
 
     def current_line_num(self):
         '''Get current line number as an integer (1-based)
@@ -626,7 +719,7 @@ class PyObjectPtrPrinter:
         self.gdbval = gdbval
 
     def to_string (self):
-        proxyval = PyObjectPtr.from_pyobject_ptr(self.gdbval).proxyval()
+        proxyval = PyObjectPtr.from_pyobject_ptr(self.gdbval).proxyval(set())
         return stringify(proxyval)
 
 
