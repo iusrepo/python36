@@ -39,7 +39,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -74,7 +74,7 @@ Source3: macros.pybytecompile
 #
 # Downloaded from:
 #  http://bugs.python.org/issue8032
-# This is Tools/gdb/libpython.py from v4 of the patch
+# This is Tools/gdb/libpython.py from v5 of the patch
 Source4: python-gdb.py
 
 # Systemtap tapset to make it easier to use the systemtap static probes
@@ -695,6 +695,10 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Wed Mar 31 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.2-4
+- update python-gdb.py from v4 to v5 (improving performance and stability,
+adding commands)
+
 * Thu Mar 25 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.2-3
 - update python-gdb.py from v3 to v4 (fixing infinite recursion on reference
 cycles and tracebacks on bytes 0x80-0xff in strings, adding handlers for sets
