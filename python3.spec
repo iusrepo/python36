@@ -39,7 +39,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -72,9 +72,12 @@ Source3: macros.pybytecompile
 # See https://fedoraproject.org/wiki/Features/EasierPythonDebugging for more
 # information
 #
-# Downloaded from:
-#  http://bugs.python.org/issue8032
-# This is Tools/gdb/libpython.py from v5 of the patch
+# This is the version from 
+#  http://bugs.python.org/issue8380
+#
+# This is Tools/gdb/libpython.py from:
+#  http://bugs.python.org/file16902/port-gdb7-hooks-to-py3k.patch
+# when applied to r80008 of the py3k branch
 Source4: python-gdb.py
 
 # Systemtap tapset to make it easier to use the systemtap static probes
@@ -446,9 +449,9 @@ sed \
 %check
 # Run the upstream test suite, using the "runtests.sh" harness from the upstream
 # tarball.
-# I'm seeing occasional hangs in "test_httplib" when running the test suite inside
-# Koji.  For that reason I exclude that one.
-LD_LIBRARY_PATH=$(pwd) ./runtests.sh -x test_httplib
+# I'm seeing occasional hangs in some http tests when running the test suite
+# inside Koji.  For that reason I exclude them
+LD_LIBRARY_PATH=$(pwd) ./runtests.sh -x test_httplib test_http_cookies
 
 # Note that we're running the tests using the version of the code in the builddir,
 # not in the buildroot.
@@ -695,6 +698,12 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Tue Apr 13 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.2-5
+- exclude test_http_cookies when running selftests, due to hang seen on
+http://koji.fedoraproject.org/koji/taskinfo?taskID=2088463 (cancelled after
+11 hours)
+- update python-gdb.py from v5 to py3k version submitted upstream
+
 * Wed Mar 31 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.2-4
 - update python-gdb.py from v4 to v5 (improving performance and stability,
 adding commands)

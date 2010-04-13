@@ -19,9 +19,10 @@ giving file/line information and the state of local variables
 In particular, given a gdb.Value corresponding to a PyObject* in the inferior
 process, we can generate a "proxy value" within the gdb process.  For example,
 given a PyObject* in the inferior process that is in fact a PyListObject*
-holding three PyObject* that turn out to be PyStringObject* instances, we can
-generate a proxy value within the gdb process that is a list of strings:
-  ["foo", "bar", "baz"]
+holding three PyObject* that turn out to be PyBytesObject* instances, we can
+generate a proxy value within the gdb process that is a list of bytes
+instances:
+  [b"foo", b"bar", b"baz"]
 
 Doing so can be expensive for complicated graphs of objects, and could take
 some time, so we also have a "write_repr" method that writes a representation
@@ -39,7 +40,7 @@ the type names are known to the debugger
 
 The module also extends gdb with some python-specific commands.
 '''
-
+from __future__ import with_statement
 import gdb
 
 # Look up the gdb.Type for some standard types:
@@ -57,7 +58,7 @@ Py_TPFLAGS_INT_SUBCLASS      = (1L << 23)
 Py_TPFLAGS_LONG_SUBCLASS     = (1L << 24)
 Py_TPFLAGS_LIST_SUBCLASS     = (1L << 25)
 Py_TPFLAGS_TUPLE_SUBCLASS    = (1L << 26)
-Py_TPFLAGS_STRING_SUBCLASS   = (1L << 27)
+Py_TPFLAGS_BYTES_SUBCLASS    = (1L << 27)
 Py_TPFLAGS_UNICODE_SUBCLASS  = (1L << 28)
 Py_TPFLAGS_DICT_SUBCLASS     = (1L << 29)
 Py_TPFLAGS_BASE_EXC_SUBCLASS = (1L << 30)
@@ -99,7 +100,7 @@ class TruncatedStringIO(object):
                 # Truncation:
                 self._val += data[0:self.maxlen - len(self._val)]
                 raise StringTruncated()
-            
+
         self._val += data
 
     def getvalue(self):
@@ -108,7 +109,7 @@ class TruncatedStringIO(object):
 class PyObjectPtr(object):
     """
     Class wrapping a gdb.Value that's a either a (PyObject*) within the
-    inferior process, or some subclass pointer e.g. (PyStringObject*)
+    inferior process, or some subclass pointer e.g. (PyBytesObject*)
 
     There will be a subclass for every refined PyObject type that we care
     about.
@@ -120,7 +121,7 @@ class PyObjectPtr(object):
 
     def __init__(self, gdbval, cast_to=None):
         if cast_to:
-                self._gdbval = gdbval.cast(cast_to)
+            self._gdbval = gdbval.cast(cast_to)
         else:
             self._gdbval = gdbval
 
@@ -148,12 +149,8 @@ class PyObjectPtr(object):
             return pyo_ptr.dereference()[name]
 
         if name == 'ob_size':
-            try:
-                # Python 2:
-                return self._gdbval.dereference()[name]
-            except RuntimeError:
-                # Python 3:
-                return self._gdbval.dereference()['ob_base'][name]
+            pyo_ptr = self._gdbval.cast(PyVarObjectPtr.get_gdb_type())
+            return pyo_ptr.dereference()[name]
 
         # General case: look it up inside the object:
         return self._gdbval.dereference()[name]
@@ -318,8 +315,8 @@ class PyObjectPtr(object):
             return PyListObjectPtr
         if tp_flags & Py_TPFLAGS_TUPLE_SUBCLASS:
             return PyTupleObjectPtr
-        if tp_flags & Py_TPFLAGS_STRING_SUBCLASS:
-            return PyStringObjectPtr
+        if tp_flags & Py_TPFLAGS_BYTES_SUBCLASS:
+            return PyBytesObjectPtr
         if tp_flags & Py_TPFLAGS_UNICODE_SUBCLASS:
             return PyUnicodeObjectPtr
         if tp_flags & Py_TPFLAGS_DICT_SUBCLASS:
@@ -355,6 +352,8 @@ class PyObjectPtr(object):
     def as_address(self):
         return long(self._gdbval)
 
+class PyVarObjectPtr(PyObjectPtr):
+    _typename = 'PyVarObject'
 
 class ProxyAlreadyVisited(object):
     '''
@@ -365,7 +364,7 @@ class ProxyAlreadyVisited(object):
     '''
     def __init__(self, rep):
         self._rep = rep
-    
+
     def __repr__(self):
         return self._rep
 
@@ -407,7 +406,7 @@ class InstanceProxy(object):
         else:
             return '<%s at remote 0x%x>' % (self.cl_name,
                                             self.address)
-    
+
 def _PyObject_VAR_SIZE(typeobj, nitems):
     return ( ( typeobj.field('tp_basicsize') +
                nitems * typeobj.field('tp_itemsize') +
@@ -446,7 +445,7 @@ class HeapTypeObjectPtr(PyObjectPtr):
             pass
 
         # Not found, or some kind of error:
-        return None        
+        return None
 
     def proxyval(self, visited):
         '''
@@ -515,20 +514,6 @@ class PyBaseExceptionObjectPtr(PyObjectPtr):
         out.write(self.safe_tp_name())
         self.write_field_repr('args', out, visited)
 
-class PyBoolObjectPtr(PyObjectPtr):
-    """
-    Class wrapping a gdb.Value that's a PyBoolObject* i.e. one of the two
-    <bool> instances (Py_True/Py_False) within the process being debugged.
-    """
-    _typename = 'PyBoolObject'
-
-    def proxyval(self, visited):
-        if int_from_int(self.field('ob_ival')):
-            return True
-        else:
-            return False
-
-
 class PyClassObjectPtr(PyObjectPtr):
     """
     Class wrapping a gdb.Value that's a PyClassObject* i.e. a <classobj>
@@ -548,7 +533,7 @@ class BuiltInMethodProxy(object):
     def __init__(self, ml_name, pyop_m_self):
         self.ml_name = ml_name
         self.pyop_m_self = pyop_m_self
-        
+
     def __repr__(self):
         return ('<built-in method %s of %s object at remote 0x%x>'
                 % (self.ml_name,
@@ -592,7 +577,7 @@ class PyCodeObjectPtr(PyObjectPtr):
 
         # Initialize lineno to co_firstlineno as per PyCode_Addr2Line
         # not 0, as lnotab_notes.txt has it:
-	lineno = int_from_int(self.field('co_firstlineno'))
+        lineno = int_from_int(self.field('co_firstlineno'))
 
         addr = 0
         for addr_incr, line_incr in zip(co_lnotab[::2], co_lnotab[1::2]):
@@ -630,9 +615,9 @@ class PyDictObjectPtr(PyObjectPtr):
 
         result = {}
         for pyop_key, pyop_value in self.iteritems():
-                proxy_key = pyop_key.proxyval(visited)
-                proxy_value = pyop_value.proxyval(visited)
-                result[proxy_key] = proxy_value
+            proxy_key = pyop_key.proxyval(visited)
+            proxy_value = pyop_value.proxyval(visited)
+            result[proxy_key] = proxy_value
         return result
 
     def write_repr(self, out, visited):
@@ -690,13 +675,6 @@ class PyInstanceObjectPtr(PyObjectPtr):
 
         _write_instance_repr(out, visited,
                              cl_name, pyop_in_dict, self.as_address())
-        
-class PyIntObjectPtr(PyObjectPtr):
-    _typename = 'PyIntObject'
-
-    def proxyval(self, visited):
-        result = int_from_int(self.field('ob_ival'))
-        return result
 
 class PyListObjectPtr(PyObjectPtr):
     _typename = 'PyListObject'
@@ -711,7 +689,7 @@ class PyListObjectPtr(PyObjectPtr):
         if self.as_address() in visited:
             return ProxyAlreadyVisited('[...]')
         visited.add(self.as_address())
-        
+
         result = [PyObjectPtr.from_pyobject_ptr(self[i]).proxyval(visited)
                   for i in safe_range(int_from_int(self.field('ob_size')))]
         return result
@@ -770,6 +748,16 @@ class PyLongObjectPtr(PyObjectPtr):
             result = -result
         return result
 
+class PyBoolObjectPtr(PyLongObjectPtr):
+    """
+    Class wrapping a gdb.Value that's a PyBoolObject* i.e. one of the two
+    <bool> instances (Py_True/Py_False) within the process being debugged.
+    """
+    def proxyval(self, visited):
+        if PyLongObjectPtr.proxyval(self, visited):
+            return True
+        else:
+            return False
 
 class PyNoneStructPtr(PyObjectPtr):
     """
@@ -839,7 +827,7 @@ class PyFrameObjectPtr(PyObjectPtr):
         '''
         Look for the named local variable, returning a (PyObjectPtr, scope) pair
         where scope is a string 'local', 'global', 'builtin'
-        
+
         If not found, return (None, None)
         '''
         for pyop_name, pyop_value in self.iter_locals():
@@ -861,9 +849,9 @@ class PyFrameObjectPtr(PyObjectPtr):
 
     def current_line_num(self):
         '''Get current line number as an integer (1-based)
-        
+
         Translated from PyFrame_GetLineNumber and PyCode_Addr2Line
-        
+
         See Objects/lnotab_notes.txt
         '''
         if self.is_optimized_out():
@@ -894,9 +882,9 @@ class PyFrameObjectPtr(PyObjectPtr):
             return
         out.write('Frame 0x%x, for file %s, line %i, in %s ('
                   % (self.as_address(),
-                     self.co_filename,
+                     self.co_filename.proxyval(visited),
                      self.current_line_num(),
-                     self.co_name))
+                     self.co_name.proxyval(visited)))
         first = True
         for pyop_name, pyop_value in self.iter_locals():
             if not first:
@@ -906,7 +894,7 @@ class PyFrameObjectPtr(PyObjectPtr):
             out.write(pyop_name.proxyval(visited))
             out.write('=')
             pyop_value.write_repr(out, visited)
-            
+
         out.write(')')
 
 class PySetObjectPtr(PyObjectPtr):
@@ -958,8 +946,8 @@ class PySetObjectPtr(PyObjectPtr):
         out.write('])')
 
 
-class PyStringObjectPtr(PyObjectPtr):
-    _typename = 'PyStringObject'
+class PyBytesObjectPtr(PyObjectPtr):
+    _typename = 'PyBytesObject'
 
     def __str__(self):
         field_ob_size = self.field('ob_size')
@@ -1038,7 +1026,7 @@ def stringify(val):
     # TODO: repr() puts everything on one line; pformat can be nicer, but
     # can lead to v.long results; this function isolates the choice
     if True:
-        return repr(val)            
+        return repr(val)
     else:
         from pprint import pformat
         return pformat(val)
@@ -1065,7 +1053,7 @@ def pretty_printer_lookup(gdbval):
     if type.code == gdb.TYPE_CODE_PTR:
         type = type.target().unqualified()
         t = str(type)
-        if t in ("PyObject", "PyFrameObject"):
+        if t in ("PyObject", "PyFrameObject", "PyUnicodeObject"):
             return PyObjectPtrPrinter(gdbval)
 
 """
@@ -1099,7 +1087,7 @@ register (gdb.current_objfile ())
 
 class Frame(object):
     '''
-    Wrapper for gdb.Frame, adding various methods 
+    Wrapper for gdb.Frame, adding various methods
     '''
     def __init__(self, gdbframe):
         self._gdbframe = gdbframe
@@ -1193,7 +1181,7 @@ class PyList(gdb.Command):
     Use
        py-list START
     to list at a different line number within the python source.
-    
+
     Use
        py-list START, END
     to list a specific range of lines within the python source.
@@ -1252,8 +1240,8 @@ class PyList(gdb.Command):
                 if i + start == lineno:
                     linestr = '>' + linestr
                 sys.stdout.write('%4s    %s' % (linestr, line))
-            
-        
+
+
 # ...and register the command:
 PyList()
 
