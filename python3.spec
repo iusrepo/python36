@@ -40,7 +40,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -194,6 +194,13 @@ Patch102: python-3.1.1-lib64.patch
 
 Patch103: python-3.1.2-debug-build.patch
 
+# Add configure-time support for the COUNT_ALLOCS and CALL_PROFILE options
+# described at http://svn.python.org/projects/python/trunk/Misc/SpecialBuilds.txt
+# so that if they are enabled, they will be in that build's pyconfig.h, so that
+# extension modules will reliably use them
+Patch104: python-3.1.2-more-configuration-flags.patch
+
+
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 BuildRequires: readline-devel, openssl-devel, gmp-devel
 BuildRequires: ncurses-devel, gdbm-devel, zlib-devel, expat-devel
@@ -343,6 +350,7 @@ rm -r Modules/zlib || exit 1
 %endif
 
 %patch103 -p1 -b .debug-build
+%patch104 -p1 -b .more-configuration-flags
 
 
 
@@ -415,7 +423,7 @@ make OPT="$CFLAGS" %{?_smp_mflags}
 BuildPython debug \
   python-debug \
   python%{pybasever}-debug \
-  "--with-pydebug" \
+  "--with-pydebug --with-tsc --with-count-allocs --with-call-profile" \
   false
 
 BuildPython optimized \
@@ -1022,6 +1030,10 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Tue May 25 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.2-7
+- add configure-time support for COUNT_ALLOCS and CALL_PROFILE debug options
+(patch 104); enable them and the WITH_TSC option within the debug build
+
 * Mon May 24 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.2-6
 - build and install two different configurations of Python 3: debug and
 standard, packaging the debug build in a new "python3-debug" subpackage
