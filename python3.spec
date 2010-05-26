@@ -40,7 +40,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -200,6 +200,9 @@ Patch103: python-3.1.2-debug-build.patch
 # extension modules will reliably use them
 Patch104: python-3.1.2-more-configuration-flags.patch
 
+# Add flags for statvfs.f_flag to the constant list in posixmodule (i.e. "os")
+# (rhbz:553020); partially upstream as http://bugs.python.org/issue7647
+Patch105: python-2.6.5-statvfs-f_flag-constants.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 BuildRequires: readline-devel, openssl-devel, gmp-devel
@@ -352,6 +355,7 @@ rm -r Modules/zlib || exit 1
 %patch103 -p1 -b .debug-build
 %patch104 -p1 -b .more-configuration-flags
 
+%patch105 -p1 -b .statvfs-f-flag-constants
 
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
@@ -1030,6 +1034,10 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Wed May 26 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.2-8
+- add flags for statvfs.f_flag to the constant list in posixmodule (i.e. "os")
+(patch 105)
+
 * Tue May 25 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.2-7
 - add configure-time support for COUNT_ALLOCS and CALL_PROFILE debug options
 (patch 104); enable them and the WITH_TSC option within the debug build
