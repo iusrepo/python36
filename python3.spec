@@ -40,7 +40,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -427,7 +427,11 @@ make OPT="$CFLAGS" %{?_smp_mflags}
 BuildPython debug \
   python-debug \
   python%{pybasever}-debug \
+%ifarch %{ix86} x86_64 ppc ppc64
   "--with-pydebug --with-tsc --with-count-allocs --with-call-profile" \
+%else
+  "--with-pydebug --with-count-allocs --with-call-profile" \
+%endif
   false
 
 BuildPython optimized \
@@ -1034,6 +1038,9 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Thu May 27 2010 Dan Horák <dan[at]danny.cz> - 3.1.2-9
+- reading the timestamp counter is available only on some arches (see Python/ceval.c)
+
 * Wed May 26 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.2-8
 - add flags for statvfs.f_flag to the constant list in posixmodule (i.e. "os")
 (patch 105)
