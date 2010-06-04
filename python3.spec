@@ -40,7 +40,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -204,6 +204,21 @@ Patch104: python-3.1.2-more-configuration-flags.patch
 # (rhbz:553020); partially upstream as http://bugs.python.org/issue7647
 Patch105: python-2.6.5-statvfs-f_flag-constants.patch
 
+# This is the Modules/audioop.c part of the whitespace cleanup in r81032, to make it
+# easier to apply subsequent security fixes:
+Patch106: python-3.1.2-reformat-audioop.c.patch
+
+# CVE-2010-1634: fix various integer overflow checks in the audioop module
+# This is the difference from r81032 to r81081 (i.e r81047 and r81081)
+Patch107: python-3.1.2-CVE-2010-1634.patch
+
+# CVE-2010-2089: verify sizes/lengths within audioop module:
+Patch108: python-3.1.2-CVE-2010-2089.patch
+
+# CVE-2008-5983: the new PySys_SetArgvEx entry point from r81400 (backported to
+# the old layout before the whitespace cleanup of release31-maint in r81033):
+Patch109: python-3.1.2-CVE-2008-5983.patch
+
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 BuildRequires: readline-devel, openssl-devel, gmp-devel
 BuildRequires: ncurses-devel, gdbm-devel, zlib-devel, expat-devel
@@ -357,6 +372,10 @@ rm -r Modules/zlib || exit 1
 
 %patch105 -p1 -b .statvfs-f-flag-constants
 
+%patch106 -p3 -b .reformat-audioop
+%patch107 -p3 -b .CVE-2010-1634
+%patch108 -p1 -b .CVE-2010-2089
+%patch109 -p1 -b .CVE-2008-5983
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -370,10 +389,10 @@ sed --in-place \
 
 %build
 topdir=$(pwd)
-export CFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC"
-export CXXFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC"
+export CFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC -fwrapv"
+export CXXFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC -fwrapv"
 export CPPFLAGS="`pkg-config --cflags-only-I libffi`"
-export OPT="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC"
+export OPT="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC -fwrapv"
 export LINKCC="gcc"
 export CFLAGS="$CFLAGS `pkg-config --cflags openssl`"
 export LDFLAGS="$LDFLAGS `pkg-config --libs-only-L openssl`"
@@ -1038,6 +1057,14 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Fri Jun  4 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.2-10
+- ensure that the compiler is invoked with "-fwrapv" (rhbz#594819)
+- reformat whitespace in audioop.c (patch 106)
+- CVE-2010-1634: fix various integer overflow checks in the audioop
+module (patch 107)
+- CVE-2010-2089: further checks within the audioop module (patch 108)
+- CVE-2008-5983: the new PySys_SetArgvEx entry point from r81399 (patch 109)
+
 * Thu May 27 2010 Dan Horák <dan[at]danny.cz> - 3.1.2-9
 - reading the timestamp counter is available only on some arches (see Python/ceval.c)
 
