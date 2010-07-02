@@ -40,7 +40,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -219,6 +219,11 @@ Patch108: python-3.1.2-CVE-2010-2089.patch
 # the old layout before the whitespace cleanup of release31-maint in r81033):
 Patch109: python-3.1.2-CVE-2008-5983.patch
 
+# Fix an incompatibility between pyexpat and the system expat-2.0.1 that led to
+# a segfault running test_pyexpat.py (rhbz:610312)
+# Sent upstream as http://bugs.python.org/issue9054
+Patch110: python-3.1.2-fix-expat-issue9054.patch
+
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 BuildRequires: readline-devel, openssl-devel, gmp-devel
 BuildRequires: ncurses-devel, gdbm-devel, zlib-devel, expat-devel
@@ -376,6 +381,8 @@ rm -r Modules/zlib || exit 1
 %patch107 -p3 -b .CVE-2010-1634
 %patch108 -p1 -b .CVE-2010-2089
 %patch109 -p1 -b .CVE-2008-5983
+
+%patch110 -p0 -b .fix-expat-issue9054
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1057,6 +1064,10 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Fri Jul  2 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.2-11
+- Fix an incompatibility between pyexpat and the system expat-2.0.1 that led to
+a segfault running test_pyexpat.py (patch 110; upstream issue 9054; rhbz#610312)
+
 * Fri Jun  4 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.2-10
 - ensure that the compiler is invoked with "-fwrapv" (rhbz#594819)
 - reformat whitespace in audioop.c (patch 106)
