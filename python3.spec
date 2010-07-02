@@ -40,7 +40,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -1064,6 +1064,9 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Fri Jul  2 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.2-12
+- rebuild
+
 * Fri Jul  2 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.2-11
 - Fix an incompatibility between pyexpat and the system expat-2.0.1 that led to
 a segfault running test_pyexpat.py (patch 110; upstream issue 9054; rhbz#610312)
