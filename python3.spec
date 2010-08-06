@@ -17,6 +17,9 @@
 
 %global with_systemtap 1
 
+# Change from yes to no to turn this off
+%global with_computed_gotos yes
+
 # We want to byte-compile the .py files within the packages using the new
 # python3 binary.
 # 
@@ -40,7 +43,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -439,6 +442,7 @@ BuildPython() {
   --with-system-ffi \
   --with-system-expat \
   $ExtraConfigArgs \
+  --with-computed-gotos=%{with_computed_gotos} \
   %{nil}
 
 
@@ -1064,6 +1068,9 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Fri Aug 6 2010 Toshio Kuratomi <toshio@fedoraproject.org> - 3.1.2-13
+- Turn on computed-gotos.
+
 * Fri Jul  2 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.2-12
 - rebuild
 
