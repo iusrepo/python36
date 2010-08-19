@@ -227,6 +227,12 @@ Patch109: python-3.1.2-CVE-2008-5983.patch
 # Sent upstream as http://bugs.python.org/issue9054
 Patch110: python-3.1.2-fix-expat-issue9054.patch
 
+# Fix race condition in parallel make that could lead to graminit.c failing
+# to compile, or linker errors with "undefined reference to
+# `_PyParser_Grammar'":
+# Not yet sent upstream:
+Patch111: python-3.1-fix-parallel-make.patch
+
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 BuildRequires: readline-devel, openssl-devel, gmp-devel
 BuildRequires: ncurses-devel, gdbm-devel, zlib-devel, expat-devel
@@ -386,6 +392,8 @@ rm -r Modules/zlib || exit 1
 %patch109 -p1 -b .CVE-2008-5983
 
 %patch110 -p0 -b .fix-expat-issue9054
+
+%patch111 -p1 -b .parallel-grammar
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1068,8 +1076,9 @@ rm -fr %{buildroot}
 
 
 %changelog
-* Fri Aug 6 2010 Toshio Kuratomi <toshio@fedoraproject.org> - 3.1.2-13
+* Thu Aug 19 2010 Toshio Kuratomi <toshio@fedoraproject.org> - 3.1.2-13
 - Turn on computed-gotos.
+- Fix for parallel make and graminit.c
 
 * Fri Jul  2 2010 David Malcolm <dmalcolm@redhat.com> - 3.1.2-12
 - rebuild
