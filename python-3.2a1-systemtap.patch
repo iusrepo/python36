@@ -1,0 +1,222 @@
+diff -up Python-3.2a1/configure.in.systemtap Python-3.2a1/configure.in
+--- Python-3.2a1/configure.in.systemtap	2010-07-19 03:31:40.000000000 -0400
++++ Python-3.2a1/configure.in	2010-08-02 16:19:43.809000621 -0400
+@@ -1987,6 +1987,7 @@ AC_ARG_WITH(system_expat,
+ AC_MSG_RESULT($with_system_expat)
+ 
+ # Check for use of the system libffi library
++
+ AC_MSG_CHECKING(for --with-system-ffi)
+ AC_ARG_WITH(system_ffi,
+             AS_HELP_STRING([--with-system-ffi], [build _ctypes module using an installed ffi library]))
+@@ -2500,6 +2501,38 @@ if test "$with_valgrind" != no; then
+     OPT="-DDYNAMIC_ANNOTATIONS_ENABLED=1 $OPT"
+ fi
+ 
++# Check for dtrace support
++AC_MSG_CHECKING(for --with-dtrace)
++AC_ARG_WITH(dtrace,
++            AC_HELP_STRING(--with(out)-dtrace, disable/enable dtrace support))
++
++if test ! -z "$with_dtrace"
++then
++    if dtrace -G -o /dev/null -s $srcdir/Include/pydtrace.d 2>/dev/null
++    then
++	AC_DEFINE(WITH_DTRACE, 1, 
++	 [Define if you want to compile in Dtrace support])
++	with_dtrace="Sun"
++	DTRACEOBJS="Python/dtrace.o"
++	DTRADEHDRS=""
++    elif dtrace -h -o /dev/null -s $srcdir/Include/pydtrace.d
++   then
++	AC_DEFINE(WITH_DTRACE, 1, 
++	 [Define if you want to compile in Dtrace support])
++	with_dtrace="Apple"
++	DTRACEOBJS=""
++	DTRADEHDRS="pydtrace.h"
++    else
++	with_dtrace="no"
++    fi
++else
++    with_dtrace="no"
++fi
++
++AC_MSG_RESULT($with_dtrace)
++AC_SUBST(DTRACEOBJS)
++AC_SUBST(DTRACEHDRS)
++
+ # Check for --with-wctype-functions
+ AC_MSG_CHECKING(for --with-wctype-functions)
+ AC_ARG_WITH(wctype-functions, 
+diff -up Python-3.2a1/Include/pydtrace.d.systemtap Python-3.2a1/Include/pydtrace.d
+--- Python-3.2a1/Include/pydtrace.d.systemtap	2010-08-02 16:17:04.249000540 -0400
++++ Python-3.2a1/Include/pydtrace.d	2010-08-02 16:17:04.249000540 -0400
+@@ -0,0 +1,10 @@
++provider python {
++	probe function__entry(const char *, const char *, int);
++	probe function__return(const char *, const char *, int);
++};
++
++#pragma D attributes Evolving/Evolving/Common provider python provider
++#pragma D attributes Private/Private/Common provider python module
++#pragma D attributes Private/Private/Common provider python function
++#pragma D attributes Evolving/Evolving/Common provider python name
++#pragma D attributes Evolving/Evolving/Common provider python args
+diff -up Python-3.2a1/Makefile.pre.in.systemtap Python-3.2a1/Makefile.pre.in
+--- Python-3.2a1/Makefile.pre.in.systemtap	2010-08-02 16:17:04.243000614 -0400
++++ Python-3.2a1/Makefile.pre.in	2010-08-02 16:20:41.617000527 -0400
+@@ -324,6 +324,7 @@ PYTHON_OBJS=	\
+ 		Python/dtoa.o \
+ 		Python/formatter_unicode.o \
+ 		Python/$(DYNLOADFILE) \
++		@DTRACEOBJS@ \
+ 		$(LIBOBJS) \
+ 		$(MACHDEP_OBJS) \
+ 		$(THREADOBJ)
+@@ -615,6 +616,18 @@ Python/formatter_unicode.o: $(srcdir)/Py
+ 				$(srcdir)/Objects/stringlib/formatter.h
+ 
+ 
++# Only needed with --with-dtrace
++buildinclude:
++	mkdir -p Include
++
++Include/pydtrace.h: buildinclude $(srcdir)/Include/pydtrace.d
++	dtrace -o $@ $(DFLAGS) -C -h -s $(srcdir)/Include/pydtrace.d
++
++Python/ceval.o: Include/pydtrace.h
++
++Python/dtrace.o: buildinclude $(srcdir)/Include/pydtrace.d Python/ceval.o
++	dtrace -o $@ $(DFLAGS) -C -G -s $(srcdir)/Include/pydtrace.d Python/ceval.o
++
+ ############################################################################
+ # Header files
+ 
+@@ -1248,7 +1261,7 @@ Python/thread.o: @THREADHEADERS@
+ .PHONY: frameworkinstall frameworkinstallframework frameworkinstallstructure
+ .PHONY: frameworkinstallmaclib frameworkinstallapps frameworkinstallunixtools
+ .PHONY: frameworkaltinstallunixtools recheck autoconf clean clobber distclean 
+-.PHONY: smelly funny patchcheck
++.PHONY: smelly funny patchcheck buildinclude
+ .PHONY: gdbhooks
+ 
+ # IF YOU PUT ANYTHING HERE IT WILL GO AWAY
+diff -up Python-3.2a1/pyconfig.h.in.systemtap Python-3.2a1/pyconfig.h.in
+--- Python-3.2a1/pyconfig.h.in.systemtap	2010-08-02 16:18:33.696001964 -0400
++++ Python-3.2a1/pyconfig.h.in	2010-08-02 16:21:48.566001832 -0400
+@@ -1078,6 +1078,9 @@
+ /* Define if you want documentation strings in extension modules */
+ #undef WITH_DOC_STRINGS
+ 
++/* Define if you want to compile in Dtrace support */
++#undef WITH_DTRACE
++
+ /* Define if you want to use the new-style (Openstep, Rhapsody, MacOS) dynamic
+    linker (dyld) instead of the old-style (NextStep) dynamic linker (rld).
+    Dyld is necessary to support frameworks. */
+diff -up Python-3.2a1/Python/ceval.c.systemtap Python-3.2a1/Python/ceval.c
+--- Python-3.2a1/Python/ceval.c.systemtap	2010-07-20 18:39:34.000000000 -0400
++++ Python-3.2a1/Python/ceval.c	2010-08-02 16:23:58.703001000 -0400
+@@ -19,6 +19,10 @@
+ 
+ #include <ctype.h>
+ 
++#ifdef WITH_DTRACE
++#include "pydtrace.h"
++#endif
++
+ #ifndef WITH_TSC
+ 
+ #define READ_TIMESTAMP(var)
+@@ -752,6 +756,70 @@ PyEval_EvalCode(PyCodeObject *co, PyObje
+ }
+ 
+ 
++#ifdef WITH_DTRACE
++struct frame_marker_info
++{
++	char *filename;
++	char *name;
++	int lineno;
++
++	PyObject *utf8_filename;
++	PyObject *utf8_name;
++};
++
++static void
++get_frame_marker_info(PyFrameObject *f, struct frame_marker_info *fmi)
++{
++	fmi->utf8_filename = PyUnicode_AsUTF8String(f->f_code->co_filename);
++	if (fmi->utf8_filename) {
++		fmi->filename = PyBytes_AsString(fmi->utf8_filename);
++	} else {
++		fmi->filename = NULL;
++		/* FIXME: clear the exception? */
++	}
++
++	fmi->utf8_name = PyUnicode_AsUTF8String(f->f_code->co_name);
++	if (fmi->utf8_name) {
++		fmi->name = PyBytes_AsString(fmi->utf8_name);
++	} else {
++		fmi->name = NULL;
++		/* FIXME: clear the exception? */
++	}
++
++	fmi->lineno = PyCode_Addr2Line(f->f_code, f->f_lasti);
++}
++
++static void
++release_frame_marker_info(struct frame_marker_info *fmi)
++{
++	Py_XDECREF(fmi->utf8_filename);
++	Py_XDECREF(fmi->utf8_name);
++}
++
++static void
++dtrace_entry(PyFrameObject *f)
++{
++	struct frame_marker_info fmi;
++	get_frame_marker_info(f, &fmi);
++	PYTHON_FUNCTION_ENTRY(fmi.filename, fmi.name, fmi.lineno);
++	release_frame_marker_info(&fmi);
++}
++
++static void
++dtrace_return(PyFrameObject *f)
++{
++	struct frame_marker_info fmi;
++	get_frame_marker_info(f, &fmi);
++	PYTHON_FUNCTION_RETURN(fmi.filename, fmi.name, fmi.lineno);
++	release_frame_marker_info(&fmi);
++}
++#else
++#define	PYTHON_FUNCTION_ENTRY_ENABLED() 0
++#define	PYTHON_FUNCTION_RETURN_ENABLED() 0
++#define	dtrace_entry(f)
++#define	dtrace_return(f)
++#endif
++ 
+ /* Interpreter main loop */
+ 
+ PyObject *
+@@ -1156,6 +1224,10 @@ PyEval_EvalFrameEx(PyFrameObject *f, int
+         }
+     }
+ 
++    if (PYTHON_FUNCTION_ENTRY_ENABLED()) {
++        dtrace_entry(f);
++    }
++
+     co = f->f_code;
+     names = co->co_names;
+     consts = co->co_consts;
+@@ -3046,6 +3118,9 @@ fast_yield:
+ 
+     /* pop frame */
+ exit_eval_frame:
++    if (PYTHON_FUNCTION_RETURN_ENABLED()) {
++        dtrace_return(f);
++    }
+     Py_LeaveRecursiveCall();
+     tstate->frame = f->f_back;
+ 

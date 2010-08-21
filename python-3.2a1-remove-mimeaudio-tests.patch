@@ -1,6 +1,7 @@
---- Python-3.1.1/Lib/email/test/test_email.py.remove_mimeaudio_tests	2009-10-27 14:31:09.483539561 -0400
-+++ Python-3.1.1/Lib/email/test/test_email.py	2009-10-27 14:31:27.663548053 -0400
-@@ -926,52 +926,6 @@ Blah blah blah
+diff -up Python-3.2a1/Lib/email/test/test_email.py.remove-mimeaudio-tests Python-3.2a1/Lib/email/test/test_email.py
+--- Python-3.2a1/Lib/email/test/test_email.py.remove-mimeaudio-tests	2010-08-02 15:52:12.397002172 -0400
++++ Python-3.2a1/Lib/email/test/test_email.py	2010-08-02 15:52:38.132999850 -0400
+@@ -952,53 +952,6 @@ Blah blah blah
  
  
  
@@ -22,7 +23,8 @@
 -
 -    def test_encoding(self):
 -        payload = self._au.get_payload()
--        self.assertEqual(base64.decodebytes(payload), self._audiodata)
+-        self.assertEqual(base64.decodebytes(bytes(payload, 'ascii')),
+-                self._audiodata)
 -
 -    def test_checkSetMinor(self):
 -        au = MIMEAudio(self._audiodata, 'fish')

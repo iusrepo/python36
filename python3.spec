@@ -1,6 +1,19 @@
-%global pybasever 3.1
+%global pybasever 3.2
+%global alphatag  a1
+
 %global pylibdir %{_libdir}/python%{pybasever}
 %global dynload_dir %{pylibdir}/lib-dynload
+
+# All bytecode files are now in a __pycache__ subdirectory, with a name
+# reflecting the version of the bytecode (to permit sharing of python libraries
+# between different runtimes)
+# See http://www.python.org/dev/peps/pep-3147/
+# For example,
+#   foo/bar.py
+# now has bytecode at:
+#   foo/__pycache__/bar.cpython-32.pyc
+#   foo/__pycache__/bar.cpython-32.pyo
+%global bytecode_suffixes .cpython-32.py?
 
 # Python's configure script defines SOVERSION, and this is used in the Makefile
 # to determine INSTSONAME, the name of the libpython DSO:
@@ -42,13 +55,43 @@
 # invocation of brp-python-hardlink (since this should still work for python3
 # pyc/pyo files)
 
+
+# We need to get a newer configure generated out of configure.in for the following
+# patches:
+#   patch 55 (systemtap)
+#   patch 103 (debug build)
+#   patch 104 (more config flags)
+#
+# For patch 55 (systemtap), we need to get a new header for configure to use
+#
+# configure.in requires autoconf-2.65, but the version in Fedora is currently
+# autoconf-2.66
+#
+# For now, we'll generate a patch to the generated configure script and
+# pyconfig.h.in on a machine that has a local copy of autoconf 2.65
+#
+# Instructions on obtaining such a copy can be seen at
+#   http://bugs.python.org/issue7997
+#
+# To make it easy to regenerate the patch, this specfile can be run in two
+# ways:
+# (i) regenerate_autotooling_patch  0 : the normal approach: prep the
+# source tree using a pre-generated patch to the "configure" script, and do a
+# full build
+# (ii) regenerate_autotooling_patch 1 : intended to be run on a developer's
+# workstation: prep the source tree without patching configure, then rerun a
+# local copy of autoconf-2.65, regenerate the patch, then exit, without doing
+# the rest of the build
+%global regenerate_autotooling_patch 0
+
+
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
-Version: %{pybasever}.2
-Release: 13%{?dist}
+Version: %{pybasever}
+Release: 0.0.%{alphatag}%{?dist}
 License: Python
 Group: Development/Languages
-Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
+Source: http://python.org/ftp/python/%{version}/Python-%{version}%{alphatag}.tar.bz2
 
 # Avoid having various bogus auto-generated Provides lines for the various
 # python c modules' SONAMEs:
@@ -100,40 +143,33 @@ Source6: systemtap-example.stp
 Source7: pyfuntop.stp
 
 
-Patch0: python-3.1.1-config.patch
-
-
 # Fixup distutils/unixccompiler.py to remove standard library path from rpath:
 # Was Patch0 in ivazquez' python3000 specfile:
 Patch1:         Python-3.1.1-rpath.patch
 
 # The four TestMIMEAudio tests fail due to "audiotest.au" not being packaged.
 # It's simplest to remove them:
-Patch3: python-3.1.1-remove-mimeaudio-tests.patch
+Patch3: python-3.2a1-remove-mimeaudio-tests.patch
 
 # ImportTests.test_issue1267 in test_imp.py reads pydoc.py's shebang line and
 # checks that it read it correctly.
 #
 # Since we modify the shebang lines in our packaging, we also need to modify
 # the expected value in this test:
-Patch4: python-3.1.1-apply-our-changes-to-expected-shebang-for-test_imp.patch
+Patch4: python-3.2a1-apply-our-changes-to-expected-shebang-for-test_imp.patch
 
 # Patch the Makefile.pre.in so that the generated Makefile doesn't try to build
 # a libpythonMAJOR.MINOR.a (bug 550692):
-Patch6: python-3.1.1-no-static-lib.patch
-
-# Fixup configure.in and setup.py to build against system expat library.
-# Adapted from http://svn.python.org/view?view=rev&revision=77170
-Patch7: python-3.1.1-with-system-expat.patch
+Patch6: python-3.2a1-no-static-lib.patch
 
 # Systemtap support: add statically-defined probe points
 # Patch based on upstream bug: http://bugs.python.org/issue4111
 # fixed up by mjw and wcohen for 2.6.2, then fixed up by dmalcolm for 2.6.4
 # then rewritten by mjw (attachment 390110 of rhbz 545179); ported to 3.1.1 by
 # dmalcolm
-Patch8: python-3.1.1-systemtap.patch
+Patch8: python-3.2a1-systemtap.patch
 
-Patch102: python-3.1.1-lib64.patch
+Patch102: python-3.2a1-lib64.patch
 
 # Patch to support building both optimized vs debug stacks DSO ABIs, sharing
 # the same .py and .pyc files, using "_d.so" to signify a debug build of an
@@ -197,7 +233,7 @@ Patch102: python-3.1.1-lib64.patch
 #  * Patch runtests.sh to support supplying a value for PYTHON, so that we can
 # run the tests against each of the builds
 
-Patch103: python-3.1.2-debug-build.patch
+Patch103: python-3.2a1-debug-build.patch
 
 # Add configure-time support for the COUNT_ALLOCS and CALL_PROFILE options
 # described at http://svn.python.org/projects/python/trunk/Misc/SpecialBuilds.txt
@@ -207,22 +243,7 @@ Patch104: python-3.1.2-more-configuration-flags.patch
 
 # Add flags for statvfs.f_flag to the constant list in posixmodule (i.e. "os")
 # (rhbz:553020); partially upstream as http://bugs.python.org/issue7647
-Patch105: python-2.6.5-statvfs-f_flag-constants.patch
-
-# This is the Modules/audioop.c part of the whitespace cleanup in r81032, to make it
-# easier to apply subsequent security fixes:
-Patch106: python-3.1.2-reformat-audioop.c.patch
-
-# CVE-2010-1634: fix various integer overflow checks in the audioop module
-# This is the difference from r81032 to r81081 (i.e r81047 and r81081)
-Patch107: python-3.1.2-CVE-2010-1634.patch
-
-# CVE-2010-2089: verify sizes/lengths within audioop module:
-Patch108: python-3.1.2-CVE-2010-2089.patch
-
-# CVE-2008-5983: the new PySys_SetArgvEx entry point from r81400 (backported to
-# the old layout before the whitespace cleanup of release31-maint in r81033):
-Patch109: python-3.1.2-CVE-2008-5983.patch
+Patch105: python-3.2a1-statvfs-f_flag-constants.patch
 
 # Fix an incompatibility between pyexpat and the system expat-2.0.1 that led to
 # a segfault running test_pyexpat.py (rhbz:610312)
@@ -233,7 +254,19 @@ Patch110: python-3.1.2-fix-expat-issue9054.patch
 # to compile, or linker errors with "undefined reference to
 # `_PyParser_Grammar'":
 # Not yet sent upstream:
-Patch111: python-3.1-fix-parallel-make.patch
+Patch111: python-3.2a1-fix-parallel-make.patch
+
+# COUNT_ALLOCS is useful for debugging, but the upstream behaviour of always
+# emitting debug info to stdout on exit is too verbose and makes it harder to
+# use the debug build.  Add a "PYTHONDUMPCOUNTS" environment variable which
+# must be set to enable the output on exit
+# Not yet sent upstream:
+Patch125: less-verbose-COUNT_ALLOCS.patch
+
+# This is the generated patch to "configure"; see the description of
+#   %{regenerate_autotooling_patch}
+# above:
+Patch300: autotool-intermediates.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 BuildRequires: readline-devel, openssl-devel, gmp-devel
@@ -343,9 +376,10 @@ It shares installation directories with the standard Python 3 runtime, so that
 .py and .pyc files can be shared.  All compiled extension modules gain a "_d"
 suffix ("foo_d.so" rather than "foo.so") so that each Python 3 implementation
 can load its own extensions.
+%endif # with_debug_build
 
 %prep
-%setup -q -n Python-%{version}
+%setup -q -n Python-%{version}%{alphatag}
 chmod +x %{SOURCE1}
 
 %if 0%{?with_systemtap}
@@ -370,33 +404,30 @@ rm -r Modules/zlib || exit 1
 #
 # Apply patches:
 #
-%patch0 -p1 -b .config
-%patch1 -p1 -b .rpath
+%patch1 -p1
 %patch3 -p1 -b .remove-mimeaudio-tests
 %patch4 -p1 -b .apply-our-changes-to-expected-shebang
 %patch6 -p1 -b .no-static-lib
-%patch7 -p1 -b .expat
+
 %if 0%{?with_systemtap}
 %patch8 -p1 -b .systemtap
 %endif
 
 %if "%{_lib}" == "lib64"
-%patch102 -p1 -b .lib64
+%patch102 -p1
 %endif
 
-%patch103 -p1 -b .debug-build
+%patch103 -p1
+
 %patch104 -p1 -b .more-configuration-flags
 
 %patch105 -p1 -b .statvfs-f-flag-constants
 
-%patch106 -p3 -b .reformat-audioop
-%patch107 -p3 -b .CVE-2010-1634
-%patch108 -p1 -b .CVE-2010-2089
-%patch109 -p1 -b .CVE-2008-5983
-
 %patch110 -p0 -b .fix-expat-issue9054
 
 %patch111 -p1 -b .parallel-grammar
+
+%patch125 -p1 -b .less-verbose-COUNT_ALLOCS
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -408,6 +439,12 @@ sed --in-place \
     --expression="s|http://docs.python.org/library|http://docs.python.org/%{pybasever}/library|g" \
     Lib/pydoc.py || exit 1
 
+%if ! 0%{regenerate_autotooling_patch}
+# Normally we apply the patch to "configure"
+# We don't apply the patch if we're working towards regenerating it
+%patch300 -p0 -b .autotool-intermediates
+%endif
+
 %build
 topdir=$(pwd)
 export CFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC -fwrapv"
@@ -418,10 +455,28 @@ export LINKCC="gcc"
 export CFLAGS="$CFLAGS `pkg-config --cflags openssl`"
 export LDFLAGS="$LDFLAGS `pkg-config --libs-only-L openssl`"
 
-autoconf
+%if 0%{regenerate_autotooling_patch}
+# If enabled, this code regenerates the patch to "configure", using a
+# local copy of autoconf-2.65, then exits the build
+#
+# The following assumes that the copy is installed to ~/autoconf-2.65/bin
+# as per these instructions:
+#   http://bugs.python.org/issue7997
 
-# For patch 8 (systemtap), we need to get a new header for configure to use:
-autoheader
+for f in pyconfig.h.in configure ; do
+    cp $f $f.autotool-intermediates ;
+done
+
+# Rerun the autotools:
+PATH=~/autoconf-2.65/bin:$PATH autoreconf
+
+# Regenerate the patch:
+gendiff . .autotool-intermediates > %{PATCH300}
+
+
+# Exit the build
+exit 1
+%endif
 
 # Define a function, for how to perform a "build" of python for a given
 # configuration:
@@ -548,7 +603,6 @@ install -m755 -d ${RPM_BUILD_ROOT}%{pylibdir}/Tools
 install Tools/README ${RPM_BUILD_ROOT}%{pylibdir}/Tools/
 cp -ar Tools/freeze ${RPM_BUILD_ROOT}%{pylibdir}/Tools/
 cp -ar Tools/i18n ${RPM_BUILD_ROOT}%{pylibdir}/Tools/
-cp -ar Tools/modulator ${RPM_BUILD_ROOT}%{pylibdir}/Tools/
 cp -ar Tools/pynche ${RPM_BUILD_ROOT}%{pylibdir}/Tools/
 cp -ar Tools/scripts ${RPM_BUILD_ROOT}%{pylibdir}/Tools/
 
@@ -804,93 +858,95 @@ rm -fr %{buildroot}
 %{_mandir}/*/*
 %dir %{pylibdir}
 %dir %{dynload_dir}
-%{dynload_dir}/Python-%{version}-py%{pybasever}.egg-info
-%{dynload_dir}/_bisectmodule.so
+%{dynload_dir}/Python-%{version}%{alphatag}-py%{pybasever}.egg-info
+%{dynload_dir}/_bisect.so
 %{dynload_dir}/_codecs_cn.so
 %{dynload_dir}/_codecs_hk.so
 %{dynload_dir}/_codecs_iso2022.so
 %{dynload_dir}/_codecs_jp.so
 %{dynload_dir}/_codecs_kr.so
 %{dynload_dir}/_codecs_tw.so
-%{dynload_dir}/_collectionsmodule.so
+%{dynload_dir}/_collections.so
 %{dynload_dir}/_csv.so
 %{dynload_dir}/_ctypes.so
 %{dynload_dir}/_curses.so
 %{dynload_dir}/_curses_panel.so
 %{dynload_dir}/_dbm.so
 %{dynload_dir}/_elementtree.so
-%{dynload_dir}/_gdbmmodule.so
+%{dynload_dir}/_gdbm.so
 %{dynload_dir}/_hashlib.so
-%{dynload_dir}/_heapqmodule.so
+%{dynload_dir}/_heapq.so
 %{dynload_dir}/_json.so
 %{dynload_dir}/_lsprof.so
-%{dynload_dir}/_multibytecodecmodule.so
+%{dynload_dir}/_multibytecodec.so
 %{dynload_dir}/_multiprocessing.so
 %{dynload_dir}/_pickle.so
-%{dynload_dir}/_randommodule.so
-%{dynload_dir}/_sha1module.so
-%{dynload_dir}/_sha256module.so
-%{dynload_dir}/_sha512module.so
-%{dynload_dir}/_socketmodule.so
+%{dynload_dir}/_posixsubprocess.so
+%{dynload_dir}/_random.so
+%{dynload_dir}/_socket.so
 %{dynload_dir}/_sqlite3.so
 %{dynload_dir}/_ssl.so
 %{dynload_dir}/_struct.so
-%{dynload_dir}/_weakref.so
-%{dynload_dir}/arraymodule.so
-%{dynload_dir}/atexitmodule.so
+%{dynload_dir}/array.so
+%{dynload_dir}/atexit.so
 %{dynload_dir}/audioop.so
 %{dynload_dir}/binascii.so
 %{dynload_dir}/bz2.so
-%{dynload_dir}/cmathmodule.so
-%{dynload_dir}/cryptmodule.so
-%{dynload_dir}/datetime.so
-%{dynload_dir}/fcntlmodule.so
-%{dynload_dir}/grpmodule.so
-%{dynload_dir}/itertoolsmodule.so
-%{dynload_dir}/mathmodule.so
-%{dynload_dir}/mmapmodule.so
-%{dynload_dir}/nismodule.so
+%{dynload_dir}/cmath.so
+%{dynload_dir}/crypt.so
+%{dynload_dir}/_datetime.so
+%{dynload_dir}/fcntl.so
+%{dynload_dir}/grp.so
+%{dynload_dir}/itertools.so
+%{dynload_dir}/math.so
+%{dynload_dir}/mmap.so
+%{dynload_dir}/nis.so
 %{dynload_dir}/operator.so
 %{dynload_dir}/ossaudiodev.so
-%{dynload_dir}/parsermodule.so
+%{dynload_dir}/parser.so
 %{dynload_dir}/pyexpat.so
 %{dynload_dir}/readline.so
 %{dynload_dir}/resource.so
-%{dynload_dir}/selectmodule.so
-%{dynload_dir}/spwdmodule.so
-%{dynload_dir}/syslogmodule.so
+%{dynload_dir}/select.so
+%{dynload_dir}/spwd.so
+%{dynload_dir}/syslog.so
 %{dynload_dir}/termios.so
-%{dynload_dir}/timemodule.so
+%{dynload_dir}/time.so
 %{dynload_dir}/unicodedata.so
-%{dynload_dir}/xxsubtype.so
-%{dynload_dir}/zlibmodule.so
+%{dynload_dir}/zlib.so
 
 %dir %{pylibdir}/site-packages
 %{pylibdir}/site-packages/README
-%{pylibdir}/*.py*
-%{pylibdir}/*.doc
+%{pylibdir}/*.py
+%{pylibdir}/__pycache__/*%{bytecode_suffixes}
 %{pylibdir}/wsgiref.egg-info
 %dir %{pylibdir}/ctypes
-%{pylibdir}/ctypes/*.py*
+%{pylibdir}/ctypes/*.py
+%{pylibdir}/ctypes/__pycache__/*%{bytecode_suffixes}
 %{pylibdir}/ctypes/macholib
 %{pylibdir}/curses
 %dir %{pylibdir}/dbm
-%{pylibdir}/dbm/*.py*
+%{pylibdir}/dbm/*.py
+%{pylibdir}/dbm/__pycache__/*%{bytecode_suffixes}
 %dir %{pylibdir}/distutils
-%{pylibdir}/distutils/*.py*
+%{pylibdir}/distutils/*.py
+%{pylibdir}/distutils/__pycache__/*%{bytecode_suffixes}
 %{pylibdir}/distutils/README
 %{pylibdir}/distutils/command
 %dir %{pylibdir}/email
-%{pylibdir}/email/*.py*
+%{pylibdir}/email/*.py
+%{pylibdir}/email/__pycache__/*%{bytecode_suffixes}
 %{pylibdir}/email/mime
 %{pylibdir}/encodings
 %{pylibdir}/html
 %{pylibdir}/http
 %{pylibdir}/idlelib
 %dir %{pylibdir}/importlib
-%{pylibdir}/importlib/*.py*
+%{pylibdir}/importlib/*.py
+%{pylibdir}/importlib/__pycache__/*%{bytecode_suffixes}
 %dir %{pylibdir}/json
-%{pylibdir}/json/*.py*
+%{pylibdir}/json/*.py
+%{pylibdir}/json/__pycache__/*%{bytecode_suffixes}
 %{pylibdir}/lib2to3
 %exclude %{pylibdir}/lib2to3/tests
 %{pylibdir}/logging
@@ -898,9 +954,14 @@ rm -fr %{buildroot}
 %{pylibdir}/plat-linux2
 %{pylibdir}/pydoc_data
 %dir %{pylibdir}/sqlite3
-%{pylibdir}/sqlite3/*.py*
+%{pylibdir}/sqlite3/*.py
+%{pylibdir}/sqlite3/__pycache__/*%{bytecode_suffixes}
 %dir %{pylibdir}/test
-%{pylibdir}/test/__init__.py*
+%{pylibdir}/test/__init__.py
+%{pylibdir}/test/__pycache__/__init__%{bytecode_suffixes}
+%dir %{pylibdir}/unittest
+%{pylibdir}/unittest/*.py
+%{pylibdir}/unittest/__pycache__/*%{bytecode_suffixes}
 %{pylibdir}/urllib
 %{pylibdir}/wsgiref
 %{pylibdir}/xml
@@ -967,11 +1028,14 @@ rm -fr %{buildroot}
 %{pylibdir}/sqlite3/test
 %{pylibdir}/test
 %{dynload_dir}/_ctypes_test.so
-%{dynload_dir}/_testcapimodule.so
+%{dynload_dir}/_testcapi.so
 %{pylibdir}/lib2to3/tests
 %doc %{pylibdir}/Demo/distutils
 %doc %{pylibdir}/Demo/md5test
 %{pylibdir}/tkinter/test
+%dir %{pylibdir}/unittest/test
+%{pylibdir}/unittest/test/*.py
+%{pylibdir}/unittest/test/__pycache__/*%{bytecode_suffixes}
 
 
 # We don't bother splitting the debug build out into further subpackages:
@@ -989,65 +1053,65 @@ rm -fr %{buildroot}
 %{_bindir}/python%{pybasever}-debug
 
 # ...with debug builds of the built-in "extension" modules:
-%{dynload_dir}/_bisectmodule_d.so
+%{dynload_dir}/_bisect_d.so
 %{dynload_dir}/_codecs_cn_d.so
 %{dynload_dir}/_codecs_hk_d.so
 %{dynload_dir}/_codecs_iso2022_d.so
 %{dynload_dir}/_codecs_jp_d.so
 %{dynload_dir}/_codecs_kr_d.so
 %{dynload_dir}/_codecs_tw_d.so
-%{dynload_dir}/_collectionsmodule_d.so
+%{dynload_dir}/_collections_d.so
 %{dynload_dir}/_csv_d.so
 %{dynload_dir}/_ctypes_d.so
 %{dynload_dir}/_curses_d.so
 %{dynload_dir}/_curses_panel_d.so
 %{dynload_dir}/_dbm_d.so
 %{dynload_dir}/_elementtree_d.so
-%{dynload_dir}/_gdbmmodule_d.so
+%{dynload_dir}/_gdbm_d.so
 %{dynload_dir}/_hashlib_d.so
-%{dynload_dir}/_heapqmodule_d.so
+%{dynload_dir}/_heapq_d.so
 %{dynload_dir}/_json_d.so
 %{dynload_dir}/_lsprof_d.so
-%{dynload_dir}/_multibytecodecmodule_d.so
+%{dynload_dir}/_md5_d.so
+%{dynload_dir}/_multibytecodec_d.so
 %{dynload_dir}/_multiprocessing_d.so
 %{dynload_dir}/_pickle_d.so
-%{dynload_dir}/_randommodule_d.so
-%{dynload_dir}/_sha1module_d.so
-%{dynload_dir}/_sha256module_d.so
-%{dynload_dir}/_sha512module_d.so
-%{dynload_dir}/_socketmodule_d.so
+%{dynload_dir}/_posixsubprocess_d.so
+%{dynload_dir}/_random_d.so
+%{dynload_dir}/_sha1_d.so
+%{dynload_dir}/_sha256_d.so
+%{dynload_dir}/_sha512_d.so
+%{dynload_dir}/_socket_d.so
 %{dynload_dir}/_sqlite3_d.so
 %{dynload_dir}/_ssl_d.so
 %{dynload_dir}/_struct_d.so
-%{dynload_dir}/_weakref_d.so
-%{dynload_dir}/arraymodule_d.so
-%{dynload_dir}/atexitmodule_d.so
+%{dynload_dir}/array_d.so
+%{dynload_dir}/atexit_d.so
 %{dynload_dir}/audioop_d.so
 %{dynload_dir}/binascii_d.so
 %{dynload_dir}/bz2_d.so
-%{dynload_dir}/cmathmodule_d.so
-%{dynload_dir}/cryptmodule_d.so
-%{dynload_dir}/datetime_d.so
-%{dynload_dir}/fcntlmodule_d.so
-%{dynload_dir}/grpmodule_d.so
-%{dynload_dir}/itertoolsmodule_d.so
-%{dynload_dir}/mathmodule_d.so
-%{dynload_dir}/mmapmodule_d.so
-%{dynload_dir}/nismodule_d.so
+%{dynload_dir}/cmath_d.so
+%{dynload_dir}/crypt_d.so
+%{dynload_dir}/_datetime_d.so
+%{dynload_dir}/fcntl_d.so
+%{dynload_dir}/grp_d.so
+%{dynload_dir}/itertools_d.so
+%{dynload_dir}/math_d.so
+%{dynload_dir}/mmap_d.so
+%{dynload_dir}/nis_d.so
 %{dynload_dir}/operator_d.so
 %{dynload_dir}/ossaudiodev_d.so
-%{dynload_dir}/parsermodule_d.so
+%{dynload_dir}/parser_d.so
 %{dynload_dir}/pyexpat_d.so
 %{dynload_dir}/readline_d.so
 %{dynload_dir}/resource_d.so
-%{dynload_dir}/selectmodule_d.so
-%{dynload_dir}/spwdmodule_d.so
-%{dynload_dir}/syslogmodule_d.so
+%{dynload_dir}/select_d.so
+%{dynload_dir}/spwd_d.so
+%{dynload_dir}/syslog_d.so
 %{dynload_dir}/termios_d.so
-%{dynload_dir}/timemodule_d.so
+%{dynload_dir}/time_d.so
 %{dynload_dir}/unicodedata_d.so
-%{dynload_dir}/xxsubtype_d.so
-%{dynload_dir}/zlibmodule_d.so
+%{dynload_dir}/zlib_d.so
 
 # No need to split things out the "Makefile" and the config-32/64.h file as we
 # do for the regular build above (bug 531901), since they're all in one package
@@ -1078,7 +1142,7 @@ rm -fr %{buildroot}
 
 # Analog  of the -test subpackage's files:
 %{dynload_dir}/_ctypes_test_d.so
-%{dynload_dir}/_testcapimodule_d.so
+%{dynload_dir}/_testcapi_d.so
 
 %endif # with_debug_build
 
@@ -1097,6 +1161,26 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Sat Aug 21 2010 David Malcolm <dmalcolm@redhat.com> - 3.2-0.0.a1
+- 3.2a1; add alphatag
+- rework %%files in the light of PEP 3147 (__pycache__)
+- drop our configuration patch to Setup.dist (patch 0): setup.py should do a
+better job of things, and the %%files explicitly lists our modules (r82746
+appears to break the old way of doing things).  This leads to various modules
+changing from "foomodule.so" to "foo.so".  It also leads to the optimized build
+dropping the _sha1, _sha256 and _sha512 modules, but these are provided by
+_hashlib; _weakref becomes a builtin module; xxsubtype goes away (it's only for
+testing/devel purposes)
+- fixup patches 3, 4, 6, 8, 102, 103, 105, 111 for the rebase
+- remove upstream patches: 7 (system expat), 106, 107, 108 (audioop reformat
+plus CVE-2010-1634 and CVE-2010-2089), 109 (CVE-2008-5983)
+- add machinery for rebuilding "configure" and friends, using the correct
+version of autoconf (patch 300)
+- patch the debug build's usage of COUNT_ALLOCS to be less verbose (patch 125)
+- "modulator" was removed upstream
+- drop "-b" from patch applications affecting .py files to avoid littering the
+installation tree
+
 * Thu Aug 19 2010 Toshio Kuratomi <toshio@fedoraproject.org> - 3.1.2-13
 - Turn on computed-gotos.
 - Fix for parallel make and graminit.c

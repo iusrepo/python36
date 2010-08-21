@@ -1,8 +1,7 @@
-Index: Python-3.1.2/Makefile.pre.in
-===================================================================
---- Python-3.1.2.orig/Makefile.pre.in
-+++ Python-3.1.2/Makefile.pre.in
-@@ -215,6 +215,7 @@ IO_OBJS=	\
+diff -up Python-3.2a1/Makefile.pre.in.parallel-grammar Python-3.2a1/Makefile.pre.in
+--- Python-3.2a1/Makefile.pre.in.parallel-grammar	2010-08-20 15:09:13.613527156 -0400
++++ Python-3.2a1/Makefile.pre.in	2010-08-20 15:10:31.428135355 -0400
+@@ -222,6 +222,7 @@ IO_OBJS=	\
  
  ##########################################################################
  # Grammar
@@ -10,7 +9,7 @@ Index: Python-3.1.2/Makefile.pre.in
  GRAMMAR_H=	$(srcdir)/Include/graminit.h
  GRAMMAR_C=	$(srcdir)/Python/graminit.c
  GRAMMAR_INPUT=	$(srcdir)/Grammar/Grammar
-@@ -535,9 +536,24 @@ Modules/python.o: $(srcdir)/Modules/pyth
+@@ -557,9 +558,24 @@ Modules/python.o: $(srcdir)/Modules/pyth
  
  $(IO_OBJS): $(IO_H)
  
@@ -35,4 +34,4 @@ Index: Python-3.1.2/Makefile.pre.in
 +		touch $(GRAMMAR_STAMP)
  
  $(PGEN):	$(PGENOBJS)
- 		$(CC) $(OPT) $(LDFLAGS) $(PGENOBJS) $(LIBS) -o $(PGEN)
+ 		$(CC) $(OPT) $(PY_LDFLAGS) $(PGENOBJS) $(LIBS) -o $(PGEN)
