@@ -13,6 +13,8 @@
 %global py_INSTSONAME_optimized libpython%{pybasever}.so.%{py_SOVERSION}
 %global py_INSTSONAME_debug     libpython%{pybasever}_d.so.%{py_SOVERSION}
 
+%global with_debug_build 1
+
 %global with_gdb_hooks 1
 
 %global with_systemtap 1
@@ -310,6 +312,7 @@ in production.
 You might want to install the python3-test package if you're developing
 python 3 code that uses more than just unittest and/or test_support.py.
 
+%if 0%{?with_debug_build}
 %package debug
 Summary: Debug version of the Python 3 runtime
 Group: Applications/System
@@ -462,6 +465,7 @@ make OPT="$CFLAGS" %{?_smp_mflags}
 
 # Use "BuildPython" to support building with different configurations:
 
+%if 0%{?with_debug_build}
 BuildPython debug \
   python-debug \
   python%{pybasever}-debug \
@@ -471,6 +475,7 @@ BuildPython debug \
   "--with-pydebug --with-count-allocs --with-call-profile" \
 %endif
   false
+%endif # with_debug_build
 
 BuildPython optimized \
   python \
@@ -525,8 +530,10 @@ cp %{SOURCE4} %{buildroot}$PathOfGdbPy
 # Use "InstallPython" to support building with different configurations:
 
 # Install the "debug" build first, so that we can move some files aside
+%if 0%{?with_debug_build}
 InstallPython debug \
   %{py_INSTSONAME_debug}
+%endif # with_debug_build
 
 # Now the optimized build:
 InstallPython optimized \
@@ -568,7 +575,14 @@ install -d %{buildroot}/usr/lib/python%{pybasever}/site-packages
 %else
 %global _pyconfig_h %{_pyconfig32_h}
 %endif
-for PyIncludeDir in python%{pybasever} python%{pybasever}-debug ; do
+
+%if 0%{?with_debug_build}
+%global PyIncludeDirs python%{pybasever} python%{pybasever}-debug
+%else
+%global PyIncludeDirs python%{pybasever}
+%endif
+
+for PyIncludeDir in %{PyIncludeDirs} ; do
   mv %{buildroot}%{_includedir}/$PyIncludeDir/pyconfig.h \
      %{buildroot}%{_includedir}/$PyIncludeDir/%{_pyconfig_h}
   cat > %{buildroot}%{_includedir}/$PyIncludeDir/pyconfig.h << EOF
@@ -693,10 +707,12 @@ sed \
    %{SOURCE6} \
    > %{buildroot}%{tapsetdir}/%{libpython_stp_optimized}
 
+%if 0%{?with_debug_build}
 sed \
    -e "s|LIBRARY_PATH|%{_libdir}/%{py_INSTSONAME_debug}|" \
    %{SOURCE6} \
    > %{buildroot}%{tapsetdir}/%{libpython_stp_debug}
+%endif # with_debug_build
 
 %endif # with_systemtap
 
@@ -766,7 +782,9 @@ done
 }
 
 # Check each of the configurations:
+%if 0%{?with_debug_build}
 CheckPython debug
+%endif # with_debug_build
 CheckPython optimized
 
 
@@ -962,6 +980,7 @@ rm -fr %{buildroot}
 # Hence the manifest is the combination of analogous files in the manifests of
 # all of the other subpackages
 
+%if 0%{?with_debug_build}
 %files debug
 %defattr(-,root,root,-)
 
@@ -1060,6 +1079,8 @@ rm -fr %{buildroot}
 # Analog  of the -test subpackage's files:
 %{dynload_dir}/_ctypes_test_d.so
 %{dynload_dir}/_testcapimodule_d.so
+
+%endif # with_debug_build
 
 # We put the debug-gdb.py file inside /usr/lib/debug to avoid noise from
 # ldconfig (rhbz:562980).
