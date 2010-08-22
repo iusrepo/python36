@@ -144,3 +144,22 @@ diff -up Python-3.2a1/Modules/getpath.c.lib64 Python-3.2a1/Modules/getpath.c
                                       ] )
  
          if (ssl_incs is not None and
+Index: Lib/sysconfig.py
+===================================================================
+--- Lib/sysconfig.py
++++ Lib/sysconfig.py	2010-08-22 14:34:38.791426924 +0200
+@@ -11,10 +11,10 @@
+ 
+ _INSTALL_SCHEMES = {
+     'posix_prefix': {
+-        'stdlib': '{base}/lib/python{py_version_short}',
+-        'platstdlib': '{platbase}/lib/python{py_version_short}',
+-        'purelib': '{base}/lib/python{py_version_short}/site-packages',
+-        'platlib': '{platbase}/lib/python{py_version_short}/site-packages',
++        'stdlib': '{base}/lib64/python{py_version_short}',
++        'platstdlib': '{platbase}/lib64/python{py_version_short}',
++        'purelib': '{base}/lib64/python{py_version_short}/site-packages',
++        'platlib': '{platbase}/lib64/python{py_version_short}/site-packages',
+         'include': '{base}/include/python{py_version_short}',
+         'platinclude': '{platbase}/include/python{py_version_short}',
+         'scripts': '{base}/bin',

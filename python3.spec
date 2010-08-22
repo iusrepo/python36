@@ -1161,6 +1161,10 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Sun Aug 22 2010 Thomas Spura <tomspur@fedoraproject.org> - 3.2-0.1.a1
+- on 64bit "stdlib" was still "/usr/lib/python*" (modify *lib64.patch)
+- make find-provides-without-python-sonames.sh 64bit aware
+
 * Sat Aug 21 2010 David Malcolm <dmalcolm@redhat.com> - 3.2-0.0.a1
 - 3.2a1; add alphatag
 - rework %%files in the light of PEP 3147 (__pycache__)

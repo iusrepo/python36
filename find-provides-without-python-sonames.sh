@@ -9,6 +9,7 @@
 
 # So we strip out all /usr/lib/python lines first, before running them through
 # the standard script:
-grep -v "/usr/lib/python" | /usr/lib/rpm/find-provides
+grep -v "/usr/lib/python" | grep -v "/usr/lib64/python" | \
+    /usr/lib/rpm/find-provides
 
 exit 0
