@@ -88,7 +88,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}
-Release: 0.1.%{alphatag}%{?dist}
+Release: 0.2.%{alphatag}%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}%{alphatag}.tar.bz2
@@ -594,7 +594,7 @@ InstallPython debug \
 InstallPython optimized \
   %{py_INSTSONAME_optimized}
 
-mkdir -p ${RPM_BUILD_ROOT}%{pylibdir}/site-packages
+install -d -m 0755 ${RPM_BUILD_ROOT}%{pylibdir}/site-packages/__pycache__
 
 mv ${RPM_BUILD_ROOT}%{_bindir}/2to3 ${RPM_BUILD_ROOT}%{_bindir}/python3-2to3
 
@@ -617,7 +617,7 @@ cp -ar Demo %{buildroot}%{pylibdir}/
 rm -f %{buildroot}%{pylibdir}/email/test/data/audiotest.au %{buildroot}%{pylibdir}/test/audiotest.au
 
 %if "%{_lib}" == "lib64"
-install -d %{buildroot}/usr/lib/python%{pybasever}/site-packages
+install -d -m 0755 %{buildroot}/usr/lib/python%{pybasever}/site-packages/__pycache__
 %endif
 
 # Make python3-devel multilib-ready (bug #192747, #139911)
@@ -915,7 +915,8 @@ rm -fr %{buildroot}
 %{dynload_dir}/unicodedata.so
 %{dynload_dir}/zlib.so
 
-%dir %{pylibdir}/site-packages
+%dir %{pylibdir}/site-packages/
+%dir %{pylibdir}/site-packages/__pycache__/
 %{pylibdir}/site-packages/README
 %{pylibdir}/*.py
 %{pylibdir}/__pycache__/*%{bytecode_suffixes}
@@ -969,6 +970,7 @@ rm -fr %{buildroot}
 %if "%{_lib}" == "lib64"
 %attr(0755,root,root) %dir %{_prefix}/lib/python%{pybasever}
 %attr(0755,root,root) %dir %{_prefix}/lib/python%{pybasever}/site-packages
+%attr(0755,root,root) %dir %{_prefix}/lib/python%{pybasever}/site-packages/__pycache__/
 %endif
 
 # "Makefile" and the config-32/64.h file are needed by
@@ -1161,6 +1163,9 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Sun Aug 22 2010 Toshio Kuratomi <toshio@fedoraproject.org> - 3.2-0.2.a1
+- Add __pycache__ directory for site-packages
+
 * Sun Aug 22 2010 Thomas Spura <tomspur@fedoraproject.org> - 3.2-0.1.a1
 - on 64bit "stdlib" was still "/usr/lib/python*" (modify *lib64.patch)
 - make find-provides-without-python-sonames.sh 64bit aware
