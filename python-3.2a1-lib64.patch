@@ -146,8 +146,8 @@ diff -up Python-3.2a1/Modules/getpath.c.lib64 Python-3.2a1/Modules/getpath.c
          if (ssl_incs is not None and
 Index: Lib/sysconfig.py
 ===================================================================
---- Lib/sysconfig.py
-+++ Lib/sysconfig.py	2010-08-22 14:34:38.791426924 +0200
+--- Python-3.2a1/Lib/sysconfig.py
++++ Python-3.2a1/Lib/sysconfig.py	2010-08-22 14:34:38.791426924 +0200
 @@ -11,10 +11,10 @@
  
  _INSTALL_SCHEMES = {
