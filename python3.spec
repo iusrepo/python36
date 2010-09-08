@@ -88,7 +88,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}
-Release: 0.2.%{alphatag}%{?dist}
+Release: 0.3.%{alphatag}%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}%{alphatag}.tar.bz2
@@ -919,22 +919,27 @@ rm -fr %{buildroot}
 %dir %{pylibdir}/site-packages/__pycache__/
 %{pylibdir}/site-packages/README
 %{pylibdir}/*.py
+%dir %{pylibdir}/__pycache__/
 %{pylibdir}/__pycache__/*%{bytecode_suffixes}
 %{pylibdir}/wsgiref.egg-info
 %dir %{pylibdir}/ctypes
+%dir %{pylibdir}/ctypes/__pycache__/
 %{pylibdir}/ctypes/*.py
 %{pylibdir}/ctypes/__pycache__/*%{bytecode_suffixes}
 %{pylibdir}/ctypes/macholib
 %{pylibdir}/curses
 %dir %{pylibdir}/dbm
+%dir %{pylibdir}/dbm/__pycache__/
 %{pylibdir}/dbm/*.py
 %{pylibdir}/dbm/__pycache__/*%{bytecode_suffixes}
 %dir %{pylibdir}/distutils
+%dir %{pylibdir}/distutils/__pycache__/
 %{pylibdir}/distutils/*.py
 %{pylibdir}/distutils/__pycache__/*%{bytecode_suffixes}
 %{pylibdir}/distutils/README
 %{pylibdir}/distutils/command
 %dir %{pylibdir}/email
+%dir %{pylibdir}/email/__pycache__/
 %{pylibdir}/email/*.py
 %{pylibdir}/email/__pycache__/*%{bytecode_suffixes}
 %{pylibdir}/email/mime
@@ -943,9 +948,11 @@ rm -fr %{buildroot}
 %{pylibdir}/http
 %{pylibdir}/idlelib
 %dir %{pylibdir}/importlib
+%dir %{pylibdir}/importlib/__pycache__/
 %{pylibdir}/importlib/*.py
 %{pylibdir}/importlib/__pycache__/*%{bytecode_suffixes}
 %dir %{pylibdir}/json
+%dir %{pylibdir}/json/__pycache__/
 %{pylibdir}/json/*.py
 %{pylibdir}/json/__pycache__/*%{bytecode_suffixes}
 %{pylibdir}/lib2to3
@@ -955,12 +962,17 @@ rm -fr %{buildroot}
 %{pylibdir}/plat-linux2
 %{pylibdir}/pydoc_data
 %dir %{pylibdir}/sqlite3
+%dir %{pylibdir}/sqlite3/__pycache__/
 %{pylibdir}/sqlite3/*.py
 %{pylibdir}/sqlite3/__pycache__/*%{bytecode_suffixes}
 %dir %{pylibdir}/test
+%dir %{pylibdir}/test/__pycache__/
 %{pylibdir}/test/__init__.py
+%{pylibdir}/test/support.py
 %{pylibdir}/test/__pycache__/__init__%{bytecode_suffixes}
+%{pylibdir}/test/__pycache__/support%{bytecode_suffixes}
 %dir %{pylibdir}/unittest
+%dir %{pylibdir}/unittest/__pycache__/
 %{pylibdir}/unittest/*.py
 %{pylibdir}/unittest/__pycache__/*%{bytecode_suffixes}
 %{pylibdir}/urllib
@@ -1035,9 +1047,7 @@ rm -fr %{buildroot}
 %doc %{pylibdir}/Demo/distutils
 %doc %{pylibdir}/Demo/md5test
 %{pylibdir}/tkinter/test
-%dir %{pylibdir}/unittest/test
-%{pylibdir}/unittest/test/*.py
-%{pylibdir}/unittest/test/__pycache__/*%{bytecode_suffixes}
+%{pylibdir}/unittest/test
 
 
 # We don't bother splitting the debug build out into further subpackages:
@@ -1163,6 +1173,10 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Wed Sep  8 2010 David Malcolm <dmalcolm@redhat.com> - 3.2-0.3.a1
+- Move test.support to core package (rhbz#596258)
+- Add various missing __pycache__ directories to payload
+
 * Sun Aug 22 2010 Toshio Kuratomi <toshio@fedoraproject.org> - 3.2-0.2.a1
 - Add __pycache__ directory for site-packages
 
