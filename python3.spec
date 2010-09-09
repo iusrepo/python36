@@ -88,7 +88,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}
-Release: 0.3.%{alphatag}%{?dist}
+Release: 0.4.%{alphatag}%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}%{alphatag}.tar.bz2
@@ -287,6 +287,8 @@ URL: http://www.python.org/
 
 # See notes in bug 532118:
 Provides: python(abi) = %{pybasever}
+
+Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 
 %description
 Python 3 is a new version of the language that is incompatible with the 2.x
@@ -856,6 +858,10 @@ rm -fr %{buildroot}
 %{_bindir}/python3
 %{_bindir}/python%{pybasever}
 %{_mandir}/*/*
+
+%files libs
+%defattr(-,root,root,-)
+%doc LICENSE README
 %dir %{pylibdir}
 %dir %{dynload_dir}
 %{dynload_dir}/Python-%{version}%{alphatag}-py%{pybasever}.egg-info
@@ -993,8 +999,6 @@ rm -fr %{buildroot}
 %dir %{_includedir}/python%{pybasever}
 %{_includedir}/python%{pybasever}/%{_pyconfig_h}
 
-%files libs
-%defattr(-,root,root,-)
 %{_libdir}/%{py_INSTSONAME_optimized}
 %if 0%{?with_systemtap}
 %{tapsetdir}/%{libpython_stp_optimized}
@@ -1064,6 +1068,7 @@ rm -fr %{buildroot}
 %{_bindir}/python3-debug
 %{_bindir}/python%{pybasever}-debug
 
+# Analog of the -libs subpackage's files:
 # ...with debug builds of the built-in "extension" modules:
 %{dynload_dir}/_bisect_d.so
 %{dynload_dir}/_codecs_cn_d.so
@@ -1129,7 +1134,6 @@ rm -fr %{buildroot}
 # do for the regular build above (bug 531901), since they're all in one package
 # now; they're listed below, under "-devel":
 
-# Analog of the -libs subpackage's files:
 %{_libdir}/%{py_INSTSONAME_debug}
 %if 0%{?with_systemtap}
 %{tapsetdir}/%{libpython_stp_debug}
@@ -1173,6 +1177,10 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Thu Sep  9 2010 David Malcolm <dmalcolm@redhat.com> - 3.2-0.4.a1
+- move most of the content of the core package to the libs subpackage, given
+that the libs aren't meaningfully usable without the standard libraries
+
 * Wed Sep  8 2010 David Malcolm <dmalcolm@redhat.com> - 3.2-0.3.a1
 - Move test.support to core package (rhbz#596258)
 - Add various missing __pycache__ directories to payload
