@@ -88,7 +88,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}
-Release: 0.4.%{alphatag}%{?dist}
+Release: 0.5.%{alphatag}%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}%{alphatag}.tar.bz2
@@ -655,7 +655,15 @@ EOF
 done
 
 # Fix for bug 201434: make sure distutils looks at the right pyconfig.h file
-sed -i -e "s/'pyconfig.h'/'%{_pyconfig_h}'/" %{buildroot}%{pylibdir}/distutils/sysconfig.py
+# Similar for sysconfig: sysconfig.get_config_h_filename tries to locate
+# pyconfig.h so it can be parsed, and needs to do this at runtime in site.py
+# when python starts up (bug 653058)
+#
+# Split this out so it goes directly to the pyconfig-32.h/pyconfig-64.h
+# variants:
+sed -i -e "s/'pyconfig.h'/'%{_pyconfig_h}'/" \
+  %{buildroot}%{pylibdir}/distutils/sysconfig.py \
+  %{buildroot}%{pylibdir}/sysconfig.py
 
 # Switch all shebangs to refer to the specific Python version.
 LD_LIBRARY_PATH=./build/optimized ./build/optimized/python \
@@ -1177,6 +1185,9 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Wed Nov 17 2010 David Malcolm <dmalcolm@redhat.com> - 3.2-0.5.a1
+- fix sysconfig to not rely on the -devel subpackage (rhbz#653058)
+
 * Thu Sep  9 2010 David Malcolm <dmalcolm@redhat.com> - 3.2-0.4.a1
 - move most of the content of the core package to the libs subpackage, given
 that the libs aren't meaningfully usable without the standard libraries
