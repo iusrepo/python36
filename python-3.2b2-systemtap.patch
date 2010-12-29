@@ -1,15 +1,7 @@
-diff -up Python-3.2a1/configure.in.systemtap Python-3.2a1/configure.in
---- Python-3.2a1/configure.in.systemtap	2010-07-19 03:31:40.000000000 -0400
-+++ Python-3.2a1/configure.in	2010-08-02 16:19:43.809000621 -0400
-@@ -1987,6 +1987,7 @@ AC_ARG_WITH(system_expat,
- AC_MSG_RESULT($with_system_expat)
- 
- # Check for use of the system libffi library
-+
- AC_MSG_CHECKING(for --with-system-ffi)
- AC_ARG_WITH(system_ffi,
-             AS_HELP_STRING([--with-system-ffi], [build _ctypes module using an installed ffi library]))
-@@ -2500,6 +2501,38 @@ if test "$with_valgrind" != no; then
+diff -up Python-3.2b2/configure.in.systemtap Python-3.2b2/configure.in
+--- Python-3.2b2/configure.in.systemtap	2010-12-13 02:59:39.000000000 -0500
++++ Python-3.2b2/configure.in	2010-12-28 17:01:58.044059433 -0500
+@@ -2470,6 +2470,38 @@ if test "$with_valgrind" != no; then
      OPT="-DDYNAMIC_ANNOTATIONS_ENABLED=1 $OPT"
  fi
  
@@ -45,12 +37,12 @@ diff -up Python-3.2a1/configure.in.systemtap Python-3.2a1/configure.in
 +AC_SUBST(DTRACEOBJS)
 +AC_SUBST(DTRACEHDRS)
 +
- # Check for --with-wctype-functions
- AC_MSG_CHECKING(for --with-wctype-functions)
- AC_ARG_WITH(wctype-functions, 
-diff -up Python-3.2a1/Include/pydtrace.d.systemtap Python-3.2a1/Include/pydtrace.d
---- Python-3.2a1/Include/pydtrace.d.systemtap	2010-08-02 16:17:04.249000540 -0400
-+++ Python-3.2a1/Include/pydtrace.d	2010-08-02 16:17:04.249000540 -0400
+ # -I${DLINCLDIR} is added to the compile rule for importdl.o
+ AC_SUBST(DLINCLDIR)
+ DLINCLDIR=.
+diff -up Python-3.2b2/Include/pydtrace.d.systemtap Python-3.2b2/Include/pydtrace.d
+--- Python-3.2b2/Include/pydtrace.d.systemtap	2010-12-28 16:58:41.762936379 -0500
++++ Python-3.2b2/Include/pydtrace.d	2010-12-28 16:58:41.762936379 -0500
 @@ -0,0 +1,10 @@
 +provider python {
 +	probe function__entry(const char *, const char *, int);
@@ -62,20 +54,20 @@ diff -up Python-3.2a1/Include/pydtrace.d.systemtap Python-3.2a1/Include/pydtrace
 +#pragma D attributes Private/Private/Common provider python function
 +#pragma D attributes Evolving/Evolving/Common provider python name
 +#pragma D attributes Evolving/Evolving/Common provider python args
-diff -up Python-3.2a1/Makefile.pre.in.systemtap Python-3.2a1/Makefile.pre.in
---- Python-3.2a1/Makefile.pre.in.systemtap	2010-08-02 16:17:04.243000614 -0400
-+++ Python-3.2a1/Makefile.pre.in	2010-08-02 16:20:41.617000527 -0400
-@@ -324,6 +324,7 @@ PYTHON_OBJS=	\
- 		Python/dtoa.o \
+diff -up Python-3.2b2/Makefile.pre.in.systemtap Python-3.2b2/Makefile.pre.in
+--- Python-3.2b2/Makefile.pre.in.systemtap	2010-12-28 16:58:41.000000000 -0500
++++ Python-3.2b2/Makefile.pre.in	2010-12-28 17:00:58.607310089 -0500
+@@ -328,6 +328,7 @@ PYTHON_OBJS=	\
  		Python/formatter_unicode.o \
+ 		Python/fileutils.o \
  		Python/$(DYNLOADFILE) \
 +		@DTRACEOBJS@ \
  		$(LIBOBJS) \
  		$(MACHDEP_OBJS) \
  		$(THREADOBJ)
-@@ -615,6 +616,18 @@ Python/formatter_unicode.o: $(srcdir)/Py
- 				$(srcdir)/Objects/stringlib/formatter.h
- 
+@@ -632,6 +633,18 @@ Objects/typeobject.o: $(srcdir)/Objects/
+ $(srcdir)/Objects/typeslots.inc: $(srcdir)/Include/typeslots.h $(srcdir)/Objects/typeslots.py
+ 	$(PYTHON) $(srcdir)/Objects/typeslots.py < $(srcdir)/Include/typeslots.h > $(srcdir)/Objects/typeslots.inc
  
 +# Only needed with --with-dtrace
 +buildinclude:
@@ -92,19 +84,19 @@ diff -up Python-3.2a1/Makefile.pre.in.systemtap Python-3.2a1/Makefile.pre.in
  ############################################################################
  # Header files
  
-@@ -1248,7 +1261,7 @@ Python/thread.o: @THREADHEADERS@
+@@ -1282,7 +1295,7 @@ Python/thread.o: @THREADHEADERS@
  .PHONY: frameworkinstall frameworkinstallframework frameworkinstallstructure
  .PHONY: frameworkinstallmaclib frameworkinstallapps frameworkinstallunixtools
- .PHONY: frameworkaltinstallunixtools recheck autoconf clean clobber distclean 
+ .PHONY: frameworkaltinstallunixtools recheck autoconf clean clobber distclean
 -.PHONY: smelly funny patchcheck
 +.PHONY: smelly funny patchcheck buildinclude
  .PHONY: gdbhooks
  
  # IF YOU PUT ANYTHING HERE IT WILL GO AWAY
-diff -up Python-3.2a1/pyconfig.h.in.systemtap Python-3.2a1/pyconfig.h.in
---- Python-3.2a1/pyconfig.h.in.systemtap	2010-08-02 16:18:33.696001964 -0400
-+++ Python-3.2a1/pyconfig.h.in	2010-08-02 16:21:48.566001832 -0400
-@@ -1078,6 +1078,9 @@
+diff -up Python-3.2b2/pyconfig.h.in.systemtap Python-3.2b2/pyconfig.h.in
+--- Python-3.2b2/pyconfig.h.in.systemtap	2010-11-20 05:29:12.000000000 -0500
++++ Python-3.2b2/pyconfig.h.in	2010-12-28 16:58:41.765937360 -0500
+@@ -1092,6 +1092,9 @@
  /* Define if you want documentation strings in extension modules */
  #undef WITH_DOC_STRINGS
  
@@ -114,10 +106,10 @@ diff -up Python-3.2a1/pyconfig.h.in.systemtap Python-3.2a1/pyconfig.h.in
  /* Define if you want to use the new-style (Openstep, Rhapsody, MacOS) dynamic
     linker (dyld) instead of the old-style (NextStep) dynamic linker (rld).
     Dyld is necessary to support frameworks. */
-diff -up Python-3.2a1/Python/ceval.c.systemtap Python-3.2a1/Python/ceval.c
---- Python-3.2a1/Python/ceval.c.systemtap	2010-07-20 18:39:34.000000000 -0400
-+++ Python-3.2a1/Python/ceval.c	2010-08-02 16:23:58.703001000 -0400
-@@ -19,6 +19,10 @@
+diff -up Python-3.2b2/Python/ceval.c.systemtap Python-3.2b2/Python/ceval.c
+--- Python-3.2b2/Python/ceval.c.systemtap	2010-12-03 15:14:31.000000000 -0500
++++ Python-3.2b2/Python/ceval.c	2010-12-28 16:58:41.768935588 -0500
+@@ -18,6 +18,10 @@
  
  #include <ctype.h>
  
@@ -128,7 +120,7 @@ diff -up Python-3.2a1/Python/ceval.c.systemtap Python-3.2a1/Python/ceval.c
  #ifndef WITH_TSC
  
  #define READ_TIMESTAMP(var)
-@@ -752,6 +756,70 @@ PyEval_EvalCode(PyCodeObject *co, PyObje
+@@ -766,6 +770,70 @@ PyEval_EvalCode(PyObject *co, PyObject *
  }
  
  
@@ -199,7 +191,7 @@ diff -up Python-3.2a1/Python/ceval.c.systemtap Python-3.2a1/Python/ceval.c
  /* Interpreter main loop */
  
  PyObject *
-@@ -1156,6 +1224,10 @@ PyEval_EvalFrameEx(PyFrameObject *f, int
+@@ -1183,6 +1251,10 @@ PyEval_EvalFrameEx(PyFrameObject *f, int
          }
      }
  
@@ -210,7 +202,7 @@ diff -up Python-3.2a1/Python/ceval.c.systemtap Python-3.2a1/Python/ceval.c
      co = f->f_code;
      names = co->co_names;
      consts = co->co_consts;
-@@ -3046,6 +3118,9 @@ fast_yield:
+@@ -3048,6 +3120,9 @@ fast_yield:
  
      /* pop frame */
  exit_eval_frame:

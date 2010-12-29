@@ -1,10 +1,10 @@
-diff -up Python-3.2a1/Lib/email/test/test_email.py.remove-mimeaudio-tests Python-3.2a1/Lib/email/test/test_email.py
---- Python-3.2a1/Lib/email/test/test_email.py.remove-mimeaudio-tests	2010-08-02 15:52:12.397002172 -0400
-+++ Python-3.2a1/Lib/email/test/test_email.py	2010-08-02 15:52:38.132999850 -0400
-@@ -952,53 +952,6 @@ Blah blah blah
+diff -up Python-3.2b2/Lib/email/test/test_email.py.remove-mimeaudio-tests Python-3.2b2/Lib/email/test/test_email.py
+--- Python-3.2b2/Lib/email/test/test_email.py.remove-mimeaudio-tests	2010-12-18 13:25:38.000000000 -0500
++++ Python-3.2b2/Lib/email/test/test_email.py	2010-12-28 16:50:34.910309105 -0500
+@@ -977,53 +977,6 @@ Blah blah blah
  
  
- 
+ 
 -# Test the basic MIMEAudio class
 -class TestMIMEAudio(unittest.TestCase):
 -    def setUp(self):
@@ -51,7 +51,7 @@ diff -up Python-3.2a1/Lib/email/test/test_email.py.remove-mimeaudio-tests Python
 -                                  header='foobar') is missing)
 -
 -
--
+-
  # Test the basic MIMEImage class
  class TestMIMEImage(unittest.TestCase):
      def setUp(self):

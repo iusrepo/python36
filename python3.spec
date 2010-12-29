@@ -1,8 +1,26 @@
 %global pybasever 3.2
-%global alphatag  a1
+
+# pybasever without the dot:
+%global pyshortver 32
+
+%global alphatag  b2
 
 %global pylibdir %{_libdir}/python%{pybasever}
 %global dynload_dir %{pylibdir}/lib-dynload
+
+# SOABI is defined in the upstream configure.in from Python-3.2a2 onwards,
+# for PEP 3149:
+#   http://www.python.org/dev/peps/pep-3149/
+
+# ABIFLAGS, LDVERSION and SOABI are in the upstream Makefile
+%global ABIFLAGS_optimized mu
+%global ABIFLAGS_debug     dmu
+
+%global LDVERSION_optimized %{pybasever}%{ABIFLAGS_optimized}
+%global LDVERSION_debug     %{pybasever}%{ABIFLAGS_debug}
+
+%global SOABI_optimized cpython-%{pyshortver}%{ABIFLAGS_optimized}
+%global SOABI_debug     cpython-%{pyshortver}%{ABIFLAGS_debug}
 
 # All bytecode files are now in a __pycache__ subdirectory, with a name
 # reflecting the version of the bytecode (to permit sharing of python libraries
@@ -23,8 +41,8 @@
 # (if these get out of sync, the payload of the libs subpackage will fail
 # and halt the build)
 %global py_SOVERSION 1.0
-%global py_INSTSONAME_optimized libpython%{pybasever}.so.%{py_SOVERSION}
-%global py_INSTSONAME_debug     libpython%{pybasever}_d.so.%{py_SOVERSION}
+%global py_INSTSONAME_optimized libpython%{LDVERSION_optimized}.so.%{py_SOVERSION}
+%global py_INSTSONAME_debug     libpython%{LDVERSION_debug}.so.%{py_SOVERSION}
 
 %global with_debug_build 1
 
@@ -149,91 +167,20 @@ Patch1:         Python-3.1.1-rpath.patch
 
 # The four TestMIMEAudio tests fail due to "audiotest.au" not being packaged.
 # It's simplest to remove them:
-Patch3: python-3.2a1-remove-mimeaudio-tests.patch
-
-# ImportTests.test_issue1267 in test_imp.py reads pydoc.py's shebang line and
-# checks that it read it correctly.
-#
-# Since we modify the shebang lines in our packaging, we also need to modify
-# the expected value in this test:
-Patch4: python-3.2a1-apply-our-changes-to-expected-shebang-for-test_imp.patch
+Patch3: python-3.2b2-remove-mimeaudio-tests.patch
 
 # Patch the Makefile.pre.in so that the generated Makefile doesn't try to build
 # a libpythonMAJOR.MINOR.a (bug 550692):
-Patch6: python-3.2a1-no-static-lib.patch
+Patch6: python-3.2b2-no-static-lib.patch
 
 # Systemtap support: add statically-defined probe points
 # Patch based on upstream bug: http://bugs.python.org/issue4111
 # fixed up by mjw and wcohen for 2.6.2, then fixed up by dmalcolm for 2.6.4
 # then rewritten by mjw (attachment 390110 of rhbz 545179); ported to 3.1.1 by
 # dmalcolm
-Patch8: python-3.2a1-systemtap.patch
+Patch8: python-3.2b2-systemtap.patch
 
-Patch102: python-3.2a1-lib64.patch
-
-# Patch to support building both optimized vs debug stacks DSO ABIs, sharing
-# the same .py and .pyc files, using "_d.so" to signify a debug build of an
-# extension module.
-#
-# Based on Debian's patch for the same, 
-#  http://patch-tracker.debian.org/patch/series/view/python2.6/2.6.5-2/debug-build.dpatch
-# 
-# (which was itself based on the upstream Windows build), but with some
-# changes:
-#
-#   * Debian's patch to dynload_shlib.c looks for module_d.so, then module.so,
-# but this can potentially find a module built against the wrong DSO ABI.  We
-# instead search for just module_d.so in a debug build
-#
-#   * We remove this change from configure.in's build of the Makefile:
-#   SO=$DEBUG_EXT.so
-# so that sysconfig.py:customize_compiler stays with shared_lib_extension='.so'
-# on debug builds, so that UnixCCompiler.find_library_file can find system
-# libraries (otherwise "make sharedlibs" fails to find system libraries,
-# erroneously looking e.g. for "libffi_d.so" rather than "libffi.so")
-#
-#   * We change Lib/distutils/command/build_ext.py:build_ext.get_ext_filename
-# to add the _d there, when building an extension.  This way, "make sharedlibs"
-# can build ctypes, by finding the sysmtem libffi.so (rather than failing to
-# find "libffi_d.so"), and builds the module as _ctypes_d.so
-#   
-#   * Similarly, update build_ext:get_libraries handling of Py_ENABLE_SHARED by
-# appending "_d" to the python library's name for the debug configuration
-#
-#   * We modify Modules/makesetup to add the "_d" to the generated Makefile
-# rules for the various Modules/*.so targets
-#
-# This may introduce issues when building an extension that links directly
-# against another extension (e.g. users of NumPy?), but seems more robust when
-# searching for external libraries
-#
-#   * We don't change Lib/distutils/command/build.py: build.build_purelib to
-# embed plat_specifier, leaving it as is, as pure python builds should be
-# unaffected by these differences (we'll be sharing the .py and .pyc files)
-#
-#   * We introduce DEBUG_SUFFIX as well as DEBUG_EXT:
-#     - DEBUG_EXT is used by ELF files (names and SONAMEs); it will be "_d" for
-# a debug build
-#     - DEBUG_SUFFIX is used by filesystem paths; it will be "-debug" for a
-# debug build
-#
-#   Both will be empty in an optimized build.  "_d" contains characters that
-# are valid ELF metadata, but this leads to various ugly filesystem paths (such
-# as the include path), and DEBUG_SUFFIX allows these paths to have more natural
-# names.  Changing this requires changes elsewhere in the distutils code.
-#
-#   * We add DEBUG_SUFFIX to PYTHON in the Makefile, so that the two
-# configurations build parallel-installable binaries with different names
-# ("python-debug" vs "python").
-#
-#   * Similarly, we add DEBUG_SUFFIX within python-config and
-#  python$(VERSION)-config, so that the two configuration get different paths
-#  for these.
-#
-#  * Patch runtests.sh to support supplying a value for PYTHON, so that we can
-# run the tests against each of the builds
-
-Patch103: python-3.2a1-debug-build.patch
+Patch102: python-3.2b2-lib64.patch
 
 # Add configure-time support for the COUNT_ALLOCS and CALL_PROFILE options
 # described at http://svn.python.org/projects/python/trunk/Misc/SpecialBuilds.txt
@@ -245,23 +192,26 @@ Patch104: python-3.1.2-more-configuration-flags.patch
 # (rhbz:553020); partially upstream as http://bugs.python.org/issue7647
 Patch105: python-3.2a1-statvfs-f_flag-constants.patch
 
-# Fix an incompatibility between pyexpat and the system expat-2.0.1 that led to
-# a segfault running test_pyexpat.py (rhbz:610312)
-# Sent upstream as http://bugs.python.org/issue9054
-Patch110: python-3.1.2-fix-expat-issue9054.patch
-
-# Fix race condition in parallel make that could lead to graminit.c failing
-# to compile, or linker errors with "undefined reference to
-# `_PyParser_Grammar'":
-# Not yet sent upstream:
-Patch111: python-3.2a1-fix-parallel-make.patch
-
 # COUNT_ALLOCS is useful for debugging, but the upstream behaviour of always
 # emitting debug info to stdout on exit is too verbose and makes it harder to
 # use the debug build.  Add a "PYTHONDUMPCOUNTS" environment variable which
 # must be set to enable the output on exit
 # Not yet sent upstream:
 Patch125: less-verbose-COUNT_ALLOCS.patch
+
+# test_weakref's test_callback_in_cycle_resurrection doesn't work with
+# COUNT_ALLOCS, as the metrics keep "C" alive.  Work around this for our
+# debug build:
+# Not yet sent upstream
+Patch126: python-3.2b2-test-weakref-COUNT_ALLOCS_fix.patch
+
+# Similar COUNT_ALLOCS fixes for test_gc
+# Not yet sent upstream
+Patch127: python-3.2b2-fix-test-gc-COUNT_ALLOCS.patch
+
+# Similar COUNT_ALLOCS fixes for test_sys
+# Not yet sent upstream
+Patch128: python-3.2b2-test_sys-COUNT_ALLOCS.patch
 
 # This is the generated patch to "configure"; see the description of
 #   %{regenerate_autotooling_patch}
@@ -408,7 +358,6 @@ rm -r Modules/zlib || exit 1
 #
 %patch1 -p1
 %patch3 -p1 -b .remove-mimeaudio-tests
-%patch4 -p1 -b .apply-our-changes-to-expected-shebang
 %patch6 -p1 -b .no-static-lib
 
 %if 0%{?with_systemtap}
@@ -419,17 +368,14 @@ rm -r Modules/zlib || exit 1
 %patch102 -p1
 %endif
 
-%patch103 -p1
-
 %patch104 -p1 -b .more-configuration-flags
 
 %patch105 -p1 -b .statvfs-f-flag-constants
 
-%patch110 -p0 -b .fix-expat-issue9054
-
-%patch111 -p1 -b .parallel-grammar
-
 %patch125 -p1 -b .less-verbose-COUNT_ALLOCS
+%patch126 -p1
+%patch127 -p1
+%patch128 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -632,10 +578,21 @@ install -d -m 0755 %{buildroot}/usr/lib/python%{pybasever}/site-packages/__pycac
 %global _pyconfig_h %{_pyconfig32_h}
 %endif
 
+# ABIFLAGS, LDVERSION and SOABI are in the upstream Makefile
+%global ABIFLAGS_optimized mu
+%global ABIFLAGS_debug     dmu
+
+%global LDVERSION_optimized %{pybasever}%{ABIFLAGS_optimized}
+%global LDVERSION_debug     %{pybasever}%{ABIFLAGS_debug}
+
+%global SOABI_optimized cpython-%{pyshortver}%{ABIFLAGS_optimized}
+%global SOABI_debug     cpython-%{pyshortver}%{ABIFLAGS_debug}
+
 %if 0%{?with_debug_build}
-%global PyIncludeDirs python%{pybasever} python%{pybasever}-debug
+%global PyIncludeDirs python%{LDVERSION_optimized} python%{LDVERSION_debug}
+
 %else
-%global PyIncludeDirs python%{pybasever}
+%global PyIncludeDirs python%{LDVERSION_optimized}
 %endif
 
 for PyIncludeDir in %{PyIncludeDirs} ; do
@@ -739,14 +696,14 @@ ldd %{buildroot}/%{dynload_dir}/_curses*.so \
 # likewise for the optimized modules and libpython:
 for Module in %{buildroot}/%{dynload_dir}/*.so ; do
     case $Module in
-    *_d.so)
+    *.%{SOABI_debug})
         ldd $Module | grep %{py_INSTSONAME_optimized} &&
-            (echo Debug module $Module linked against optimized %{py_INSTSONAME_optimized} ; exi 1)
+            (echo Debug module $Module linked against optimized %{py_INSTSONAME_optimized} ; exit 1)
             
         ;;
-    *)
+    *.%{SOABI_optimized})
         ldd $Module | grep %{py_INSTSONAME_debug} &&
-            (echo Optimized module $Module linked against debug %{py_INSTSONAME_optimized} ; exi 1)
+            (echo Optimized module $Module linked against debug %{py_INSTSONAME_debug} ; exit 1)
         ;;
     esac
 done
@@ -784,59 +741,30 @@ sed \
 topdir=$(pwd)
 CheckPython() {
   ConfName=$1	      
-  ConfDir=build/$ConfName
+  ConfDir=$(pwd)/build/$ConfName
 
   echo STARTING: CHECKING OF PYTHON FOR CONFIGURATION: $ConfName
 
-# Run the upstream test suite, using the "runtests.sh" harness from the upstream
-# tarball.
-# I'm seeing occasional hangs in some http tests when running the test suite
-# inside Koji.  For that reason I exclude them
-
-LD_LIBRARY_PATH=$ConfDir PYTHON=$ConfDir/python $topdir/runtests.sh -x test_httplib test_http_cookies
+# Run the upstream test suite
+LD_LIBRARY_PATH=$ConfDir $ConfDir/python -m test.regrtest -x test_distutils test_httplib test_http_cookies test_socket test_telnet
 
 # Note that we're running the tests using the version of the code in the builddir,
 # not in the buildroot.
 
-# The harness only emits the names of the test scripts it ran, along with a
-# summary of the form:
-#   2 BAD
-# 313 GOOD
-#  22 SKIPPED
-# 337 total
-# As a byproduct it writes files "GOOD", "BAD", "SKIPPED", listing names of
-# files (e.g. "test_imp") along with a subdirectory OUT containing files of the
-# form $TEST.out
-# Each such logfile starts with a line indicating the name of the test
-
-# Output the logs from failing tests, so that they are captured in the rpmbuild
-# log:
-for TESTNAME in $(cat BAD); do
-  cat OUT/$TESTNAME.out ; 
-done
-
-# There are 5 expected BAD results here:
+# I'm seeing occasional hangs in some http tests when running the test suite
+# inside Koji.  For that reason I exclude them
+#
+# Other known failures:
 #
 # (1) test_distutils.py: tries to build an RPM inside the rpmbuild; I'll simply
 # let this one fail for now (has trouble linking against -lpython3.1; perhaps
 # LD_LIBRARY_PATH is being discarded somewhere?)
 #
-# (2) test_imp.py: ImportTests.test_issue1267 in test_imp.py reads pydoc.py's
-# shebang line and checks that it read it correctly.tests that the shebang line
-# is as expected.  Unfortunately if we patch this up in the buildir (in the
-# build phase), then the "make install" will try to reference
-# /usr/bin/python%{pybasever} which won't exist on a clean build environment.
-# So we fix up the shebang lines after this in the install phase, and expect
-# this test to fail in the check phase.  It ought to pass when run on the built
-# RPMs
-#
-# (3) test_socket.py:testSockName can fail here if DNS isn't properly set up:
+# (2) test_socket.py:testSockName can fail here if DNS isn't properly set up:
 #     my_ip_addr = socket.gethostbyname(socket.gethostname())
 # socket.gaierror: [Errno -2] Name or service not known
 #
-# (4) test_subprocess: merely get "errors occurred"
-#
-# (5) test_telnet: can get a "socket.error: [Errno 104] Connection reset by peer"
+# (3) test_telnet: can get a "socket.error: [Errno 104] Connection reset by peer"
 #
 # Some additional tests fail when running the test suite as non-root outside of
 # the build, due to permissions issues.
@@ -865,6 +793,7 @@ rm -fr %{buildroot}
 %{_bindir}/pydoc*
 %{_bindir}/python3
 %{_bindir}/python%{pybasever}
+%{_bindir}/python%{pybasever}mu
 %{_mandir}/*/*
 
 %files libs
@@ -873,61 +802,59 @@ rm -fr %{buildroot}
 %dir %{pylibdir}
 %dir %{dynload_dir}
 %{dynload_dir}/Python-%{version}%{alphatag}-py%{pybasever}.egg-info
-%{dynload_dir}/_bisect.so
-%{dynload_dir}/_codecs_cn.so
-%{dynload_dir}/_codecs_hk.so
-%{dynload_dir}/_codecs_iso2022.so
-%{dynload_dir}/_codecs_jp.so
-%{dynload_dir}/_codecs_kr.so
-%{dynload_dir}/_codecs_tw.so
-%{dynload_dir}/_collections.so
-%{dynload_dir}/_csv.so
-%{dynload_dir}/_ctypes.so
-%{dynload_dir}/_curses.so
-%{dynload_dir}/_curses_panel.so
-%{dynload_dir}/_dbm.so
-%{dynload_dir}/_elementtree.so
-%{dynload_dir}/_gdbm.so
-%{dynload_dir}/_hashlib.so
-%{dynload_dir}/_heapq.so
-%{dynload_dir}/_json.so
-%{dynload_dir}/_lsprof.so
-%{dynload_dir}/_multibytecodec.so
-%{dynload_dir}/_multiprocessing.so
-%{dynload_dir}/_pickle.so
-%{dynload_dir}/_posixsubprocess.so
-%{dynload_dir}/_random.so
-%{dynload_dir}/_socket.so
-%{dynload_dir}/_sqlite3.so
-%{dynload_dir}/_ssl.so
-%{dynload_dir}/_struct.so
-%{dynload_dir}/array.so
-%{dynload_dir}/atexit.so
-%{dynload_dir}/audioop.so
-%{dynload_dir}/binascii.so
-%{dynload_dir}/bz2.so
-%{dynload_dir}/cmath.so
-%{dynload_dir}/crypt.so
-%{dynload_dir}/_datetime.so
-%{dynload_dir}/fcntl.so
-%{dynload_dir}/grp.so
-%{dynload_dir}/itertools.so
-%{dynload_dir}/math.so
-%{dynload_dir}/mmap.so
-%{dynload_dir}/nis.so
-%{dynload_dir}/operator.so
-%{dynload_dir}/ossaudiodev.so
-%{dynload_dir}/parser.so
-%{dynload_dir}/pyexpat.so
-%{dynload_dir}/readline.so
-%{dynload_dir}/resource.so
-%{dynload_dir}/select.so
-%{dynload_dir}/spwd.so
-%{dynload_dir}/syslog.so
-%{dynload_dir}/termios.so
-%{dynload_dir}/time.so
-%{dynload_dir}/unicodedata.so
-%{dynload_dir}/zlib.so
+%{dynload_dir}/_bisect.%{SOABI_optimized}.so
+%{dynload_dir}/_codecs_cn.%{SOABI_optimized}.so
+%{dynload_dir}/_codecs_hk.%{SOABI_optimized}.so
+%{dynload_dir}/_codecs_iso2022.%{SOABI_optimized}.so
+%{dynload_dir}/_codecs_jp.%{SOABI_optimized}.so
+%{dynload_dir}/_codecs_kr.%{SOABI_optimized}.so
+%{dynload_dir}/_codecs_tw.%{SOABI_optimized}.so
+%{dynload_dir}/_csv.%{SOABI_optimized}.so
+%{dynload_dir}/_ctypes.%{SOABI_optimized}.so
+%{dynload_dir}/_curses.%{SOABI_optimized}.so
+%{dynload_dir}/_curses_panel.%{SOABI_optimized}.so
+%{dynload_dir}/_dbm.%{SOABI_optimized}.so
+%{dynload_dir}/_elementtree.%{SOABI_optimized}.so
+%{dynload_dir}/_gdbm.%{SOABI_optimized}.so
+%{dynload_dir}/_hashlib.%{SOABI_optimized}.so
+%{dynload_dir}/_heapq.%{SOABI_optimized}.so
+%{dynload_dir}/_json.%{SOABI_optimized}.so
+%{dynload_dir}/_lsprof.%{SOABI_optimized}.so
+%{dynload_dir}/_multibytecodec.%{SOABI_optimized}.so
+%{dynload_dir}/_multiprocessing.%{SOABI_optimized}.so
+%{dynload_dir}/_pickle.%{SOABI_optimized}.so
+%{dynload_dir}/_posixsubprocess.%{SOABI_optimized}.so
+%{dynload_dir}/_random.%{SOABI_optimized}.so
+%{dynload_dir}/_socket.%{SOABI_optimized}.so
+%{dynload_dir}/_sqlite3.%{SOABI_optimized}.so
+%{dynload_dir}/_ssl.%{SOABI_optimized}.so
+%{dynload_dir}/_struct.%{SOABI_optimized}.so
+%{dynload_dir}/array.%{SOABI_optimized}.so
+%{dynload_dir}/atexit.%{SOABI_optimized}.so
+%{dynload_dir}/audioop.%{SOABI_optimized}.so
+%{dynload_dir}/binascii.%{SOABI_optimized}.so
+%{dynload_dir}/bz2.%{SOABI_optimized}.so
+%{dynload_dir}/cmath.%{SOABI_optimized}.so
+%{dynload_dir}/crypt.%{SOABI_optimized}.so
+%{dynload_dir}/_datetime.%{SOABI_optimized}.so
+%{dynload_dir}/fcntl.%{SOABI_optimized}.so
+%{dynload_dir}/grp.%{SOABI_optimized}.so
+%{dynload_dir}/math.%{SOABI_optimized}.so
+%{dynload_dir}/mmap.%{SOABI_optimized}.so
+%{dynload_dir}/nis.%{SOABI_optimized}.so
+%{dynload_dir}/ossaudiodev.%{SOABI_optimized}.so
+%{dynload_dir}/parser.%{SOABI_optimized}.so
+%{dynload_dir}/pyexpat.%{SOABI_optimized}.so
+%{dynload_dir}/readline.%{SOABI_optimized}.so
+%{dynload_dir}/resource.%{SOABI_optimized}.so
+%{dynload_dir}/select.%{SOABI_optimized}.so
+%{dynload_dir}/spwd.%{SOABI_optimized}.so
+%{dynload_dir}/syslog.%{SOABI_optimized}.so
+%{dynload_dir}/termios.%{SOABI_optimized}.so
+%{dynload_dir}/time.%{SOABI_optimized}.so
+%{dynload_dir}/unicodedata.%{SOABI_optimized}.so
+%{dynload_dir}/xxlimited.%{SOABI_optimized}.so
+%{dynload_dir}/zlib.%{SOABI_optimized}.so
 
 %dir %{pylibdir}/site-packages/
 %dir %{pylibdir}/site-packages/__pycache__/
@@ -936,63 +863,90 @@ rm -fr %{buildroot}
 %dir %{pylibdir}/__pycache__/
 %{pylibdir}/__pycache__/*%{bytecode_suffixes}
 %{pylibdir}/wsgiref.egg-info
-%dir %{pylibdir}/ctypes
+
+%dir %{pylibdir}/concurrent/
+%dir %{pylibdir}/concurrent/__pycache__/
+%{pylibdir}/concurrent/*.py
+%{pylibdir}/concurrent/__pycache__/*%{bytecode_suffixes}
+
+%dir %{pylibdir}/concurrent/futures/
+%dir %{pylibdir}/concurrent/futures/__pycache__/
+%{pylibdir}/concurrent/futures/*.py
+%{pylibdir}/concurrent/futures/__pycache__/*%{bytecode_suffixes}
+
+%dir %{pylibdir}/ctypes/
 %dir %{pylibdir}/ctypes/__pycache__/
 %{pylibdir}/ctypes/*.py
 %{pylibdir}/ctypes/__pycache__/*%{bytecode_suffixes}
 %{pylibdir}/ctypes/macholib
+
 %{pylibdir}/curses
-%dir %{pylibdir}/dbm
+
+%dir %{pylibdir}/dbm/
 %dir %{pylibdir}/dbm/__pycache__/
 %{pylibdir}/dbm/*.py
 %{pylibdir}/dbm/__pycache__/*%{bytecode_suffixes}
-%dir %{pylibdir}/distutils
+
+%dir %{pylibdir}/distutils/
 %dir %{pylibdir}/distutils/__pycache__/
 %{pylibdir}/distutils/*.py
 %{pylibdir}/distutils/__pycache__/*%{bytecode_suffixes}
 %{pylibdir}/distutils/README
 %{pylibdir}/distutils/command
-%dir %{pylibdir}/email
+
+%dir %{pylibdir}/email/
 %dir %{pylibdir}/email/__pycache__/
 %{pylibdir}/email/*.py
 %{pylibdir}/email/__pycache__/*%{bytecode_suffixes}
 %{pylibdir}/email/mime
+
 %{pylibdir}/encodings
 %{pylibdir}/html
 %{pylibdir}/http
 %{pylibdir}/idlelib
-%dir %{pylibdir}/importlib
+
+%dir %{pylibdir}/importlib/
 %dir %{pylibdir}/importlib/__pycache__/
 %{pylibdir}/importlib/*.py
 %{pylibdir}/importlib/__pycache__/*%{bytecode_suffixes}
-%dir %{pylibdir}/json
+
+%dir %{pylibdir}/json/
 %dir %{pylibdir}/json/__pycache__/
 %{pylibdir}/json/*.py
 %{pylibdir}/json/__pycache__/*%{bytecode_suffixes}
+
 %{pylibdir}/lib2to3
 %exclude %{pylibdir}/lib2to3/tests
 %{pylibdir}/logging
 %{pylibdir}/multiprocessing
 %{pylibdir}/plat-linux2
 %{pylibdir}/pydoc_data
-%dir %{pylibdir}/sqlite3
+
+%dir %{pylibdir}/sqlite3/
 %dir %{pylibdir}/sqlite3/__pycache__/
 %{pylibdir}/sqlite3/*.py
 %{pylibdir}/sqlite3/__pycache__/*%{bytecode_suffixes}
-%dir %{pylibdir}/test
+
+%dir %{pylibdir}/test/
 %dir %{pylibdir}/test/__pycache__/
 %{pylibdir}/test/__init__.py
 %{pylibdir}/test/support.py
 %{pylibdir}/test/__pycache__/__init__%{bytecode_suffixes}
 %{pylibdir}/test/__pycache__/support%{bytecode_suffixes}
-%dir %{pylibdir}/unittest
+
+%exclude %{pylibdir}/turtle.py
+%exclude %{pylibdir}/__pycache__/turtle*%{bytecode_suffixes}
+
+%dir %{pylibdir}/unittest/
 %dir %{pylibdir}/unittest/__pycache__/
 %{pylibdir}/unittest/*.py
 %{pylibdir}/unittest/__pycache__/*%{bytecode_suffixes}
+
 %{pylibdir}/urllib
 %{pylibdir}/wsgiref
 %{pylibdir}/xml
 %{pylibdir}/xmlrpc
+
 %if "%{_lib}" == "lib64"
 %attr(0755,root,root) %dir %{_prefix}/lib/python%{pybasever}
 %attr(0755,root,root) %dir %{_prefix}/lib/python%{pybasever}/site-packages
@@ -1002,10 +956,10 @@ rm -fr %{buildroot}
 # "Makefile" and the config-32/64.h file are needed by
 # distutils/sysconfig.py:_init_posix(), so we include them in the core
 # package, along with their parent directories (bug 531901):
-%dir %{pylibdir}/config
-%{pylibdir}/config/Makefile
-%dir %{_includedir}/python%{pybasever}
-%{_includedir}/python%{pybasever}/%{_pyconfig_h}
+%dir %{pylibdir}/config-%{LDVERSION_optimized}/
+%{pylibdir}/config-%{LDVERSION_optimized}/Makefile
+%dir %{_includedir}/python%{LDVERSION_optimized}/
+%{_includedir}/python%{LDVERSION_optimized}/%{_pyconfig_h}
 
 %{_libdir}/%{py_INSTSONAME_optimized}
 %if 0%{?with_systemtap}
@@ -1015,14 +969,16 @@ rm -fr %{buildroot}
 
 %files devel
 %defattr(-,root,root)
-%{pylibdir}/config/*
-%exclude %{pylibdir}/config/Makefile
-/usr/include/python%{pybasever}/*.h
-%exclude /usr/include/python%{pybasever}/%{_pyconfig_h}
+%{pylibdir}/config-%{LDVERSION_optimized}/*
+%exclude %{pylibdir}/config-%{LDVERSION_optimized}/Makefile
+%{_includedir}/python%{LDVERSION_optimized}/*.h
+%exclude %{_includedir}/python%{LDVERSION_optimized}/%{_pyconfig_h}
 %doc Misc/README.valgrind Misc/valgrind-python.supp Misc/gdbinit
 %{_bindir}/python3-config
 %{_bindir}/python%{pybasever}-config
-%{_libdir}/libpython%{pybasever}.so
+%{_bindir}/python%{LDVERSION_optimized}-config
+%{_libdir}/libpython%{LDVERSION_optimized}.so
+%{_libdir}/pkgconfig/python-%{LDVERSION_optimized}.pc
 %{_libdir}/pkgconfig/python-%{pybasever}.pc
 %{_libdir}/pkgconfig/python3.pc
 %config(noreplace) %{_sysconfdir}/rpm/macros.python3
@@ -1042,7 +998,15 @@ rm -fr %{buildroot}
 %defattr(-,root,root,755)
 %{pylibdir}/tkinter
 %exclude %{pylibdir}/tkinter/test
-%{dynload_dir}/_tkinter.so
+%{dynload_dir}/_tkinter.%{SOABI_optimized}.so
+%{pylibdir}/turtle.py
+%{pylibdir}/__pycache__/turtle*%{bytecode_suffixes}
+%dir %{pylibdir}/turtledemo
+%{pylibdir}/turtledemo/*.py
+%{pylibdir}/turtledemo/*.txt
+%{pylibdir}/turtledemo/*.cfg
+%dir %{pylibdir}/turtledemo/__pycache__/
+%{pylibdir}/turtledemo/__pycache__/*%{bytecode_suffixes}
 
 %files test
 %defattr(-, root, root)
@@ -1050,11 +1014,10 @@ rm -fr %{buildroot}
 %{pylibdir}/distutils/tests
 %{pylibdir}/email/test
 %{pylibdir}/importlib/test
-%{pylibdir}/json/tests
 %{pylibdir}/sqlite3/test
 %{pylibdir}/test
-%{dynload_dir}/_ctypes_test.so
-%{dynload_dir}/_testcapi.so
+%{dynload_dir}/_ctypes_test.%{SOABI_optimized}.so
+%{dynload_dir}/_testcapi.%{SOABI_optimized}.so
 %{pylibdir}/lib2to3/tests
 %doc %{pylibdir}/Demo/distutils
 %doc %{pylibdir}/Demo/md5test
@@ -1073,70 +1036,66 @@ rm -fr %{buildroot}
 %defattr(-,root,root,-)
 
 # Analog of the core subpackage's files:
-%{_bindir}/python3-debug
-%{_bindir}/python%{pybasever}-debug
+%{_bindir}/python%{LDVERSION_debug}
 
 # Analog of the -libs subpackage's files:
 # ...with debug builds of the built-in "extension" modules:
-%{dynload_dir}/_bisect_d.so
-%{dynload_dir}/_codecs_cn_d.so
-%{dynload_dir}/_codecs_hk_d.so
-%{dynload_dir}/_codecs_iso2022_d.so
-%{dynload_dir}/_codecs_jp_d.so
-%{dynload_dir}/_codecs_kr_d.so
-%{dynload_dir}/_codecs_tw_d.so
-%{dynload_dir}/_collections_d.so
-%{dynload_dir}/_csv_d.so
-%{dynload_dir}/_ctypes_d.so
-%{dynload_dir}/_curses_d.so
-%{dynload_dir}/_curses_panel_d.so
-%{dynload_dir}/_dbm_d.so
-%{dynload_dir}/_elementtree_d.so
-%{dynload_dir}/_gdbm_d.so
-%{dynload_dir}/_hashlib_d.so
-%{dynload_dir}/_heapq_d.so
-%{dynload_dir}/_json_d.so
-%{dynload_dir}/_lsprof_d.so
-%{dynload_dir}/_md5_d.so
-%{dynload_dir}/_multibytecodec_d.so
-%{dynload_dir}/_multiprocessing_d.so
-%{dynload_dir}/_pickle_d.so
-%{dynload_dir}/_posixsubprocess_d.so
-%{dynload_dir}/_random_d.so
-%{dynload_dir}/_sha1_d.so
-%{dynload_dir}/_sha256_d.so
-%{dynload_dir}/_sha512_d.so
-%{dynload_dir}/_socket_d.so
-%{dynload_dir}/_sqlite3_d.so
-%{dynload_dir}/_ssl_d.so
-%{dynload_dir}/_struct_d.so
-%{dynload_dir}/array_d.so
-%{dynload_dir}/atexit_d.so
-%{dynload_dir}/audioop_d.so
-%{dynload_dir}/binascii_d.so
-%{dynload_dir}/bz2_d.so
-%{dynload_dir}/cmath_d.so
-%{dynload_dir}/crypt_d.so
-%{dynload_dir}/_datetime_d.so
-%{dynload_dir}/fcntl_d.so
-%{dynload_dir}/grp_d.so
-%{dynload_dir}/itertools_d.so
-%{dynload_dir}/math_d.so
-%{dynload_dir}/mmap_d.so
-%{dynload_dir}/nis_d.so
-%{dynload_dir}/operator_d.so
-%{dynload_dir}/ossaudiodev_d.so
-%{dynload_dir}/parser_d.so
-%{dynload_dir}/pyexpat_d.so
-%{dynload_dir}/readline_d.so
-%{dynload_dir}/resource_d.so
-%{dynload_dir}/select_d.so
-%{dynload_dir}/spwd_d.so
-%{dynload_dir}/syslog_d.so
-%{dynload_dir}/termios_d.so
-%{dynload_dir}/time_d.so
-%{dynload_dir}/unicodedata_d.so
-%{dynload_dir}/zlib_d.so
+%{dynload_dir}/_bisect.%{SOABI_debug}.so
+%{dynload_dir}/_codecs_cn.%{SOABI_debug}.so
+%{dynload_dir}/_codecs_hk.%{SOABI_debug}.so
+%{dynload_dir}/_codecs_iso2022.%{SOABI_debug}.so
+%{dynload_dir}/_codecs_jp.%{SOABI_debug}.so
+%{dynload_dir}/_codecs_kr.%{SOABI_debug}.so
+%{dynload_dir}/_codecs_tw.%{SOABI_debug}.so
+%{dynload_dir}/_csv.%{SOABI_debug}.so
+%{dynload_dir}/_ctypes.%{SOABI_debug}.so
+%{dynload_dir}/_curses.%{SOABI_debug}.so
+%{dynload_dir}/_curses_panel.%{SOABI_debug}.so
+%{dynload_dir}/_dbm.%{SOABI_debug}.so
+%{dynload_dir}/_elementtree.%{SOABI_debug}.so
+%{dynload_dir}/_gdbm.%{SOABI_debug}.so
+%{dynload_dir}/_hashlib.%{SOABI_debug}.so
+%{dynload_dir}/_heapq.%{SOABI_debug}.so
+%{dynload_dir}/_json.%{SOABI_debug}.so
+%{dynload_dir}/_lsprof.%{SOABI_debug}.so
+%{dynload_dir}/_md5.%{SOABI_debug}.so
+%{dynload_dir}/_multibytecodec.%{SOABI_debug}.so
+%{dynload_dir}/_multiprocessing.%{SOABI_debug}.so
+%{dynload_dir}/_pickle.%{SOABI_debug}.so
+%{dynload_dir}/_posixsubprocess.%{SOABI_debug}.so
+%{dynload_dir}/_random.%{SOABI_debug}.so
+%{dynload_dir}/_sha1.%{SOABI_debug}.so
+%{dynload_dir}/_sha256.%{SOABI_debug}.so
+%{dynload_dir}/_sha512.%{SOABI_debug}.so
+%{dynload_dir}/_socket.%{SOABI_debug}.so
+%{dynload_dir}/_sqlite3.%{SOABI_debug}.so
+%{dynload_dir}/_ssl.%{SOABI_debug}.so
+%{dynload_dir}/_struct.%{SOABI_debug}.so
+%{dynload_dir}/array.%{SOABI_debug}.so
+%{dynload_dir}/atexit.%{SOABI_debug}.so
+%{dynload_dir}/audioop.%{SOABI_debug}.so
+%{dynload_dir}/binascii.%{SOABI_debug}.so
+%{dynload_dir}/bz2.%{SOABI_debug}.so
+%{dynload_dir}/cmath.%{SOABI_debug}.so
+%{dynload_dir}/crypt.%{SOABI_debug}.so
+%{dynload_dir}/_datetime.%{SOABI_debug}.so
+%{dynload_dir}/fcntl.%{SOABI_debug}.so
+%{dynload_dir}/grp.%{SOABI_debug}.so
+%{dynload_dir}/math.%{SOABI_debug}.so
+%{dynload_dir}/mmap.%{SOABI_debug}.so
+%{dynload_dir}/nis.%{SOABI_debug}.so
+%{dynload_dir}/ossaudiodev.%{SOABI_debug}.so
+%{dynload_dir}/parser.%{SOABI_debug}.so
+%{dynload_dir}/pyexpat.%{SOABI_debug}.so
+%{dynload_dir}/readline.%{SOABI_debug}.so
+%{dynload_dir}/resource.%{SOABI_debug}.so
+%{dynload_dir}/select.%{SOABI_debug}.so
+%{dynload_dir}/spwd.%{SOABI_debug}.so
+%{dynload_dir}/syslog.%{SOABI_debug}.so
+%{dynload_dir}/termios.%{SOABI_debug}.so
+%{dynload_dir}/time.%{SOABI_debug}.so
+%{dynload_dir}/unicodedata.%{SOABI_debug}.so
+%{dynload_dir}/zlib.%{SOABI_debug}.so
 
 # No need to split things out the "Makefile" and the config-32/64.h file as we
 # do for the regular build above (bug 531901), since they're all in one package
@@ -1148,25 +1107,22 @@ rm -fr %{buildroot}
 %endif
 
 # Analog of the -devel subpackage's files:
-%dir %{pylibdir}/config-debug
-%{pylibdir}/config-debug/*
-%{_includedir}/python%{pybasever}-debug/*.h
-%{_bindir}/python3-debug-config
-%{_bindir}/python%{pybasever}-debug-config
-%{_libdir}/libpython%{pybasever}_d.so
-%{_libdir}/pkgconfig/python-%{pybasever}-debug.pc
-%{_libdir}/pkgconfig/python3-debug.pc
+%{pylibdir}/config-%{LDVERSION_debug}
+%{_includedir}/python%{LDVERSION_debug}
+%{_bindir}/python%{LDVERSION_debug}-config
+%{_libdir}/libpython%{LDVERSION_debug}.so
+%{_libdir}/pkgconfig/python-%{LDVERSION_debug}.pc
 
 # Analog of the -tools subpackage's files:
 #  None for now; we could build precanned versions that have the appropriate
 # shebang if needed
 
 # Analog  of the tkinter subpackage's files:
-%{dynload_dir}/_tkinter_d.so
+%{dynload_dir}/_tkinter.%{SOABI_debug}.so
 
 # Analog  of the -test subpackage's files:
-%{dynload_dir}/_ctypes_test_d.so
-%{dynload_dir}/_testcapi_d.so
+%{dynload_dir}/_ctypes_test.%{SOABI_debug}.so
+%{dynload_dir}/_testcapi.%{SOABI_debug}.so
 
 %endif # with_debug_build
 
@@ -1185,6 +1141,25 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Tue Dec 28 2010 David Malcolm <dmalcolm@redhat.com> - 3.2-0.5.b2
+- 3.2b2
+- rework patch 3 (removal of mimeaudio tests), patch 6 (no static libs),
+patch 8 (systemtap), patch 102 (lib64)
+- remove patch 4 (rendered redundant by upstream r85537), patch 103 (PEP 3149),
+patch 110 (upstreamed expat fix), patch 111 (parallel build fix for grammar
+fixed upstream)
+- regenerate patch 300 (autotool intermediates)
+- workaround COUNT_ALLOCS weakref issues in test suite (patch 126, patch 127,
+patch 128)
+- stop using runtest.sh in %%check (dropped by upstream), replacing with
+regrtest; fixup list of failing tests
+- introduce "pyshortver", "SOABI_optimized" and "SOABI_debug" macros
+- rework manifests of shared libraries to use "SOABI_" macros, reflecting
+PEP 3149
+- drop itertools, operator and _collections modules from the manifests as py3k
+commit r84058 moved these inside libpython; json/tests moved to test/json_tests
+- move turtle code into the tkinter subpackage
+
 * Wed Nov 17 2010 David Malcolm <dmalcolm@redhat.com> - 3.2-0.5.a1
 - fix sysconfig to not rely on the -devel subpackage (rhbz#653058)
 

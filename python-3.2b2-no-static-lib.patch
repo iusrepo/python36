@@ -1,17 +1,17 @@
-diff -up Python-3.2a1/Makefile.pre.in.no-static-lib Python-3.2a1/Makefile.pre.in
---- Python-3.2a1/Makefile.pre.in.no-static-lib	2010-07-17 16:39:23.000000000 -0400
-+++ Python-3.2a1/Makefile.pre.in	2010-08-02 16:02:28.378010008 -0400
-@@ -416,7 +416,7 @@ coverage:
+diff -up Python-3.2b2/Makefile.pre.in.no-static-lib Python-3.2b2/Makefile.pre.in
+--- Python-3.2b2/Makefile.pre.in.no-static-lib	2010-12-13 13:04:23.000000000 -0500
++++ Python-3.2b2/Makefile.pre.in	2010-12-28 16:57:11.484065804 -0500
+@@ -420,7 +420,7 @@ coverage:
  
  
  # Build the interpreter
 -$(BUILDPYTHON):	Modules/python.o $(LIBRARY) $(LDLIBRARY)
 +$(BUILDPYTHON):	Modules/python.o $(LDLIBRARY)
- 		$(LINKCC) $(PY_LDFLAGS) $(LINKFORSHARED) -o $@ \
- 			Modules/python.o \
- 			$(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
-@@ -432,18 +432,6 @@ sharedmods: $(BUILDPYTHON)
- 	*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' LDFLAGS='$(PY_LDFLAGS)' OPT='$(OPT)' ./$(BUILDPYTHON) -E $(srcdir)/setup.py build;; \
+ 	$(LINKCC) $(PY_LDFLAGS) $(LINKFORSHARED) -o $@ Modules/python.o $(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
+ 
+ platform: $(BUILDPYTHON)
+@@ -434,18 +434,6 @@ sharedmods: $(BUILDPYTHON)
+ 	*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' ./$(BUILDPYTHON) -E $(srcdir)/setup.py build;; \
  	esac
  
 -# Build static library
@@ -26,10 +26,10 @@ diff -up Python-3.2a1/Makefile.pre.in.no-static-lib Python-3.2a1/Makefile.pre.in
 -	$(AR) $(ARFLAGS) $@ $(MODOBJS)
 -	$(RANLIB) $@
 -
- libpython$(VERSION).so: $(LIBRARY_OBJS)
+ libpython$(LDVERSION).so: $(LIBRARY_OBJS)
  	if test $(INSTSONAME) != $(LDLIBRARY); then \
- 		$(LDSHARED) $(PY_LDFLAGS) -Wl,-h$(INSTSONAME) -o $(INSTSONAME) $(LIBRARY_OBJS) $(MODLIBS) $(SHLIBS) $(LIBC) $(LIBM) $(LDLAST); \
-@@ -1003,18 +991,6 @@ libainstall:	all python-config
+ 		$(BLDSHARED) -Wl,-h$(INSTSONAME) -o $(INSTSONAME) $(LIBRARY_OBJS) $(MODLIBS) $(SHLIBS) $(LIBC) $(LIBM) $(LDLAST); \
+@@ -1035,18 +1023,6 @@ libainstall:	all python-config
  		else	true; \
  		fi; \
  	done
