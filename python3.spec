@@ -106,7 +106,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}
-Release: 0.5.%{alphatag}%{?dist}
+Release: 0.6.%{alphatag}%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}%{alphatag}.tar.bz2
@@ -212,6 +212,17 @@ Patch127: python-3.2b2-fix-test-gc-COUNT_ALLOCS.patch
 # Similar COUNT_ALLOCS fixes for test_sys
 # Not yet sent upstream
 Patch128: python-3.2b2-test_sys-COUNT_ALLOCS.patch
+
+# In my koji builds, /root/bin is in the PATH for some reason
+# This leads to test_subprocess.py failing, due to "test_leaking_fds_on_error"
+# trying every dir in PATH for "nonexisting_i_hope", which leads to it raising
+#  OSError: [Errno 13] Permission denied
+# when it tries to read /root/bin, rather than raising "No such file"
+#
+# Work around this by specifying an absolute path for the non-existant
+# executable
+# Not yet sent upstream
+Patch129: python-3.2b2-fix-test-subprocess-with-nonreadable-path-dir.patch
 
 # This is the generated patch to "configure"; see the description of
 #   %{regenerate_autotooling_patch}
@@ -376,6 +387,7 @@ rm -r Modules/zlib || exit 1
 %patch126 -p1
 %patch127 -p1
 %patch128 -p1
+%patch129 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1141,6 +1153,9 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Wed Dec 29 2010 David Malcolm <dmalcolm@redhat.com> - 3.2-0.6.b2
+- work around test_subprocess failure seen in koji (patch 129)
+
 * Tue Dec 28 2010 David Malcolm <dmalcolm@redhat.com> - 3.2-0.5.b2
 - 3.2b2
 - rework patch 3 (removal of mimeaudio tests), patch 6 (no static libs),
