@@ -50,6 +50,13 @@
 
 %global with_systemtap 1
 
+# some arches don't have valgrind so we need to disable its support on them
+%ifarch %{ix86} x86_64 ppc ppc64 s390x
+%global with_valgrind 1
+%else
+%global with_valgrind 0
+%endif
+
 # Change from yes to no to turn this off
 %global with_computed_gotos yes
 
@@ -106,7 +113,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}
-Release: 0.6.%{alphatag}%{?dist}
+Release: 0.7.%{alphatag}%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}%{alphatag}.tar.bz2
@@ -238,6 +245,9 @@ BuildRequires: tix-devel bzip2-devel sqlite-devel
 BuildRequires: autoconf
 BuildRequires: db4-devel >= 4.7
 BuildRequires: libffi-devel
+%if 0%{?with_valgrind}
+BuildRequires: valgrind-devel
+%endif
 
 %if 0%{?with_systemtap}
 BuildRequires: systemtap-sdt-devel
@@ -466,6 +476,9 @@ BuildPython() {
   --with-tapset-install-dir=%{tapsetdir} \
 %endif
   --with-system-ffi \
+%if 0%{?with_valgrind}
+  --with-valgrind \
+%endif
   --with-system-expat \
   $ExtraConfigArgs \
   --with-computed-gotos=%{with_computed_gotos} \
@@ -1153,6 +1166,9 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Tue Jan  4 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-0.7.b2
+- add --with-valgrind to configuration (on architectures that support this)
+
 * Wed Dec 29 2010 David Malcolm <dmalcolm@redhat.com> - 3.2-0.6.b2
 - work around test_subprocess failure seen in koji (patch 129)
 
