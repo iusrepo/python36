@@ -113,7 +113,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}
-Release: 0.7.%{alphatag}%{?dist}
+Release: 0.8.%{alphatag}%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}%{alphatag}.tar.bz2
@@ -230,6 +230,10 @@ Patch128: python-3.2b2-test_sys-COUNT_ALLOCS.patch
 # executable
 # Not yet sent upstream
 Patch129: python-3.2b2-fix-test-subprocess-with-nonreadable-path-dir.patch
+
+# Use the correct preprocessor definition to detect ppc:
+# See http://bugs.python.org/issue10655 and rhbz#661510
+Patch130: python-3.2b2-fix-ppc-debug-build.patch
 
 # This is the generated patch to "configure"; see the description of
 #   %{regenerate_autotooling_patch}
@@ -398,6 +402,7 @@ rm -r Modules/zlib || exit 1
 %patch127 -p1
 %patch128 -p1
 %patch129 -p1
+%patch130 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -484,8 +489,16 @@ BuildPython() {
   --with-computed-gotos=%{with_computed_gotos} \
   %{nil}
 
-
-make OPT="$CFLAGS" %{?_smp_mflags}
+  # Set EXTRA_CFLAGS to our CFLAGS (rather than overriding OPT, as we've done
+  # in the past).
+  # This should fix a problem with --with-valgrind where it adds
+  #   -DDYNAMIC_ANNOTATIONS_ENABLED=1
+  # to OPT which must be passed to all compilation units in the build,
+  # otherwise leading to linker errors, e.g.
+  #    missing symbol AnnotateRWLockDestroy
+  #
+  # Invoke the build:
+  make EXTRA_CFLAGS="$CFLAGS" %{?_smp_mflags}
 
   popd
   echo FINISHED: BUILD OF PYTHON FOR CONFIGURATION: $ConfDir
@@ -1166,6 +1179,11 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Wed Jan  5 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-0.8.b2
+- set EXTRA_CFLAGS to our CFLAGS, rather than overriding OPT, fixing a linker
+error with dynamic annotations (when configured using --with-valgrind)
+- fix the ppc build of the debug configuration (patch 130; rhbz#661510)
+
 * Tue Jan  4 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-0.7.b2
 - add --with-valgrind to configuration (on architectures that support this)
 
