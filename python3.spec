@@ -3,7 +3,7 @@
 # pybasever without the dot:
 %global pyshortver 32
 
-%global alphatag  b2
+%global alphatag  rc1
 
 %global pylibdir %{_libdir}/python%{pybasever}
 %global dynload_dir %{pylibdir}/lib-dynload
@@ -113,7 +113,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}
-Release: 0.8.%{alphatag}%{?dist}
+Release: 0.9.%{alphatag}%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}%{alphatag}.tar.bz2
@@ -178,7 +178,7 @@ Patch3: python-3.2b2-remove-mimeaudio-tests.patch
 
 # Patch the Makefile.pre.in so that the generated Makefile doesn't try to build
 # a libpythonMAJOR.MINOR.a (bug 550692):
-Patch6: python-3.2b2-no-static-lib.patch
+Patch6: python-3.2rc1-no-static-lib.patch
 
 # Systemtap support: add statically-defined probe points
 # Patch based on upstream bug: http://bugs.python.org/issue4111
@@ -230,10 +230,6 @@ Patch128: python-3.2b2-test_sys-COUNT_ALLOCS.patch
 # executable
 # Not yet sent upstream
 Patch129: python-3.2b2-fix-test-subprocess-with-nonreadable-path-dir.patch
-
-# Use the correct preprocessor definition to detect ppc:
-# See http://bugs.python.org/issue10655 and rhbz#661510
-Patch130: python-3.2b2-fix-ppc-debug-build.patch
 
 # This is the generated patch to "configure"; see the description of
 #   %{regenerate_autotooling_patch}
@@ -402,7 +398,6 @@ rm -r Modules/zlib || exit 1
 %patch127 -p1
 %patch128 -p1
 %patch129 -p1
-%patch130 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -597,7 +592,7 @@ install -m755 -d %{buildroot}%{pylibdir}/Doc
 cp -ar Doc/tools %{buildroot}%{pylibdir}/Doc/
 
 # Demo scripts
-cp -ar Demo %{buildroot}%{pylibdir}/
+cp -ar Tools/demo %{buildroot}%{pylibdir}/Tools/
 
 # Fix for bug #136654
 rm -f %{buildroot}%{pylibdir}/email/test/data/audiotest.au %{buildroot}%{pylibdir}/test/audiotest.au
@@ -681,12 +676,8 @@ find %{buildroot} \
 
 # Remove executable flag from files that shouldn't have it:
 chmod a-x \
-  %{buildroot}%{pylibdir}/Demo/comparisons/patterns \
   %{buildroot}%{pylibdir}/distutils/tests/Setup.sample \
-  %{buildroot}%{pylibdir}/Demo/rpc/test \
-  %{buildroot}%{pylibdir}/Tools/README \
-  %{buildroot}%{pylibdir}/Demo/scripts/newslist.doc \
-  %{buildroot}%{pylibdir}/Demo/md5test/foo
+  %{buildroot}%{pylibdir}/Tools/README
 
 # Get rid of DOS batch files:
 find %{buildroot} -name \*.bat -exec rm {} \;
@@ -1000,6 +991,7 @@ rm -fr %{buildroot}
 %{_includedir}/python%{LDVERSION_optimized}/%{_pyconfig_h}
 
 %{_libdir}/%{py_INSTSONAME_optimized}
+%{_libdir}/libpython3.so
 %if 0%{?with_systemtap}
 %{tapsetdir}/%{libpython_stp_optimized}
 %doc systemtap-example.stp pyfuntop.stp
@@ -1025,11 +1017,9 @@ rm -fr %{buildroot}
 %files tools
 %defattr(-,root,root,755)
 %{_bindir}/python3-2to3
+%{_bindir}/2to3-%{pybasever}
 %{_bindir}/idle*
 %{pylibdir}/Tools
-%doc %{pylibdir}/Demo
-%exclude %{pylibdir}/Demo/distutils
-%exclude %{pylibdir}/Demo/md5test
 %doc %{pylibdir}/Doc
 
 %files tkinter
@@ -1057,8 +1047,6 @@ rm -fr %{buildroot}
 %{dynload_dir}/_ctypes_test.%{SOABI_optimized}.so
 %{dynload_dir}/_testcapi.%{SOABI_optimized}.so
 %{pylibdir}/lib2to3/tests
-%doc %{pylibdir}/Demo/distutils
-%doc %{pylibdir}/Demo/md5test
 %{pylibdir}/tkinter/test
 %{pylibdir}/unittest/test
 
@@ -1179,6 +1167,14 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Mon Jan 17 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-0.9.rc1
+- 3.2rc1
+- rework patch 6 (static lib removal)
+- remove upstreamed patch 130 (ppc debug build)
+- regenerate patch 300 (autotool intermediates)
+- updated packaging to reflect upstream rewrite of "Demo" (issue 7962)
+- added libpython3.so and 2to3-3.2
+
 * Wed Jan  5 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-0.8.b2
 - set EXTRA_CFLAGS to our CFLAGS, rather than overriding OPT, fixing a linker
 error with dynamic annotations (when configured using --with-valgrind)
