@@ -1,0 +1,17 @@
+diff -up Python-3.2rc1/Python/ceval.c.s390-tsc Python-3.2rc1/Python/ceval.c
+--- Python-3.2rc1/Python/ceval.c.s390-tsc	2011-02-04 05:11:27.585224435 -0500
++++ Python-3.2rc1/Python/ceval.c	2011-02-04 05:12:38.065223933 -0500
+@@ -74,6 +74,13 @@ ppc_getcounter(uint64 *v)
+                          "=a" (((int*)&(val))[0]), "=d" (((int*)&(val))[1]));
+ 
+ 
++#elif defined(__s390__)
++
++/* covers both s390 and s390x */
++
++#define READ_TIMESTAMP(val) \
++    __asm__ __volatile__("stck %0" : "=Q" (val) : : "cc")
++
+ #else
+ 
+ #error "Don't know how to implement timestamp counter for this architecture"
