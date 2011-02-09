@@ -3,7 +3,7 @@
 # pybasever without the dot:
 %global pyshortver 32
 
-%global alphatag  rc1
+%global alphatag  rc2
 
 %global pylibdir %{_libdir}/python%{pybasever}
 %global dynload_dir %{pylibdir}/lib-dynload
@@ -113,7 +113,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}
-Release: 0.9.%{alphatag}%{?dist}
+Release: 0.10.%{alphatag}%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}%{alphatag}.tar.bz2
@@ -1167,6 +1167,9 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Mon Jan 31 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-0.10.rc2
+- 3.2rc2
+
 * Mon Jan 17 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-0.9.rc1
 - 3.2rc1
 - rework patch 6 (static lib removal)
