@@ -3,7 +3,7 @@
 # pybasever without the dot:
 %global pyshortver 32
 
-%global alphatag  rc2
+%global alphatag  rc3
 
 %global pylibdir %{_libdir}/python%{pybasever}
 %global dynload_dir %{pylibdir}/lib-dynload
@@ -113,7 +113,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}
-Release: 0.11.%{alphatag}%{?dist}
+Release: 0.12.%{alphatag}%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}%{alphatag}.tar.bz2
@@ -1167,6 +1167,10 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Mon Feb 14 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-0.12.rc3
+- 3.2rc3
+- regenerate autotool patch
+
 * Wed Feb 09 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.2-0.11.rc2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
 
