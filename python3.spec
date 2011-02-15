@@ -113,7 +113,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}
-Release: 0.12.%{alphatag}%{?dist}
+Release: 0.13.%{alphatag}%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}%{alphatag}.tar.bz2
@@ -737,6 +737,13 @@ for Module in %{buildroot}/%{dynload_dir}/*.so ; do
     esac
 done
 
+# Create "/usr/bin/python3-debug", a symlink to the python3 debug binary, to
+# avoid the user having to know the precise version and ABI flags.  (see
+# e.g. rhbz#676748):
+ln -s \
+  %{_bindir}/python%{LDVERSION_debug} \
+  %{buildroot}%{_bindir}/python3-debug
+
 #
 # Systemtap hooks:
 #
@@ -1063,6 +1070,7 @@ rm -fr %{buildroot}
 
 # Analog of the core subpackage's files:
 %{_bindir}/python%{LDVERSION_debug}
+%{_bindir}/python3-debug
 
 # Analog of the -libs subpackage's files:
 # ...with debug builds of the built-in "extension" modules:
@@ -1167,6 +1175,9 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Mon Feb 14 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-0.13.rc3
+- add a /usr/bin/python3-debug symlink within the debug subpackage
+
 * Mon Feb 14 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-0.12.rc3
 - 3.2rc3
 - regenerate autotool patch
