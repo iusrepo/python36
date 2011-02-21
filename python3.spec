@@ -3,8 +3,6 @@
 # pybasever without the dot:
 %global pyshortver 32
 
-%global alphatag  rc3
-
 %global pylibdir %{_libdir}/python%{pybasever}
 %global dynload_dir %{pylibdir}/lib-dynload
 
@@ -113,10 +111,10 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}
-Release: 0.13.%{alphatag}%{?dist}
+Release: 1%{?dist}
 License: Python
 Group: Development/Languages
-Source: http://python.org/ftp/python/%{version}/Python-%{version}%{alphatag}.tar.bz2
+Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
 
 # Avoid having various bogus auto-generated Provides lines for the various
 # python c modules' SONAMEs:
@@ -352,7 +350,7 @@ can load its own extensions.
 %endif # with_debug_build
 
 %prep
-%setup -q -n Python-%{version}%{alphatag}
+%setup -q -n Python-%{version}
 chmod +x %{SOURCE1}
 
 %if 0%{?with_systemtap}
@@ -837,7 +835,7 @@ rm -fr %{buildroot}
 %doc LICENSE README
 %dir %{pylibdir}
 %dir %{dynload_dir}
-%{dynload_dir}/Python-%{version}%{alphatag}-py%{pybasever}.egg-info
+%{dynload_dir}/Python-%{version}-py%{pybasever}.egg-info
 %{dynload_dir}/_bisect.%{SOABI_optimized}.so
 %{dynload_dir}/_codecs_cn.%{SOABI_optimized}.so
 %{dynload_dir}/_codecs_hk.%{SOABI_optimized}.so
@@ -1175,6 +1173,11 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Mon Feb 21 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-1
+- 3.2
+- drop alphatag
+- regenerate autotool patch
+
 * Mon Feb 14 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-0.13.rc3
 - add a /usr/bin/python3-debug symlink within the debug subpackage
 
