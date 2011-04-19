@@ -111,7 +111,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: Python
 Group: Development/Languages
 Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
@@ -759,13 +759,13 @@ mkdir -p %{buildroot}%{tapsetdir}
 
 sed \
    -e "s|LIBRARY_PATH|%{_libdir}/%{py_INSTSONAME_optimized}|" \
-   %{SOURCE6} \
+   %{_sourcedir}/libpython.stp \
    > %{buildroot}%{tapsetdir}/%{libpython_stp_optimized}
 
 %if 0%{?with_debug_build}
 sed \
    -e "s|LIBRARY_PATH|%{_libdir}/%{py_INSTSONAME_debug}|" \
-   %{SOURCE6} \
+   %{_sourcedir}/libpython.stp \
    > %{buildroot}%{tapsetdir}/%{libpython_stp_debug}
 %endif # with_debug_build
 
@@ -1173,6 +1173,9 @@ rm -fr %{buildroot}
 
 
 %changelog
+* Tue Apr 19 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-2
+- fix the libpython.stp systemtap tapset (rhbz#697730)
+
 * Mon Feb 21 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-1
 - 3.2
 - drop alphatag
