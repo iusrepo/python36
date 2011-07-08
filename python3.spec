@@ -118,7 +118,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -188,27 +188,6 @@ Source2: macros.python3
 # to enable specfiles to selectively byte-compile individual files and paths
 # with different Python runtimes as necessary:
 Source3: macros.pybytecompile
-
-# We install a collection of hooks for gdb that make it easier to debug
-# executables linked against libpython (such as /usr/lib/python itself)
-#
-# These hooks are implemented in Python itself (though they are for the version
-# of python that gdb is linked with, in this case Python 2.6)
-#
-# gdb-archer looks for them in the same path as the ELF file, with a -gdb.py suffix.
-# We put them in the debuginfo package by installing them to e.g.:
-#  /usr/lib/debug/usr/lib/libpython3.1.so.1.0.debug-gdb.py
-#
-# See https://fedoraproject.org/wiki/Features/EasierPythonDebugging for more
-# information
-#
-# This is the version from 
-#  http://bugs.python.org/issue8380
-#
-# This is Tools/gdb/libpython.py from:
-#  http://bugs.python.org/file16902/port-gdb7-hooks-to-py3k.patch
-# when applied to r80008 of the py3k branch
-Source4: python-gdb.py
 
 # Systemtap tapset to make it easier to use the systemtap static probes
 # (actually a template; LIBRARY_PATH will get fixed up during install)
@@ -594,26 +573,38 @@ InstallPython() {
 
 make install DESTDIR=%{buildroot} INSTALL="install -p"
 
-
-# Copy up the gdb hooks into place; the python file will be autoloaded by gdb
-# when visiting libpython.so, provided that the python file is installed to the
-# same path as the library (or its .debug file) plus a "-gdb.py" suffix, e.g:
-#  /usr/lib/debug/usr/lib64/libpython3.1.so.1.0.debug-gdb.py
-# (note that the debug path is /usr/lib/debug for both 32/64 bit)
-# 
-# Initially I tried:
-#  /usr/lib/libpython3.1.so.1.0-gdb.py
-# but doing so generated noise when ldconfig was rerun (rhbz:562980)
-#
-%if 0%{?with_gdb_hooks}
-DirHoldingGdbPy=%{_prefix}/lib/debug/%{_libdir}
-PathOfGdbPy=$DirHoldingGdbPy/$PyInstSoName.debug-gdb.py
-
-mkdir -p %{buildroot}$DirHoldingGdbPy
-cp %{SOURCE4} %{buildroot}$PathOfGdbPy
-%endif # with_gdb_hooks
-
   popd
+
+  # We install a collection of hooks for gdb that make it easier to debug
+  # executables linked against libpython3* (such as /usr/bin/python3 itself)
+  #
+  # These hooks are implemented in Python itself (though they are for the version
+  # of python that gdb is linked with, in this case Python 2.7)
+  #
+  # gdb-archer looks for them in the same path as the ELF file, with a -gdb.py suffix.
+  # We put them in the debuginfo package by installing them to e.g.:
+  #  /usr/lib/debug/usr/lib/libpython3.2.so.1.0.debug-gdb.py
+  #
+  # See https://fedoraproject.org/wiki/Features/EasierPythonDebugging for more
+  # information
+  #
+  # Copy up the gdb hooks into place; the python file will be autoloaded by gdb
+  # when visiting libpython.so, provided that the python file is installed to the
+  # same path as the library (or its .debug file) plus a "-gdb.py" suffix, e.g:
+  #  /usr/lib/debug/usr/lib64/libpython3.2.so.1.0.debug-gdb.py
+  # (note that the debug path is /usr/lib/debug for both 32/64 bit)
+  #
+  # Initially I tried:
+  #  /usr/lib/libpython3.1.so.1.0-gdb.py
+  # but doing so generated noise when ldconfig was rerun (rhbz:562980)
+  #
+%if 0%{?with_gdb_hooks}
+  DirHoldingGdbPy=%{_prefix}/lib/debug/%{_libdir}
+  PathOfGdbPy=$DirHoldingGdbPy/$PyInstSoName.debug-gdb.py
+
+  mkdir -p %{buildroot}$DirHoldingGdbPy
+  cp Tools/gdb/libpython.py %{buildroot}$PathOfGdbPy
+%endif # with_gdb_hooks
 
   echo FINISHED: INSTALL OF PYTHON FOR CONFIGURATION: $ConfName
 }
@@ -1287,6 +1278,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Jul  8 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-5
+- use the gdb hooks from the upstream tarball, rather than keeping our own copy
+
 * Fri Jul  8 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-4
 - don't run test_openpty and test_pty in %%check
 
