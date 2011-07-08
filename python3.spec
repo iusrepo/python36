@@ -118,7 +118,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -841,31 +841,65 @@ CheckPython() {
 
   echo STARTING: CHECKING OF PYTHON FOR CONFIGURATION: $ConfName
 
-# Run the upstream test suite
-LD_LIBRARY_PATH=$ConfDir $ConfDir/python -m test.regrtest -x test_distutils test_httplib test_http_cookies test_socket test_telnet
+  # Notes about disabled tests:
+  #
+  # test_distutils.py
+  #    This one tries to build an RPM inside the rpmbuild; I'll simply
+  # let this one fail for now (has trouble linking against -lpython3.1; perhaps
+  # LD_LIBRARY_PATH is being discarded somewhere?)
+  #
+  # test_http*
+  #   I've seen occasional hangs in some http tests when running the test suite
+  #   inside Koji on Python 3.  For that reason I exclude them
+  #
+  # test_openpty:
+  #   Fails in Koji, possibly due to a mock issue (rhbz#714627)
+  #     test test_openpty failed -- Traceback (most recent call last):
+  #       File "/builddir/build/BUILD/Python-3.2/Lib/test/test_openpty.py", line 12, in test
+  #         master, slave = os.openpty()
+  #     OSError: [Errno 2] No such file or directory
+  #
+  # test_pty:
+  #   Fails in Koji, possibly due to a mock issue (rhbz#714627)
+  #     test test_pty failed -- Traceback (most recent call last):
+  #       File "/builddir/build/BUILD/Python-3.2/Lib/test/test_pty.py", line 114, in test_fork
+  #         pid, master_fd = pty.fork()
+  #       File "/builddir/build/BUILD/Python-3.2/Lib/pty.py", line 107, in fork
+  #         master_fd, slave_fd = openpty()
+  #       File "/builddir/build/BUILD/Python-3.2/Lib/pty.py", line 29, in openpty
+  #         master_fd, slave_name = _open_terminal()
+  #       File "/builddir/build/BUILD/Python-3.2/Lib/pty.py", line 70, in _open_terminal
+  #         raise os.error('out of pty devices')
+  #     OSError: out of pty devices
+  #
+  # test_socket:
+  #   test_socket.py:testSockName can fail here if DNS isn't properly set up:
+  #     my_ip_addr = socket.gethostbyname(socket.gethostname())
+  #   socket.gaierror: [Errno -2] Name or service not known
+  #
+  # test_telnet:
+  #    can get a "socket.error: [Errno 104] Connection reset by peer"
+  #
+  # Some additional tests fail when running the test suite as non-root outside of
+  # the build, due to permissions issues.
 
-# Note that we're running the tests using the version of the code in the builddir,
-# not in the buildroot.
+  EXCLUDED_TESTS="\
+      test_distutils \
+      test_httplib \
+      test_http_cookies \
+      test_openpty \
+      test_pty.py \
+      test_socket \
+      test_telnet \
+  %{nil}"
 
-# I'm seeing occasional hangs in some http tests when running the test suite
-# inside Koji.  For that reason I exclude them
-#
-# Other known failures:
-#
-# (1) test_distutils.py: tries to build an RPM inside the rpmbuild; I'll simply
-# let this one fail for now (has trouble linking against -lpython3.1; perhaps
-# LD_LIBRARY_PATH is being discarded somewhere?)
-#
-# (2) test_socket.py:testSockName can fail here if DNS isn't properly set up:
-#     my_ip_addr = socket.gethostbyname(socket.gethostname())
-# socket.gaierror: [Errno -2] Name or service not known
-#
-# (3) test_telnet: can get a "socket.error: [Errno 104] Connection reset by peer"
-#
-# Some additional tests fail when running the test suite as non-root outside of
-# the build, due to permissions issues.
+  # Note that we're running the tests using the version of the code in the builddir,
+  # not in the buildroot.
 
-  echo FINISHED: CHECKING OF PYTHON FOR CONFIGURATION: $ConfDir
+  # Run the upstream test suite
+  LD_LIBRARY_PATH=$ConfDir $ConfDir/python -m test.regrtest -x $EXCLUDED_TESTS
+
+  echo FINISHED: CHECKING OF PYTHON FOR CONFIGURATION: $ConfName
 
 }
 
@@ -1253,6 +1287,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Jul  8 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-4
+- don't run test_openpty and test_pty in %%check
+
 * Fri Jul  8 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-3
 - cleanup of BuildRequires; add comment headings to specfile sections
 
