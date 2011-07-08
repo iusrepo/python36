@@ -1,3 +1,7 @@
+# ======================================================
+# Conditionals and other variables controlling the build
+# ======================================================
+
 %global pybasever 3.2
 
 # pybasever without the dot:
@@ -108,13 +112,67 @@
 %global regenerate_autotooling_patch 0
 
 
+# ==================
+# Top-level metadata
+# ==================
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: Python
 Group: Development/Languages
-Source: http://python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
+
+
+# =======================
+# Build-time requirements
+# =======================
+
+# (keep this list alphabetized)
+
+BuildRequires: autoconf
+BuildRequires: bzip2
+BuildRequires: bzip2-devel
+BuildRequires: db4-devel >= 4.7
+BuildRequires: expat-devel
+BuildRequires: findutils
+BuildRequires: gcc-c++
+BuildRequires: gdbm-devel
+BuildRequires: glibc-devel
+BuildRequires: gmp-devel
+BuildRequires: libffi-devel
+BuildRequires: libGL-devel
+BuildRequires: libX11-devel
+BuildRequires: ncurses-devel
+BuildRequires: openssl-devel
+BuildRequires: pkgconfig
+BuildRequires: readline-devel
+BuildRequires: sqlite-devel
+
+%if 0%{?with_systemtap}
+BuildRequires: systemtap-sdt-devel
+# (this introduces a dependency on "python", in that systemtap-sdt-devel's
+# /usr/bin/dtrace is a python 2 script)
+%global tapsetdir      /usr/share/systemtap/tapset
+%endif # with_systemtap
+
+BuildRequires: tar
+BuildRequires: tcl-devel
+BuildRequires: tix-devel
+BuildRequires: tk-devel
+
+%if 0%{?with_valgrind}
+BuildRequires: valgrind-devel
+%endif
+
+BuildRequires: zlib-devel
+
+
+
+# =======================
+# Source code and patches
+# =======================
+
+Source: http://www.python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
 
 # Avoid having various bogus auto-generated Provides lines for the various
 # python c modules' SONAMEs:
@@ -235,22 +293,10 @@ Patch129: python-3.2b2-fix-test-subprocess-with-nonreadable-path-dir.patch
 Patch300: autotool-intermediates.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
-BuildRequires: readline-devel, openssl-devel, gmp-devel
-BuildRequires: ncurses-devel, gdbm-devel, zlib-devel, expat-devel
-BuildRequires: libGL-devel gcc-c++ libX11-devel glibc-devel
-BuildRequires: bzip2 tar /usr/bin/find pkgconfig tcl-devel tk-devel
-BuildRequires: tix-devel bzip2-devel sqlite-devel
-BuildRequires: autoconf
-BuildRequires: db4-devel >= 4.7
-BuildRequires: libffi-devel
-%if 0%{?with_valgrind}
-BuildRequires: valgrind-devel
-%endif
 
-%if 0%{?with_systemtap}
-BuildRequires: systemtap-sdt-devel
-%global tapsetdir      /usr/share/systemtap/tapset
-%endif
+# ======================================================
+# Additional metadata, and subpackages
+# ======================================================
 
 URL: http://www.python.org/
 
@@ -295,7 +341,6 @@ This package contains several tools included with Python 3
 %package tkinter
 Summary: A GUI toolkit for Python 3
 Group: Development/Languages
-BuildRequires:  tcl, tk
 Requires: %{name} = %{version}-%{release}
 
 %description tkinter
@@ -348,6 +393,10 @@ It shares installation directories with the standard Python 3 runtime, so that
 suffix ("foo_d.so" rather than "foo.so") so that each Python 3 implementation
 can load its own extensions.
 %endif # with_debug_build
+
+# ======================================================
+# The prep phase of the build:
+# ======================================================
 
 %prep
 %setup -q -n Python-%{version}
@@ -412,6 +461,11 @@ sed --in-place \
 # We don't apply the patch if we're working towards regenerating it
 %patch300 -p0 -b .autotool-intermediates
 %endif
+
+
+# ======================================================
+# Configuring and building the code:
+# ======================================================
 
 %build
 topdir=$(pwd)
@@ -517,6 +571,9 @@ BuildPython optimized \
   "" \
   true
 
+# ======================================================
+# Installing the built code:
+# ======================================================
 
 %install
 topdir=$(pwd)
@@ -771,6 +828,11 @@ sed \
 
 %endif # with_systemtap
 
+
+# ======================================================
+# Running the upstream test suite
+# ======================================================
+
 %check
 topdir=$(pwd)
 CheckPython() {
@@ -814,12 +876,26 @@ CheckPython debug
 CheckPython optimized
 
 
+# ======================================================
+# Cleaning up
+# ======================================================
+
 %clean
 rm -fr %{buildroot}
+
+
+# ======================================================
+# Scriptlets
+# ======================================================
 
 %post libs -p /sbin/ldconfig
 
 %postun libs -p /sbin/ldconfig
+
+
+# ======================================================
+# Manifests of the various subpackages
+# ======================================================
 
 %files
 %defattr(-, root, root)
@@ -1172,7 +1248,14 @@ rm -fr %{buildroot}
 # payload file would be unpackaged)
 
 
+# ======================================================
+# Finally, the changelog:
+# ======================================================
+
 %changelog
+* Fri Jul  8 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-3
+- cleanup of BuildRequires; add comment headings to specfile sections
+
 * Tue Apr 19 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-2
 - fix the libpython.stp systemtap tapset (rhbz#697730)
 
