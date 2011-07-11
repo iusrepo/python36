@@ -117,8 +117,8 @@
 # ==================
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
-Version: %{pybasever}
-Release: 5%{?dist}
+Version: %{pybasever}.1
+Release: 1%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -213,7 +213,7 @@ Patch3: python-3.2b2-remove-mimeaudio-tests.patch
 
 # Patch the Makefile.pre.in so that the generated Makefile doesn't try to build
 # a libpythonMAJOR.MINOR.a (bug 550692):
-Patch6: python-3.2rc1-no-static-lib.patch
+Patch6: python-3.2.1-no-static-lib.patch
 
 # Systemtap support: add statically-defined probe points
 # Patch based on upstream bug: http://bugs.python.org/issue4111
@@ -222,7 +222,7 @@ Patch6: python-3.2rc1-no-static-lib.patch
 # dmalcolm
 Patch8: python-3.2b2-systemtap.patch
 
-Patch102: python-3.2b2-lib64.patch
+Patch102: python-3.2.1-lib64.patch
 
 # Add configure-time support for the COUNT_ALLOCS and CALL_PROFILE options
 # described at http://svn.python.org/projects/python/trunk/Misc/SpecialBuilds.txt
@@ -264,7 +264,7 @@ Patch128: python-3.2b2-test_sys-COUNT_ALLOCS.patch
 # Work around this by specifying an absolute path for the non-existant
 # executable
 # Not yet sent upstream
-Patch129: python-3.2b2-fix-test-subprocess-with-nonreadable-path-dir.patch
+Patch129: python-3.2.1-fix-test-subprocess-with-nonreadable-path-dir.patch
 
 # This is the generated patch to "configure"; see the description of
 #   %{regenerate_autotooling_patch}
@@ -1278,6 +1278,11 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Jul 11 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.1-1
+- 3.2.1; refresh lib64 patch (102), subprocess unit test patch (129), disabling
+of static library build (due to Modules/_testembed; patch 6), autotool
+intermediates (patch 300)
+
 * Fri Jul  8 2011 David Malcolm <dmalcolm@redhat.com> - 3.2-5
 - use the gdb hooks from the upstream tarball, rather than keeping our own copy
 
