@@ -118,7 +118,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -874,6 +874,20 @@ CheckPython() {
   # Some additional tests fail when running the test suite as non-root outside of
   # the build, due to permissions issues.
 
+%ifarch %{sparc}
+  EXCLUDED_TESTS="\
+      test_distutils \
+      test_httplib \
+      test_http_cookies \
+      test_openpty \
+      test_pty.py \
+      test_socket \
+      test_telnet \
+      test_ctypes \
+      test_openpty \
+      test_pty \
+  %{nil}"
+%else
   EXCLUDED_TESTS="\
       test_distutils \
       test_httplib \
@@ -883,7 +897,7 @@ CheckPython() {
       test_socket \
       test_telnet \
   %{nil}"
-
+%endif
   # Note that we're running the tests using the version of the code in the builddir,
   # not in the buildroot.
 
@@ -1278,6 +1292,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Jul 11 2011 Dennis Gilmore <dennis@ausil.us> - 3.2.1-2
+- disable some tests on sparc arches 
+
 * Mon Jul 11 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.1-1
 - 3.2.1; refresh lib64 patch (102), subprocess unit test patch (129), disabling
 of static library build (due to Modules/_testembed; patch 6), autotool
