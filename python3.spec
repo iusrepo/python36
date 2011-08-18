@@ -118,7 +118,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1292,6 +1292,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Thu Aug 18 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.1-3
+- add %%python3_version to the rpm macros (rhbz#719082)
+
 * Mon Jul 11 2011 Dennis Gilmore <dennis@ausil.us> - 3.2.1-2
 - disable some tests on sparc arches 
 
