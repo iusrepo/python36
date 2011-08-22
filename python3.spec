@@ -757,6 +757,7 @@ LD_LIBRARY_PATH=. /usr/lib/rpm/brp-python-bytecompile ./python
 find %{buildroot} \
     -perm 555 -exec chmod 755 {} \;
 
+# Install macros for rpm:
 mkdir -p %{buildroot}/%{_sysconfdir}/rpm
 install -m 644 %{SOURCE2} %{buildroot}/%{_sysconfdir}/rpm
 install -m 644 %{SOURCE3} %{buildroot}/%{_sysconfdir}/rpm
@@ -932,9 +933,6 @@ rm -fr %{buildroot}
 %postun libs -p /sbin/ldconfig
 
 
-# ======================================================
-# Manifests of the various subpackages
-# ======================================================
 
 %files
 %defattr(-, root, root)
