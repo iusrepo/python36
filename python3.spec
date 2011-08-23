@@ -118,7 +118,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -536,7 +536,7 @@ BuildPython() {
 BuildPython debug \
   python-debug \
   python%{pybasever}-debug \
-%ifarch %{ix86} x86_64 ppc ppc64
+%ifarch %{ix86} x86_64 ppc
   "--with-pydebug --with-tsc --with-count-allocs --with-call-profile" \
 %else
   "--with-pydebug --with-count-allocs --with-call-profile" \
@@ -1290,6 +1290,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Tue Aug 23 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.1-4
+- don't use --with-tsc on ppc64 debug builds (rhbz#698726)
+
 * Thu Aug 18 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.1-3
 - add %%python3_version to the rpm macros (rhbz#719082)
 
