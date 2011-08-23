@@ -118,7 +118,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -265,6 +265,11 @@ Patch128: python-3.2b2-test_sys-COUNT_ALLOCS.patch
 # executable
 # Not yet sent upstream
 Patch129: python-3.2.1-fix-test-subprocess-with-nonreadable-path-dir.patch
+
+# Fix the --with-tsc option on ppc64, and rework it on 32-bit ppc to avoid
+# aliasing violations (rhbz#698726)
+# Not yet sent upstream
+Patch130: python-2.7.2-tsc-on-ppc.patch
 
 # This is the generated patch to "configure"; see the description of
 #   %{regenerate_autotooling_patch}
@@ -424,6 +429,7 @@ rm -r Modules/zlib || exit 1
 %patch127 -p1
 %patch128 -p1
 %patch129 -p1
+%patch130 -p1 -b .tsc-on-ppc
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -536,7 +542,7 @@ BuildPython() {
 BuildPython debug \
   python-debug \
   python%{pybasever}-debug \
-%ifarch %{ix86} x86_64 ppc
+%ifarch %{ix86} x86_64 ppc ppc64
   "--with-pydebug --with-tsc --with-count-allocs --with-call-profile" \
 %else
   "--with-pydebug --with-count-allocs --with-call-profile" \
@@ -1290,6 +1296,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Tue Aug 23 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.1-5
+- re-enable and fix the --with-tsc option on ppc64, and rework it on 32-bit
+ppc to avoid aliasing violations (patch 130; rhbz#698726)
+
 * Tue Aug 23 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.1-4
 - don't use --with-tsc on ppc64 debug builds (rhbz#698726)
 
