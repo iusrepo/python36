@@ -268,7 +268,7 @@ Patch129: python-3.2.1-fix-test-subprocess-with-nonreadable-path-dir.patch
 
 # Fix the --with-tsc option on ppc64, and rework it on 32-bit ppc to avoid
 # aliasing violations (rhbz#698726)
-# Not yet sent upstream
+# Sent upstream as http://bugs.python.org/issue12872
 Patch130: python-2.7.2-tsc-on-ppc.patch
 
 # This is the generated patch to "configure"; see the description of
