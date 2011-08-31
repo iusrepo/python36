@@ -118,7 +118,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -909,7 +909,9 @@ CheckPython() {
   # not in the buildroot.
 
   # Run the upstream test suite
-  LD_LIBRARY_PATH=$ConfDir $ConfDir/python -m test.regrtest -x $EXCLUDED_TESTS
+  LD_LIBRARY_PATH=$ConfDir $ConfDir/python -m test.regrtest \
+    --verbose3 --findleaks \
+    -x $EXCLUDED_TESTS
 
   echo FINISHED: CHECKING OF PYTHON FOR CONFIGURATION: $ConfName
 
@@ -1296,6 +1298,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed Aug 31 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.1-6
+- use "--findleaks --verbose3" when running test suite
+
 * Tue Aug 23 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.1-5
 - re-enable and fix the --with-tsc option on ppc64, and rework it on 32-bit
 ppc to avoid aliasing violations (patch 130; rhbz#698726)
