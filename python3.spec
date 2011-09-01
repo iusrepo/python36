@@ -118,7 +118,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -270,6 +270,12 @@ Patch129: python-3.2.1-fix-test-subprocess-with-nonreadable-path-dir.patch
 # aliasing violations (rhbz#698726)
 # Sent upstream as http://bugs.python.org/issue12872
 Patch130: python-2.7.2-tsc-on-ppc.patch
+
+# The four tests in test_io built on top of check_interrupted_write_retry
+# fail when built in Koji, for ppc and ppc64; for some reason, the SIGALRM
+# handlers are never called, and the call to write runs to completion
+# (rhbz#732998)
+Patch131: python-2.7.2-disable-tests-in-test_io.patch
 
 # This is the generated patch to "configure"; see the description of
 #   %{regenerate_autotooling_patch}
@@ -430,6 +436,10 @@ rm -r Modules/zlib || exit 1
 %patch128 -p1
 %patch129 -p1
 %patch130 -p1 -b .tsc-on-ppc
+
+%ifarch ppc ppc64
+%patch131 -p1
+%endif
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -910,7 +920,7 @@ CheckPython() {
 
   # Run the upstream test suite
   LD_LIBRARY_PATH=$ConfDir $ConfDir/python -m test.regrtest \
-    --verbose3 --findleaks \
+    --verbose --findleaks \
     -x $EXCLUDED_TESTS
 
   echo FINISHED: CHECKING OF PYTHON FOR CONFIGURATION: $ConfName
@@ -1298,6 +1308,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Thu Sep  1 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.1-7
+- run selftests with "--verbose"
+- disable parts of test_io on ppc (rhbz#732998)
+
 * Wed Aug 31 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.1-6
 - use "--findleaks --verbose3" when running test suite
 
