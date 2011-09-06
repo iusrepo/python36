@@ -117,8 +117,8 @@
 # ==================
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
-Version: %{pybasever}.1
-Release: 7%{?dist}
+Version: %{pybasever}.2
+Release: 1%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1308,6 +1308,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Tue Sep  6 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.2-1
+- 3.2.2
+
 * Thu Sep  1 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.1-7
 - run selftests with "--verbose"
 - disable parts of test_io on ppc (rhbz#732998)
