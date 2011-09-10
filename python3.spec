@@ -920,8 +920,8 @@ CheckPython() {
 
   echo STARTING: CHECKING OF PYTHON FOR CONFIGURATION: $ConfName
 
-  # Note that we're running the tests using the version of the code in the builddir,
-  # not in the buildroot.
+  # Note that we're running the tests using the version of the code in the
+  # builddir, not in the buildroot.
 
   # Run the upstream test suite, setting "WITHIN_PYTHON_RPM_BUILD" so that the
   # our non-standard decorators take effect on the relevant tests:
