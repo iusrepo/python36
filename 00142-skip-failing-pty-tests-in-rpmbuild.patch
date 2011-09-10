@@ -1,0 +1,22 @@
+diff -up Python-2.7.2/Lib/test/test_openpty.py.skip-failing-pty-tests-in-rpmbuild Python-2.7.2/Lib/test/test_openpty.py
+--- Python-2.7.2/Lib/test/test_openpty.py.skip-failing-pty-tests-in-rpmbuild	2011-09-09 05:09:28.698920379 -0400
++++ Python-2.7.2/Lib/test/test_openpty.py	2011-09-09 05:10:54.805914490 -0400
+@@ -8,6 +8,7 @@ if not hasattr(os, "openpty"):
+ 
+ 
+ class OpenptyTest(unittest.TestCase):
++    @unittest._skipInRpmBuild('sometimes fails in Koji, possibly due to a mock issue (rhbz#714627)')
+     def test(self):
+         master, slave = os.openpty()
+         if not os.isatty(slave):
+diff -up Python-2.7.2/Lib/test/test_pty.py.skip-failing-pty-tests-in-rpmbuild Python-2.7.2/Lib/test/test_pty.py
+--- Python-2.7.2/Lib/test/test_pty.py.skip-failing-pty-tests-in-rpmbuild	2011-09-09 05:09:36.781919825 -0400
++++ Python-2.7.2/Lib/test/test_pty.py	2011-09-09 05:11:14.741913127 -0400
+@@ -109,6 +109,7 @@ class PtyTest(unittest.TestCase):
+         os.close(master_fd)
+ 
+ 
++    @unittest._skipInRpmBuild('sometimes fails in Koji, possibly due to a mock issue (rhbz#714627)')
+     def test_fork(self):
+         debug("calling pty.fork()")
+         pid, master_fd = pty.fork()

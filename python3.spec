@@ -118,7 +118,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -234,26 +234,16 @@ Patch104: python-3.1.2-more-configuration-flags.patch
 # (rhbz:553020); partially upstream as http://bugs.python.org/issue7647
 Patch105: python-3.2a1-statvfs-f_flag-constants.patch
 
+# Only used when "%{_lib}" == "lib64"
+# Another lib64 fix, for distutils/tests/test_install.py; not upstream:
+Patch106: 00106-lib64-fix-for-test_install.patch
+
 # COUNT_ALLOCS is useful for debugging, but the upstream behaviour of always
 # emitting debug info to stdout on exit is too verbose and makes it harder to
 # use the debug build.  Add a "PYTHONDUMPCOUNTS" environment variable which
 # must be set to enable the output on exit
 # Not yet sent upstream:
 Patch125: less-verbose-COUNT_ALLOCS.patch
-
-# test_weakref's test_callback_in_cycle_resurrection doesn't work with
-# COUNT_ALLOCS, as the metrics keep "C" alive.  Work around this for our
-# debug build:
-# Not yet sent upstream
-Patch126: python-3.2b2-test-weakref-COUNT_ALLOCS_fix.patch
-
-# Similar COUNT_ALLOCS fixes for test_gc
-# Not yet sent upstream
-Patch127: python-3.2b2-fix-test-gc-COUNT_ALLOCS.patch
-
-# Similar COUNT_ALLOCS fixes for test_sys
-# Not yet sent upstream
-Patch128: python-3.2b2-test_sys-COUNT_ALLOCS.patch
 
 # In my koji builds, /root/bin is in the PATH for some reason
 # This leads to test_subprocess.py failing, due to "test_leaking_fds_on_error"
@@ -276,6 +266,74 @@ Patch130: python-2.7.2-tsc-on-ppc.patch
 # handlers are never called, and the call to write runs to completion
 # (rhbz#732998)
 Patch131: python-2.7.2-disable-tests-in-test_io.patch
+
+# Add non-standard hooks to unittest for use in the "check" phase below, when
+# running selftests within the build:
+#   @unittest._skipInRpmBuild(reason)
+# for tests that hang or fail intermittently within the build environment, and:
+#   @unittest._expectedFailureInRpmBuild
+# for tests that always fail within the build environment
+#
+# The hooks only take effect if WITHIN_PYTHON_RPM_BUILD is set in the
+# environment, which we set manually in the appropriate portion of the "check"
+# phase below (and which potentially other python-* rpms could set, to reuse
+# these unittest hooks in their own "check" phases)
+Patch132: 00132-add-rpmbuild-hooks-to-unittest.patch
+
+# 00133-skip-test_dl.patch is not relevant for python3: the "dl" module no
+# longer exists
+
+# Fix a failure in test_sys.py when configured with COUNT_ALLOCS enabled
+# Not yet sent upstream
+Patch134: 00134-fix-COUNT_ALLOCS-failure-in-test_sys.patch
+
+# test_weakref's test_callback_in_cycle_resurrection doesn't work with
+# COUNT_ALLOCS, as the metrics keep "C" alive.  Work around this for our
+# debug build:
+# Not yet sent upstream
+Patch135: 00135-fix-test-within-test_weakref-in-debug-build.patch
+
+# Patch136: 00136-skip-tests-of-seeking-stdin-in-rpmbuild.patch does not seem
+# to be needed by python3
+
+# Some tests within distutils fail when run in an rpmbuild:
+Patch137: 00137-skip-distutils-tests-that-fail-in-rpmbuild.patch
+
+# Patch138: 00138-fix-distutils-tests-in-debug-build.patch is not relevant for
+# python3
+
+# ARM-specific: skip known failure in test_float:
+#  http://bugs.python.org/issue8265 (rhbz#706253)
+Patch139: 00139-skip-test_float-known-failure-on-arm.patch
+
+# Patch140: 00140-skip-test_ctypes-known-failure-on-sparc.patch does not appear
+# to be relevant for python3
+
+# Fix test_gc's test_newinstance case when configured with COUNT_ALLOCS:
+Patch141: 00141-fix-test_gc_with_COUNT_ALLOCS.patch
+
+# Some pty tests fail when run in mock (rhbz#714627):
+Patch142: 00142-skip-failing-pty-tests-in-rpmbuild.patch
+
+# (New patches go here ^^^)
+#
+# When adding new patches to "python" and "python3" in Fedora 17 onwards,
+# please try to keep the patch numbers in-sync between the two specfiles:
+#
+#   - use the same patch number across both specfiles for conceptually-equivalent
+#     fixes, ideally with the same name
+#
+#   - when a patch is relevan to both specfiles, use the same introductory
+#     comment in both specfiles where possible (to improve "diff" output when
+#     comparing them)
+#
+#   - when a patch is only relevant for one of the two specfiles, leave a gap
+#     in the patch numbering in the other specfile, adding a comment when
+#     omitting a patch, both in the manifest section here, and in the "prep"
+#     phase below
+#
+# Hopefully this will make it easier to ensure that all relevant fixes are
+# applied to both versions.
 
 # This is the generated patch to "configure"; see the description of
 #   %{regenerate_autotooling_patch}
@@ -424,6 +482,7 @@ rm -r Modules/zlib || exit 1
 
 %if "%{_lib}" == "lib64"
 %patch102 -p1
+%patch106 -p1
 %endif
 
 %patch104 -p1 -b .more-configuration-flags
@@ -431,15 +490,27 @@ rm -r Modules/zlib || exit 1
 %patch105 -p1 -b .statvfs-f-flag-constants
 
 %patch125 -p1 -b .less-verbose-COUNT_ALLOCS
-%patch126 -p1
-%patch127 -p1
-%patch128 -p1
+
 %patch129 -p1
 %patch130 -p1 -b .tsc-on-ppc
 
 %ifarch ppc ppc64
 %patch131 -p1
 %endif
+
+%patch132 -p1
+# 00133: not for python3
+%patch134 -p1
+%patch135 -p1
+# 00136: not for python3
+%patch137 -p1
+# 00138: not for python3
+%ifarch %{arm}
+%patch139 -p1
+%endif
+# 00140: not for python3
+%patch141 -p1
+%patch142 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -849,79 +920,16 @@ CheckPython() {
 
   echo STARTING: CHECKING OF PYTHON FOR CONFIGURATION: $ConfName
 
-  # Notes about disabled tests:
-  #
-  # test_distutils.py
-  #    This one tries to build an RPM inside the rpmbuild; I'll simply
-  # let this one fail for now (has trouble linking against -lpython3.1; perhaps
-  # LD_LIBRARY_PATH is being discarded somewhere?)
-  #
-  # test_http*
-  #   I've seen occasional hangs in some http tests when running the test suite
-  #   inside Koji on Python 3.  For that reason I exclude them
-  #
-  # test_openpty:
-  #   Fails in Koji, possibly due to a mock issue (rhbz#714627)
-  #     test test_openpty failed -- Traceback (most recent call last):
-  #       File "/builddir/build/BUILD/Python-3.2/Lib/test/test_openpty.py", line 12, in test
-  #         master, slave = os.openpty()
-  #     OSError: [Errno 2] No such file or directory
-  #
-  # test_pty:
-  #   Fails in Koji, possibly due to a mock issue (rhbz#714627)
-  #     test test_pty failed -- Traceback (most recent call last):
-  #       File "/builddir/build/BUILD/Python-3.2/Lib/test/test_pty.py", line 114, in test_fork
-  #         pid, master_fd = pty.fork()
-  #       File "/builddir/build/BUILD/Python-3.2/Lib/pty.py", line 107, in fork
-  #         master_fd, slave_fd = openpty()
-  #       File "/builddir/build/BUILD/Python-3.2/Lib/pty.py", line 29, in openpty
-  #         master_fd, slave_name = _open_terminal()
-  #       File "/builddir/build/BUILD/Python-3.2/Lib/pty.py", line 70, in _open_terminal
-  #         raise os.error('out of pty devices')
-  #     OSError: out of pty devices
-  #
-  # test_socket:
-  #   test_socket.py:testSockName can fail here if DNS isn't properly set up:
-  #     my_ip_addr = socket.gethostbyname(socket.gethostname())
-  #   socket.gaierror: [Errno -2] Name or service not known
-  #
-  # test_telnet:
-  #    can get a "socket.error: [Errno 104] Connection reset by peer"
-  #
-  # Some additional tests fail when running the test suite as non-root outside of
-  # the build, due to permissions issues.
-
-%ifarch %{sparc}
-  EXCLUDED_TESTS="\
-      test_distutils \
-      test_httplib \
-      test_http_cookies \
-      test_openpty \
-      test_pty.py \
-      test_socket \
-      test_telnet \
-      test_ctypes \
-      test_openpty \
-      test_pty \
-  %{nil}"
-%else
-  EXCLUDED_TESTS="\
-      test_distutils \
-      test_httplib \
-      test_http_cookies \
-      test_openpty \
-      test_pty.py \
-      test_socket \
-      test_telnet \
-  %{nil}"
-%endif
   # Note that we're running the tests using the version of the code in the builddir,
   # not in the buildroot.
 
-  # Run the upstream test suite
+  # Run the upstream test suite, setting "WITHIN_PYTHON_RPM_BUILD" so that the
+  # our non-standard decorators take effect on the relevant tests:
+  #   @unittest._skipInRpmBuild(reason)
+  #   @unittest._expectedFailureInRpmBuild
+  WITHIN_PYTHON_RPM_BUILD= \
   LD_LIBRARY_PATH=$ConfDir $ConfDir/python -m test.regrtest \
-    --verbose --findleaks \
-    -x $EXCLUDED_TESTS
+    --verbose --findleaks
 
   echo FINISHED: CHECKING OF PYTHON FOR CONFIGURATION: $ConfName
 
@@ -1308,6 +1316,12 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Sat Sep 10 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.2-2
+- rewrite of "check", introducing downstream-only hooks for skipping specific
+cases in an rpmbuild (patch 132), and fixing/skipping failing tests in a more
+fine-grained manner than before; (patches 106, 133-142 sparsely, moving
+patches for consistency with python.spec: 128 to 134, 126 to 135, 127 to 141)
+
 * Tue Sep  6 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.2-1
 - 3.2.2
 
