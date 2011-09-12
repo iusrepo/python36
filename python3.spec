@@ -86,8 +86,7 @@
 # We need to get a newer configure generated out of configure.in for the following
 # patches:
 #   patch 55 (systemtap)
-#   patch 103 (debug build)
-#   patch 104 (more config flags)
+#   patch 113 (more config flags)
 #
 # For patch 55 (systemtap), we need to get a new header for configure to use
 #
@@ -118,7 +117,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -211,39 +210,42 @@ Patch1:         Python-3.1.1-rpath.patch
 # It's simplest to remove them:
 Patch3: python-3.2b2-remove-mimeaudio-tests.patch
 
-# Patch the Makefile.pre.in so that the generated Makefile doesn't try to build
-# a libpythonMAJOR.MINOR.a (bug 550692):
-Patch6: python-3.2.1-no-static-lib.patch
-
 # Systemtap support: add statically-defined probe points
 # Patch based on upstream bug: http://bugs.python.org/issue4111
 # fixed up by mjw and wcohen for 2.6.2, then fixed up by dmalcolm for 2.6.4
 # then rewritten by mjw (attachment 390110 of rhbz 545179); ported to 3.1.1 by
 # dmalcolm
-Patch8: python-3.2b2-systemtap.patch
+Patch55: 00055-systemtap.patch
 
 Patch102: python-3.2.1-lib64.patch
+
+# Only used when "%{_lib}" == "lib64"
+# Another lib64 fix, for distutils/tests/test_install.py; not upstream:
+Patch104: 00104-lib64-fix-for-test_install.patch
+
+# Patch the Makefile.pre.in so that the generated Makefile doesn't try to build
+# a libpythonMAJOR.MINOR.a (bug 550692):
+Patch111: 00111-no-static-lib.patch
+
+# Patch112: python-2.7rc1-debug-build.patch: this is not relevant to Python 3,
+# for 3.2 onwards
 
 # Add configure-time support for the COUNT_ALLOCS and CALL_PROFILE options
 # described at http://svn.python.org/projects/python/trunk/Misc/SpecialBuilds.txt
 # so that if they are enabled, they will be in that build's pyconfig.h, so that
 # extension modules will reliably use them
-Patch104: python-3.1.2-more-configuration-flags.patch
+Patch113: 00113-more-configuration-flags.patch
 
 # Add flags for statvfs.f_flag to the constant list in posixmodule (i.e. "os")
 # (rhbz:553020); partially upstream as http://bugs.python.org/issue7647
-Patch105: python-3.2a1-statvfs-f_flag-constants.patch
-
-# Only used when "%{_lib}" == "lib64"
-# Another lib64 fix, for distutils/tests/test_install.py; not upstream:
-Patch106: 00106-lib64-fix-for-test_install.patch
+Patch114: 00114-statvfs-f_flag-constants.patch
 
 # COUNT_ALLOCS is useful for debugging, but the upstream behaviour of always
 # emitting debug info to stdout on exit is too verbose and makes it harder to
 # use the debug build.  Add a "PYTHONDUMPCOUNTS" environment variable which
 # must be set to enable the output on exit
 # Not yet sent upstream:
-Patch125: less-verbose-COUNT_ALLOCS.patch
+Patch125: 00125-less-verbose-COUNT_ALLOCS.patch
 
 # In my koji builds, /root/bin is in the PATH for some reason
 # This leads to test_subprocess.py failing, due to "test_leaking_fds_on_error"
@@ -256,16 +258,15 @@ Patch125: less-verbose-COUNT_ALLOCS.patch
 # Not yet sent upstream
 Patch129: python-3.2.1-fix-test-subprocess-with-nonreadable-path-dir.patch
 
-# Fix the --with-tsc option on ppc64, and rework it on 32-bit ppc to avoid
-# aliasing violations (rhbz#698726)
-# Sent upstream as http://bugs.python.org/issue12872
-Patch130: python-2.7.2-tsc-on-ppc.patch
+# Python 2's:
+#   Patch130: python-2.7.2-add-extension-suffix-to-python-config.patch
+# is not relevant to Python 3 (for 3.2 onwards)
 
 # The four tests in test_io built on top of check_interrupted_write_retry
 # fail when built in Koji, for ppc and ppc64; for some reason, the SIGALRM
 # handlers are never called, and the call to write runs to completion
 # (rhbz#732998)
-Patch131: python-2.7.2-disable-tests-in-test_io.patch
+Patch131: 00131-disable-tests-in-test_io.patch
 
 # Add non-standard hooks to unittest for use in the "check" phase below, when
 # running selftests within the build:
@@ -314,6 +315,11 @@ Patch141: 00141-fix-test_gc_with_COUNT_ALLOCS.patch
 
 # Some pty tests fail when run in mock (rhbz#714627):
 Patch142: 00142-skip-failing-pty-tests-in-rpmbuild.patch
+
+# Fix the --with-tsc option on ppc64, and rework it on 32-bit ppc to avoid
+# aliasing violations (rhbz#698726)
+# Sent upstream as http://bugs.python.org/issue12872
+Patch143: 00143-tsc-on-ppc.patch
 
 # (New patches go here ^^^)
 #
@@ -474,25 +480,25 @@ rm -r Modules/zlib || exit 1
 #
 %patch1 -p1
 %patch3 -p1 -b .remove-mimeaudio-tests
-%patch6 -p1 -b .no-static-lib
 
 %if 0%{?with_systemtap}
-%patch8 -p1 -b .systemtap
+%patch55 -p1 -b .systemtap
 %endif
 
 %if "%{_lib}" == "lib64"
 %patch102 -p1
-%patch106 -p1
+%patch104 -p1
 %endif
 
-%patch104 -p1 -b .more-configuration-flags
 
-%patch105 -p1 -b .statvfs-f-flag-constants
+%patch111 -p1
+# 112: not for python3
+%patch113 -p1
+%patch114 -p1
 
 %patch125 -p1 -b .less-verbose-COUNT_ALLOCS
 
 %patch129 -p1
-%patch130 -p1 -b .tsc-on-ppc
 
 %ifarch ppc ppc64
 %patch131 -p1
@@ -511,6 +517,7 @@ rm -r Modules/zlib || exit 1
 # 00140: not for python3
 %patch141 -p1
 %patch142 -p1
+%patch143 -p1 -b .tsc-on-ppc
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1316,6 +1323,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Sep 12 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.2-3
+- renumber and rename patches for consistency with python.spec (8 to 55, 106
+to 104, 6 to 111, 104 to 113, 105 to 114, 125, 131, 130 to 143)
+
 * Sat Sep 10 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.2-2
 - rewrite of "check", introducing downstream-only hooks for skipping specific
 cases in an rpmbuild (patch 132), and fixing/skipping failing tests in a more
