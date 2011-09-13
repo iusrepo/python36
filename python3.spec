@@ -59,6 +59,8 @@
 %global with_valgrind 0
 %endif
 
+%global with_gdbm 0
+
 # Change from yes to no to turn this off
 %global with_computed_gotos yes
 
@@ -117,7 +119,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -135,7 +137,9 @@ BuildRequires: db4-devel >= 4.7
 BuildRequires: expat-devel
 BuildRequires: findutils
 BuildRequires: gcc-c++
+%if %{with_gdbm}
 BuildRequires: gdbm-devel
+%endif
 BuildRequires: glibc-devel
 BuildRequires: gmp-devel
 BuildRequires: libffi-devel
@@ -320,6 +324,11 @@ Patch142: 00142-skip-failing-pty-tests-in-rpmbuild.patch
 # aliasing violations (rhbz#698726)
 # Sent upstream as http://bugs.python.org/issue12872
 Patch143: 00143-tsc-on-ppc.patch
+
+# (Optionally) disable the gdbm module:
+# python.spec's
+#   Patch144: 00144-no-gdbm.patch
+# is not needed in python3.spec
 
 # (New patches go here ^^^)
 #
@@ -518,6 +527,7 @@ rm -r Modules/zlib || exit 1
 %patch141 -p1
 %patch142 -p1
 %patch143 -p1 -b .tsc-on-ppc
+# 00144: not for python3
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -995,7 +1005,9 @@ rm -fr %{buildroot}
 %{dynload_dir}/_curses_panel.%{SOABI_optimized}.so
 %{dynload_dir}/_dbm.%{SOABI_optimized}.so
 %{dynload_dir}/_elementtree.%{SOABI_optimized}.so
+%if %{with_gdbm}
 %{dynload_dir}/_gdbm.%{SOABI_optimized}.so
+%endif
 %{dynload_dir}/_hashlib.%{SOABI_optimized}.so
 %{dynload_dir}/_heapq.%{SOABI_optimized}.so
 %{dynload_dir}/_json.%{SOABI_optimized}.so
@@ -1231,7 +1243,9 @@ rm -fr %{buildroot}
 %{dynload_dir}/_curses_panel.%{SOABI_debug}.so
 %{dynload_dir}/_dbm.%{SOABI_debug}.so
 %{dynload_dir}/_elementtree.%{SOABI_debug}.so
+%if %{with_gdbm}
 %{dynload_dir}/_gdbm.%{SOABI_debug}.so
+%endif
 %{dynload_dir}/_hashlib.%{SOABI_debug}.so
 %{dynload_dir}/_heapq.%{SOABI_debug}.so
 %{dynload_dir}/_json.%{SOABI_debug}.so
@@ -1323,6 +1337,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Tue Sep 13 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.2-4
+- disable gdbm module to prepare for gdbm soname bump
+
 * Mon Sep 12 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.2-3
 - renumber and rename patches for consistency with python.spec (8 to 55, 106
 to 104, 6 to 111, 104 to 113, 105 to 114, 125, 131, 130 to 143)
