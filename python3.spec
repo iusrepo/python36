@@ -899,9 +899,11 @@ done
 # Create "/usr/bin/python3-debug", a symlink to the python3 debug binary, to
 # avoid the user having to know the precise version and ABI flags.  (see
 # e.g. rhbz#676748):
+%if 0%{?with_debug_build}
 ln -s \
   %{_bindir}/python%{LDVERSION_debug} \
   %{buildroot}%{_bindir}/python3-debug
+%endif
 
 #
 # Systemtap hooks:
