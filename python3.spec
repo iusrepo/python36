@@ -122,7 +122,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -337,6 +337,22 @@ Patch143: 00143-tsc-on-ppc.patch
 #   Patch145: 00145-force-sys-platform-to-be-linux2.patch
 # is upstream for Python 3 as of 3.2.2
 
+# Support OpenSSL FIPS mode (e.g. when OPENSSL_FORCE_FIPS_MODE=1 is set)
+# - handle failures from OpenSSL (e.g. on attempts to use MD5 in a
+#   FIPS-enforcing environment)
+# - add a new "usedforsecurity" keyword argument to the various digest
+#   algorithms in hashlib so that you can whitelist a callsite with
+#   "usedforsecurity=False"
+# (sent upstream for python 3 as http://bugs.python.org/issue9216 ; see RHEL6
+# python patch 119)
+# - enforce usage of the _hashlib implementation: don't fall back to the _md5
+#   and _sha* modules (leading to clearer error messages if fips selftests
+#   fail)
+# - don't build the _md5 and _sha* modules; rely on the _hashlib implementation
+#   of hashlib
+# (rhbz#563986)
+Patch146: 00146-hashlib-fips.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -491,6 +507,15 @@ done
 #   Remove embedded copy of zlib:
 rm -r Modules/zlib || exit 1
 
+# Don't build upstream Python's implementation of these crypto algorithms;
+# instead rely on _hashlib and OpenSSL.
+#
+# For example, in our builds hashlib.md5 is implemented within _hashlib via
+# OpenSSL (and thus respects FIPS mode), and does not fall back to _md5
+for f in md5module.c sha1module.c sha256module.c sha512module.c; do
+    rm Modules/$f
+done
+
 #
 # Apply patches:
 #
@@ -536,6 +561,7 @@ rm -r Modules/zlib || exit 1
 %patch143 -p1 -b .tsc-on-ppc
 # 00144: not for python3
 # 00145: not for python3
+%patch146 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1264,15 +1290,11 @@ rm -fr %{buildroot}
 %{dynload_dir}/_heapq.%{SOABI_debug}.so
 %{dynload_dir}/_json.%{SOABI_debug}.so
 %{dynload_dir}/_lsprof.%{SOABI_debug}.so
-%{dynload_dir}/_md5.%{SOABI_debug}.so
 %{dynload_dir}/_multibytecodec.%{SOABI_debug}.so
 %{dynload_dir}/_multiprocessing.%{SOABI_debug}.so
 %{dynload_dir}/_pickle.%{SOABI_debug}.so
 %{dynload_dir}/_posixsubprocess.%{SOABI_debug}.so
 %{dynload_dir}/_random.%{SOABI_debug}.so
-%{dynload_dir}/_sha1.%{SOABI_debug}.so
-%{dynload_dir}/_sha256.%{SOABI_debug}.so
-%{dynload_dir}/_sha512.%{SOABI_debug}.so
 %{dynload_dir}/_socket.%{SOABI_debug}.so
 %{dynload_dir}/_sqlite3.%{SOABI_debug}.so
 %{dynload_dir}/_ssl.%{SOABI_debug}.so
@@ -1351,6 +1373,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed Sep 14 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.2-5
+- support OpenSSL FIPS mode in _hashlib and hashlib; don't build the _md5 and
+_sha* modules, relying on _hashlib in hashlib (rhbz#563986; patch 146)
+
 * Tue Sep 13 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.2-4
 - disable gdbm module to prepare for gdbm soname bump
 
