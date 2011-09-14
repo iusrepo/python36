@@ -64,6 +64,9 @@
 # Change from yes to no to turn this off
 %global with_computed_gotos yes
 
+# Turn this to 0 to turn off the "check" phase:
+%global run_selftest_suite 1
+
 # We want to byte-compile the .py files within the packages using the new
 # python3 binary.
 # 
@@ -952,11 +955,15 @@ CheckPython() {
 
 }
 
+%if 0%{run_selftest_suite}
+
 # Check each of the configurations:
 %if 0%{?with_debug_build}
 CheckPython debug
 %endif # with_debug_build
 CheckPython optimized
+
+%endif # run_selftest_suite
 
 
 # ======================================================
