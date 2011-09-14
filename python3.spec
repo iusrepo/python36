@@ -333,6 +333,10 @@ Patch143: 00143-tsc-on-ppc.patch
 #   Patch144: 00144-no-gdbm.patch
 # is not needed in python3.spec
 
+# python.spec's
+#   Patch145: 00145-force-sys-platform-to-be-linux2.patch
+# is upstream for Python 3 as of 3.2.2
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -531,6 +535,7 @@ rm -r Modules/zlib || exit 1
 %patch142 -p1
 %patch143 -p1 -b .tsc-on-ppc
 # 00144: not for python3
+# 00145: not for python3
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
