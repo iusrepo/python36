@@ -122,7 +122,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -353,6 +353,11 @@ Patch143: 00143-tsc-on-ppc.patch
 # (rhbz#563986)
 Patch146: 00146-hashlib-fips.patch
 
+# Add a sys._debugmallocstats() function
+# Based on patch 202 from RHEL 5's python.spec, with updates from rhbz#737198
+#  Not yet sent upstream
+Patch147: 00147-add-debug-malloc-stats.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -562,6 +567,7 @@ done
 # 00144: not for python3
 # 00145: not for python3
 %patch146 -p1
+%patch147 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1373,6 +1379,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Sep 16 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.2-6
+- add a sys._debugmallocstats() function (patch 147)
+
 * Wed Sep 14 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.2-5
 - support OpenSSL FIPS mode in _hashlib and hashlib; don't build the _md5 and
 _sha* modules, relying on _hashlib in hashlib (rhbz#563986; patch 146)
