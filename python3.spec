@@ -59,7 +59,7 @@
 %global with_valgrind 0
 %endif
 
-%global with_gdbm 0
+%global with_gdbm 1
 
 # Change from yes to no to turn this off
 %global with_computed_gotos yes
@@ -122,7 +122,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -358,6 +358,10 @@ Patch146: 00146-hashlib-fips.patch
 #  Not yet sent upstream
 Patch147: 00147-add-debug-malloc-stats.patch
 
+# Cherrypick fix for dbm version detection to cope with gdbm-1.9's magic values
+# Taken from upstream http://bugs.python.org/issue13007 (rhbz#742242)
+Patch148: 00148-gdbm-1.9-magic-values.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -366,7 +370,7 @@ Patch147: 00147-add-debug-malloc-stats.patch
 #   - use the same patch number across both specfiles for conceptually-equivalent
 #     fixes, ideally with the same name
 #
-#   - when a patch is relevan to both specfiles, use the same introductory
+#   - when a patch is relevant to both specfiles, use the same introductory
 #     comment in both specfiles where possible (to improve "diff" output when
 #     comparing them)
 #
@@ -568,6 +572,7 @@ done
 # 00145: not for python3
 %patch146 -p1
 %patch147 -p1
+%patch148 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -655,6 +660,7 @@ BuildPython() {
   --with-valgrind \
 %endif
   --with-system-expat \
+  --with-dbmliborder=gdbm:ndbm:bdb \
   $ExtraConfigArgs \
   --with-computed-gotos=%{with_computed_gotos} \
   %{nil}
@@ -1379,6 +1385,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Sep 30 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.2-7
+- re-enable gdbm (patch 148; rhbz#742242)
+
 * Fri Sep 16 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.2-6
 - add a sys._debugmallocstats() function (patch 147)
 
