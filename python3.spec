@@ -122,7 +122,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -362,6 +362,11 @@ Patch147: 00147-add-debug-malloc-stats.patch
 # Taken from upstream http://bugs.python.org/issue13007 (rhbz#742242)
 Patch148: 00148-gdbm-1.9-magic-values.patch
 
+# Cherrypick fix for distutils not using __pycache__ when byte-compiling files
+# Based on upstream http://bugs.python.org/issue11254 (rhbz#722578)
+# (upstream commits 27a36b05caed and 651e84363001):
+Patch149: 00149-backport-issue11254-pycache-bytecompilation-fix.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -573,6 +578,7 @@ done
 %patch146 -p1
 %patch147 -p1
 %patch148 -p1
+%patch149 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1385,6 +1391,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Oct 10 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.2-8
+- cherrypick fix for distutils not using __pycache__ when byte-compiling
+files (rhbz#722578)
+
 * Fri Sep 30 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.2-7
 - re-enable gdbm (patch 148; rhbz#742242)
 
