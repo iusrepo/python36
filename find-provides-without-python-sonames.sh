@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# The standard /usr/lib/rpm/find-provides script
+# The standard find-provides script
 # adds provides lines for all SONAME directives in all shared libraries,
 # even if those libraries are not in the LD_LIBRARY_PATH
 
@@ -10,6 +10,6 @@
 # So we strip out all /usr/lib/python lines first, before running them through
 # the standard script:
 grep -v "/usr/lib/python" | grep -v "/usr/lib64/python" | \
-    /usr/lib/rpm/find-provides
+    /usr/lib/rpm/redhat/find-provides
 
 exit 0
