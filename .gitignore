@@ -1,10 +1,1 @@
-libpython-36a517ef7848cbd0b3dcc7371f32e47ac4c87eba.tar.gz
-Python-3.1.2.tar.bz2
-Python-3.2a1.tar.bz2
-/Python-3.2b2.tar.bz2
-/Python-3.2rc1.tar.bz2
-/Python-3.2rc2.tar.bz2
-/Python-3.2rc3.tar.bz2
-/Python-3.2.tar.bz2
-/Python-3.2.1.tar.bz2
-/Python-3.2.2.tar.bz2
+/*.tar.*

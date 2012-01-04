@@ -122,7 +122,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -178,7 +178,7 @@ BuildRequires: zlib-devel
 # Source code and patches
 # =======================
 
-Source: http://www.python.org/ftp/python/%{version}/Python-%{version}.tar.bz2
+Source: http://www.python.org/ftp/python/%{version}/Python-%{version}.tar.xz
 
 # Avoid having various bogus auto-generated Provides lines for the various
 # python c modules' SONAMEs:
@@ -618,7 +618,7 @@ export CPPFLAGS="`pkg-config --cflags-only-I libffi`"
 export OPT="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC -fwrapv"
 export LINKCC="gcc"
 export CFLAGS="$CFLAGS `pkg-config --cflags openssl`"
-export LDFLAGS="$LDFLAGS `pkg-config --libs-only-L openssl`"
+export LDFLAGS="$RPM_LD_FLAGS `pkg-config --libs-only-L openssl`"
 
 %if 0%{regenerate_autotooling_patch}
 # If enabled, this code regenerates the patch to "configure", using a
@@ -1400,6 +1400,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed Jan  4 2012 Ville Skyttä <ville.skytta@iki.fi> - 3.2.2-11
+- Build with $RPM_LD_FLAGS (#756863).
+- Use xz-compressed source tarball.
+
 * Wed Dec 07 2011 Karsten Hopp <karsten@redhat.com> 3.2.2-10
 - disable rAssertAlmostEqual in test_cmath on PPC (#750811)
 
