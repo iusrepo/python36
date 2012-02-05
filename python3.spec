@@ -122,7 +122,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -915,8 +915,10 @@ iconv -f iso8859-1 -t utf-8 %{buildroot}/%{pylibdir}/Demo/rpc/README > README.co
 # for the 2to3 tool, and one of the functions of the 2to3 tool is to fixup
 # character encodings within python source code
 
-# Do bytecompilation with the new interpreter.
-LD_LIBRARY_PATH=. /usr/lib/rpm/brp-python-bytecompile ./python
+# Do bytecompilation with the newly installed interpreter.
+LD_LIBRARY_PATH=%{buildroot}/%{dynload_dir}/ \
+    PYTHONPATH="%{buildroot}/%{_libdir}python%{pybasever} %{buildroot}/%{_libdir}python%{pybasever}/site-packages" \
+    /usr/lib/rpm/brp-python-bytecompile %{buildroot}%{_bindir}/python%{pybasever}
 
 # Fixup permissions for shared libraries from non-standard 555 to standard 755:
 find %{buildroot} \
@@ -1400,6 +1402,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Sun Feb  5 2012 Thomas Spura <tomspur@fedoraproject.org> - 3.2.2-12
+- use newly installed python for byte compiling (#787498)
+
 * Wed Jan  4 2012 Ville Skyttä <ville.skytta@iki.fi> - 3.2.2-11
 - Build with $RPM_LD_FLAGS (#756863).
 - Use xz-compressed source tarball.
