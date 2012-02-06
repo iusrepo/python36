@@ -122,7 +122,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -916,9 +916,11 @@ iconv -f iso8859-1 -t utf-8 %{buildroot}/%{pylibdir}/Demo/rpc/README > README.co
 # character encodings within python source code
 
 # Do bytecompilation with the newly installed interpreter.
-LD_LIBRARY_PATH=%{buildroot}/%{dynload_dir}/ \
+# This is similar to the script in macros.pybytecompile
+find %{buildroot} -type f -a -name "*.py" -print0 | \
+    LD_LIBRARY_PATH="%{buildroot}/%{dynload_dir}/:%{buildroot}/%{_libdir}" \
     PYTHONPATH="%{buildroot}/%{_libdir}python%{pybasever} %{buildroot}/%{_libdir}python%{pybasever}/site-packages" \
-    /usr/lib/rpm/brp-python-bytecompile %{buildroot}%{_bindir}/python%{pybasever}
+    xargs -0 %{buildroot}%{_bindir}/python%{pybasever} -O -c 'import py_compile, sys; [py_compile.compile(f, dfile=f.partition("%{buildroot}")[2]) for f in sys.argv[1:]]' || :
 
 # Fixup permissions for shared libraries from non-standard 555 to standard 755:
 find %{buildroot} \
@@ -1402,6 +1404,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Feb  6 2012 Thomas Spura <tomspur@fedoraproject.org> - 3.2.2-13
+- use newly installed python for byte compiling (#787498)
+
 * Sun Feb  5 2012 Thomas Spura <tomspur@fedoraproject.org> - 3.2.2-12
 - use newly installed python for byte compiling (#787498)
 
