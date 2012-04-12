@@ -122,7 +122,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.3
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -377,6 +377,10 @@ Patch150: 00150-disable-rAssertAlmostEqual-cmath-on-ppc.patch
 # path to Python/bltinmodule.c:
 Patch152: 00152-fix-test-gdb-regex.patch
 
+# Strip out lines of the form "warning: Unable to open ..." from gdb's stderr
+# when running test_gdb.py; also cope with change to gdb in F17 onwards in
+# which values are printed as "v@entry" rather than just "v":
+Patch153: 00153-fix-test_gdb-noise.patch
 
 # (New patches go here ^^^)
 #
@@ -595,6 +599,7 @@ done
 %endif
 # 00151: not for python3
 %patch152 -p0
+%patch153 -p0
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1417,6 +1422,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Thu Apr 12 2012 David Malcolm <dmalcolm@redhat.com> - 3.2.3-2
+- fix test_gdb (patch 153)
+
 * Wed Apr 11 2012 David Malcolm <dmalcolm@redhat.com> - 3.2.3-1
 - 3.2.3; refresh patch 102 (lib64); drop upstream patches 148 (gdbm magic
 values), 149 (__pycache__ fix); add patch 152 (test_gdb regex)
