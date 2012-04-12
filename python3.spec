@@ -121,8 +121,8 @@
 # ==================
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
-Version: %{pybasever}.2
-Release: 13%{?dist}
+Version: %{pybasever}.3
+Release: 1%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -224,7 +224,7 @@ Patch3: python-3.2b2-remove-mimeaudio-tests.patch
 # dmalcolm
 Patch55: 00055-systemtap.patch
 
-Patch102: python-3.2.1-lib64.patch
+Patch102: python-3.2.3-lib64.patch
 
 # Only used when "%{_lib}" == "lib64"
 # Another lib64 fix, for distutils/tests/test_install.py; not upstream:
@@ -358,20 +358,25 @@ Patch146: 00146-hashlib-fips.patch
 #  Not yet sent upstream
 Patch147: 00147-add-debug-malloc-stats.patch
 
-# Cherrypick fix for dbm version detection to cope with gdbm-1.9's magic values
-# Taken from upstream http://bugs.python.org/issue13007 (rhbz#742242)
-Patch148: 00148-gdbm-1.9-magic-values.patch
+# Upstream as of Python 3.2.3:
+#  Patch148: 00148-gdbm-1.9-magic-values.patch
 
-# Cherrypick fix for distutils not using __pycache__ when byte-compiling files
-# Based on upstream http://bugs.python.org/issue11254 (rhbz#722578)
-# (upstream commits 27a36b05caed and 651e84363001):
-Patch149: 00149-backport-issue11254-pycache-bytecompilation-fix.patch
+# Upstream as of Python 3.2.3:
+#  Patch149: 00149-backport-issue11254-pycache-bytecompilation-fix.patch
 
 # temporarily disable rAssertAlmostEqual in test_cmath on PPC (bz #750811)
 # caused by a glibc bug. This patch can be removed when we have a glibc with
 # the patch mentioned here:
 #   http://sourceware.org/bugzilla/show_bug.cgi?id=13472
 Patch150: 00150-disable-rAssertAlmostEqual-cmath-on-ppc.patch
+
+# python.spec had:
+#  Patch151: 00151-fork-deadlock.patch
+
+# Fix a regex in test_gdb so that it doesn't choke when gdb provides a full
+# path to Python/bltinmodule.c:
+Patch152: 00152-fix-test-gdb-regex.patch
+
 
 # (New patches go here ^^^)
 #
@@ -583,11 +588,13 @@ done
 # 00145: not for python3
 %patch146 -p1
 %patch147 -p1
-%patch148 -p1
-%patch149 -p1
+# 00148: upstream as of Python 3.2.3
+# 00149: upstream as of Python 3.2.3
 %ifarch ppc ppc64
 %patch150 -p1
 %endif
+# 00151: not for python3
+%patch152 -p0
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1410,6 +1417,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed Apr 11 2012 David Malcolm <dmalcolm@redhat.com> - 3.2.3-1
+- 3.2.3; refresh patch 102 (lib64); drop upstream patches 148 (gdbm magic
+values), 149 (__pycache__ fix); add patch 152 (test_gdb regex)
+
 * Thu Feb  9 2012 Thomas Spura <tomspur@fedoraproject.org> - 3.2.2-13
 - use newly installed python for byte compiling (now for real)
 
