@@ -122,7 +122,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.3
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -137,7 +137,11 @@ BuildRequires: autoconf
 BuildRequires: bzip2
 BuildRequires: bzip2-devel
 BuildRequires: db4-devel >= 4.7
-BuildRequires: expat-devel
+
+# expat 2.1.0 added the symbol XML_SetHashSalt without bumping SONAME.  We use
+# it (in pyexpat) in order to enable the fix in Python-3.2.3 for CVE-2012-0876:
+BuildRequires: expat-devel >= 2.1.0
+
 BuildRequires: findutils
 BuildRequires: gcc-c++
 %if %{with_gdbm}
@@ -430,6 +434,12 @@ considerably, and a lot of deprecated features have finally been removed.
 Summary:        Python 3 runtime libraries
 Group:          Development/Libraries
 #Requires:       %{name} = %{version}-%{release}
+
+# expat 2.1.0 added the symbol XML_SetHashSalt without bumping SONAME.  We use
+# this symbol (in pyexpat), so we must explicitly state this dependency to
+# prevent "import pyexpat" from failing with a linker error if someone hasn't
+# yet upgraded expat:
+Requires: expat >= 2.1.0
 
 %description libs
 This package contains files used to embed Python 3 into applications.
@@ -1422,6 +1432,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Apr 20 2012 David Malcolm <dmalcolm@redhat.com> - 3.2.3-3
+- add explicit version requirements on expat to avoid linkage problems with
+XML_SetHashSalt
+
 * Thu Apr 12 2012 David Malcolm <dmalcolm@redhat.com> - 3.2.3-2
 - fix test_gdb (patch 153)
 
