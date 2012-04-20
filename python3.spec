@@ -122,7 +122,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.3
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -386,6 +386,14 @@ Patch152: 00152-fix-test-gdb-regex.patch
 # which values are printed as "v@entry" rather than just "v":
 Patch153: 00153-fix-test_gdb-noise.patch
 
+# python3.spec on f15 has:
+#  Patch154: 00154-skip-urllib-test-requiring-working-DNS.patch
+
+# Avoid allocating thunks in ctypes unless absolutely necessary, to avoid
+# generating SELinux denials on "import ctypes" and "import uuid" when
+# embedding Python within httpd (rhbz#814391)
+Patch155: 00155-avoid-ctypes-thunks.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -610,6 +618,8 @@ done
 # 00151: not for python3
 %patch152 -p0
 %patch153 -p0
+# 00154: not for this branch
+%patch155 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1432,6 +1442,11 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Apr 20 2012 David Malcolm <dmalcolm@redhat.com> - 3.2.3-4
+- avoid allocating thunks in ctypes unless absolutely necessary, to avoid
+generating SELinux denials on "import ctypes" and "import uuid" when embedding
+Python within httpd (patch 155; rhbz#814391)
+
 * Fri Apr 20 2012 David Malcolm <dmalcolm@redhat.com> - 3.2.3-3
 - add explicit version requirements on expat to avoid linkage problems with
 XML_SetHashSalt
