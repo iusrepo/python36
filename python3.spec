@@ -736,20 +736,20 @@ BuildPython() {
 
 %configure \
   --enable-ipv6 \
-  --with-wide-unicode \
   --enable-shared \
+  --with-computed-gotos=%{with_computed_gotos} \
+  --with-dbmliborder=gdbm:ndbm:bdb \
+  --with-system-expat \
+  --with-system-ffi \
+  --with-wide-unicode \
 %if 0%{?with_systemtap}
   --with-dtrace \
   --with-tapset-install-dir=%{tapsetdir} \
 %endif
-  --with-system-ffi \
 %if 0%{?with_valgrind}
   --with-valgrind \
 %endif
-  --with-system-expat \
-  --with-dbmliborder=gdbm:ndbm:bdb \
   $ExtraConfigArgs \
-  --with-computed-gotos=%{with_computed_gotos} \
   %{nil}
 
   # Set EXTRA_CFLAGS to our CFLAGS (rather than overriding OPT, as we've done
