@@ -122,7 +122,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.3
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -456,7 +456,7 @@ Patch156: 00156-gdb-autoload-safepath.patch
 # This is the generated patch to "configure"; see the description of
 #   %{regenerate_autotooling_patch}
 # above:
-Patch300: autotool-intermediates.patch
+Patch5000: 05000-autotool-intermediates.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 
@@ -674,7 +674,7 @@ sed --in-place \
 %if ! 0%{regenerate_autotooling_patch}
 # Normally we apply the patch to "configure"
 # We don't apply the patch if we're working towards regenerating it
-%patch300 -p0 -b .autotool-intermediates
+%patch5000 -p0 -b .autotool-intermediates
 %endif
 
 
@@ -708,7 +708,7 @@ done
 PATH=~/autoconf-2.65/bin:$PATH autoreconf
 
 # Regenerate the patch:
-gendiff . .autotool-intermediates > %{PATCH300}
+gendiff . .autotool-intermediates > %{PATCH5000}
 
 
 # Exit the build
@@ -1482,6 +1482,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri May  4 2012 David Malcolm <dmalcolm@redhat.com> - 3.2.3-6
+- renumber autotools patch from 300 to 5000
+- specfile cleanups
+
 * Mon Apr 30 2012 David Malcolm <dmalcolm@redhat.com> - 3.2.3-5
 - fix test_gdb.py (patch 156; rhbz#817072)
 
