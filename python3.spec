@@ -239,6 +239,7 @@ Patch104: 00104-lib64-fix-for-test_install.patch
 # 00111 #
 # Patch the Makefile.pre.in so that the generated Makefile doesn't try to build
 # a libpythonMAJOR.MINOR.a (bug 550692):
+# Downstream only: not appropriate for upstream
 Patch111: 00111-no-static-lib.patch
 
 # 00112 #
@@ -250,11 +251,13 @@ Patch111: 00111-no-static-lib.patch
 # described at http://svn.python.org/projects/python/trunk/Misc/SpecialBuilds.txt
 # so that if they are enabled, they will be in that build's pyconfig.h, so that
 # extension modules will reliably use them
+# Not yet sent upstream
 Patch113: 00113-more-configuration-flags.patch
 
 # 00114 #
 # Add flags for statvfs.f_flag to the constant list in posixmodule (i.e. "os")
 # (rhbz:553020); partially upstream as http://bugs.python.org/issue7647
+# Not yet sent upstream
 Patch114: 00114-statvfs-f_flag-constants.patch
 
 # 00125 #
@@ -262,7 +265,7 @@ Patch114: 00114-statvfs-f_flag-constants.patch
 # emitting debug info to stdout on exit is too verbose and makes it harder to
 # use the debug build.  Add a "PYTHONDUMPCOUNTS" environment variable which
 # must be set to enable the output on exit
-# Not yet sent upstream:
+# Not yet sent upstream
 Patch125: 00125-less-verbose-COUNT_ALLOCS.patch
 
 # In my koji builds, /root/bin is in the PATH for some reason
@@ -341,6 +344,7 @@ Patch139: 00139-skip-test_float-known-failure-on-arm.patch
 
 # 00141 #
 # Fix test_gc's test_newinstance case when configured with COUNT_ALLOCS:
+# Not yet sent upstream
 Patch141: 00141-fix-test_gc_with_COUNT_ALLOCS.patch
 
 # 00142 #
@@ -409,12 +413,14 @@ Patch150: 00150-disable-rAssertAlmostEqual-cmath-on-ppc.patch
 # 00152 #
 # Fix a regex in test_gdb so that it doesn't choke when gdb provides a full
 # path to Python/bltinmodule.c:
+# Not yet sent upstream
 Patch152: 00152-fix-test-gdb-regex.patch
 
 # 00153 #
 # Strip out lines of the form "warning: Unable to open ..." from gdb's stderr
 # when running test_gdb.py; also cope with change to gdb in F17 onwards in
 # which values are printed as "v@entry" rather than just "v":
+# Not yet sent upstream
 Patch153: 00153-fix-test_gdb-noise.patch
 
 # 00154 #
@@ -431,6 +437,7 @@ Patch155: 00155-avoid-ctypes-thunks.patch
 # Recent builds of gdb will only auto-load scripts from certain safe
 # locations.  Turn off this protection when running test_gdb in the selftest
 # suite to ensure that it can load our -gdb.py script (rhbz#817072):
+# Not yet sent upstream
 Patch156: 00156-gdb-autoload-safepath.patch
 
 # (New patches go here ^^^)
