@@ -384,7 +384,7 @@ Patch146: 00146-hashlib-fips.patch
 # 00147 #
 # Add a sys._debugmallocstats() function
 # Based on patch 202 from RHEL 5's python.spec, with updates from rhbz#737198
-#  Not yet sent upstream
+# Sent upstream as http://bugs.python.org/issue14785
 Patch147: 00147-add-debug-malloc-stats.patch
 
 # 00148 #
