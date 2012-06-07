@@ -122,7 +122,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.3
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1085,8 +1085,12 @@ sed \
    > %{buildroot}%{tapsetdir}/%{libpython_stp_optimized}
 
 %if 0%{?with_debug_build}
+# In Python 3, python3 and python3-debug don't point to the same binary,
+# so we have to replace "python3" with "python3-debug" to get systemtap
+# working with debug build
 sed \
    -e "s|LIBRARY_PATH|%{_libdir}/%{py_INSTSONAME_debug}|" \
+   -e 's|"python3"|"python3-debug"|' \
    %{_sourcedir}/libpython.stp \
    > %{buildroot}%{tapsetdir}/%{libpython_stp_debug}
 %endif # with_debug_build
@@ -1506,6 +1510,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed May 30 2012 Bohuslav Kabrda <bkabrda@redhat.com> - 3.2.3-8
+- fix tapset for debug build
+
 * Tue May 15 2012 David Malcolm <dmalcolm@redhat.com> - 3.2.3-7
 - update uid/gid handling to avoid int overflows seen with uid/gid
 values >= 2^31 on 32-bit architectures (patch 157; rhbz#697470)
