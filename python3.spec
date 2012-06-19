@@ -122,7 +122,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.3
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1510,6 +1510,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Jun 18 2012 David Malcolm <dmalcolm@redhat.com> - 3.2.3-9
+- fix missing include in uid/gid handling patch (patch 157; rhbz#830405)
+
 * Wed May 30 2012 Bohuslav Kabrda <bkabrda@redhat.com> - 3.2.3-8
 - fix tapset for debug build
 

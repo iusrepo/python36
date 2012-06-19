@@ -1,7 +1,15 @@
 diff -up Python-3.2.3/Include/modsupport.h.uid-gid-overflows Python-3.2.3/Include/modsupport.h
---- Python-3.2.3/Include/modsupport.h.uid-gid-overflows	2012-05-16 11:56:26.947069274 -0400
-+++ Python-3.2.3/Include/modsupport.h	2012-05-16 11:56:26.545066073 -0400
-@@ -122,6 +122,17 @@ PyAPI_FUNC(PyObject *) PyModule_Create2(
+--- Python-3.2.3/Include/modsupport.h.uid-gid-overflows	2012-04-11 02:54:01.000000000 -0400
++++ Python-3.2.3/Include/modsupport.h	2012-06-18 17:20:38.193527374 -0400
+@@ -8,6 +8,7 @@ extern "C" {
+ /* Module support interface */
+ 
+ #include <stdarg.h>
++#include <sys/types.h>
+ 
+ /* If PY_SSIZE_T_CLEAN is defined, each functions treats #-specifier
+    to mean Py_ssize_t */
+@@ -122,6 +123,17 @@ PyAPI_FUNC(PyObject *) PyModule_Create2(
  PyAPI_DATA(char *) _Py_PackageContext;
  #endif
  
@@ -19,10 +27,9 @@ diff -up Python-3.2.3/Include/modsupport.h.uid-gid-overflows Python-3.2.3/Includ
  #ifdef __cplusplus
  }
  #endif
-diff -up Python-3.2.3/Lib/test/test_grp.py.uid-gid-overflows Python-3.2.3/Lib/test/test_grp.py
 diff -up Python-3.2.3/Lib/test/test_os.py.uid-gid-overflows Python-3.2.3/Lib/test/test_os.py
---- Python-3.2.3/Lib/test/test_os.py.uid-gid-overflows	2012-05-16 11:56:50.427256400 -0400
-+++ Python-3.2.3/Lib/test/test_os.py	2012-05-16 11:56:49.848251767 -0400
+--- Python-3.2.3/Lib/test/test_os.py.uid-gid-overflows	2012-04-11 02:54:05.000000000 -0400
++++ Python-3.2.3/Lib/test/test_os.py	2012-06-18 17:20:18.360775320 -0400
 @@ -885,30 +885,36 @@ if sys.platform != 'win32':
              def test_setuid(self):
                  if os.getuid() != 0:
@@ -70,8 +77,8 @@ diff -up Python-3.2.3/Lib/test/test_os.py.uid-gid-overflows Python-3.2.3/Lib/tes
                  self.assertRaises(OverflowError, os.setregid, 0, 1<<32)
  
 diff -up Python-3.2.3/Lib/test/test_posix.py.uid-gid-overflows Python-3.2.3/Lib/test/test_posix.py
---- Python-3.2.3/Lib/test/test_posix.py.uid-gid-overflows	2012-05-16 11:56:51.579265577 -0400
-+++ Python-3.2.3/Lib/test/test_posix.py	2012-05-16 11:56:47.142230218 -0400
+--- Python-3.2.3/Lib/test/test_posix.py.uid-gid-overflows	2012-04-11 02:54:05.000000000 -0400
++++ Python-3.2.3/Lib/test/test_posix.py	2012-06-18 17:20:18.360775320 -0400
 @@ -227,7 +227,7 @@ class PosixTester(unittest.TestCase):
          else:
              self.assertTrue(stat.S_ISFIFO(posix.stat(support.TESTFN).st_mode))
@@ -123,8 +130,8 @@ diff -up Python-3.2.3/Lib/test/test_posix.py.uid-gid-overflows Python-3.2.3/Lib/
      def test_chdir(self):
          if hasattr(posix, 'chdir'):
 diff -up Python-3.2.3/Lib/test/test_pwd.py.uid-gid-overflows Python-3.2.3/Lib/test/test_pwd.py
---- Python-3.2.3/Lib/test/test_pwd.py.uid-gid-overflows	2012-05-16 11:56:47.171230447 -0400
-+++ Python-3.2.3/Lib/test/test_pwd.py	2012-05-17 14:52:07.425548111 -0400
+--- Python-3.2.3/Lib/test/test_pwd.py.uid-gid-overflows	2012-04-11 02:54:05.000000000 -0400
++++ Python-3.2.3/Lib/test/test_pwd.py	2012-06-18 17:20:18.360775320 -0400
 @@ -87,9 +87,9 @@ class PwdTest(unittest.TestCase):
          # In some cases, byuids isn't a complete list of all users in the
          # system, so if we try to pick a value not in byuids (via a perturbing
@@ -138,8 +145,8 @@ diff -up Python-3.2.3/Lib/test/test_pwd.py.uid-gid-overflows Python-3.2.3/Lib/te
          self.assertRaises(KeyError, pwd.getpwuid, fakeuid)
  
 diff -up Python-3.2.3/Modules/grpmodule.c.uid-gid-overflows Python-3.2.3/Modules/grpmodule.c
---- Python-3.2.3/Modules/grpmodule.c.uid-gid-overflows	2012-05-16 11:56:20.025014112 -0400
-+++ Python-3.2.3/Modules/grpmodule.c	2012-05-16 11:56:19.682011408 -0400
+--- Python-3.2.3/Modules/grpmodule.c.uid-gid-overflows	2012-04-11 02:54:07.000000000 -0400
++++ Python-3.2.3/Modules/grpmodule.c	2012-06-18 17:20:18.361775307 -0400
 @@ -69,7 +69,7 @@ mkgrent(struct group *p)
              Py_INCREF(Py_None);
      }
@@ -175,8 +182,8 @@ diff -up Python-3.2.3/Modules/grpmodule.c.uid-gid-overflows Python-3.2.3/Modules
      }
      return mkgrent(p);
 diff -up Python-3.2.3/Modules/posixmodule.c.uid-gid-overflows Python-3.2.3/Modules/posixmodule.c
---- Python-3.2.3/Modules/posixmodule.c.uid-gid-overflows	2012-05-16 11:56:23.722043536 -0400
-+++ Python-3.2.3/Modules/posixmodule.c	2012-05-16 11:56:23.836044488 -0400
+--- Python-3.2.3/Modules/posixmodule.c.uid-gid-overflows	2012-06-18 17:20:18.258776596 -0400
++++ Python-3.2.3/Modules/posixmodule.c	2012-06-18 17:20:18.362775294 -0400
 @@ -1642,8 +1642,8 @@ _pystat_fromstructstat(STRUCT_STAT *st)
      PyStructSequence_SET_ITEM(v, 2, PyLong_FromLong((long)st->st_dev));
  #endif
@@ -538,8 +545,8 @@ diff -up Python-3.2.3/Modules/posixmodule.c.uid-gid-overflows Python-3.2.3/Modul
  #endif
  
 diff -up Python-3.2.3/Modules/pwdmodule.c.uid-gid-overflows Python-3.2.3/Modules/pwdmodule.c
---- Python-3.2.3/Modules/pwdmodule.c.uid-gid-overflows	2012-05-16 11:56:21.353024696 -0400
-+++ Python-3.2.3/Modules/pwdmodule.c	2012-05-17 14:47:37.465332677 -0400
+--- Python-3.2.3/Modules/pwdmodule.c.uid-gid-overflows	2012-04-11 02:54:07.000000000 -0400
++++ Python-3.2.3/Modules/pwdmodule.c	2012-06-18 17:20:18.362775294 -0400
 @@ -74,8 +74,8 @@ mkpwent(struct passwd *p)
  #else
      SETS(setIndex++, p->pw_passwd);
@@ -570,8 +577,8 @@ diff -up Python-3.2.3/Modules/pwdmodule.c.uid-gid-overflows Python-3.2.3/Modules
      }
      return mkpwent(p);
 diff -up Python-3.2.3/Python/getargs.c.uid-gid-overflows Python-3.2.3/Python/getargs.c
---- Python-3.2.3/Python/getargs.c.uid-gid-overflows	2012-05-16 11:56:34.572130014 -0400
-+++ Python-3.2.3/Python/getargs.c	2012-05-16 11:56:34.042125832 -0400
+--- Python-3.2.3/Python/getargs.c.uid-gid-overflows	2012-04-11 02:54:08.000000000 -0400
++++ Python-3.2.3/Python/getargs.c	2012-06-18 17:20:18.363775282 -0400
 @@ -4,6 +4,7 @@
  #include "Python.h"
  
@@ -580,7 +587,7 @@ diff -up Python-3.2.3/Python/getargs.c.uid-gid-overflows Python-3.2.3/Python/get
  
  
  #ifdef __cplusplus
-@@ -1789,6 +1790,102 @@ _PyArg_NoKeywords(const char *funcname,
+@@ -1789,6 +1790,102 @@ _PyArg_NoKeywords(const char *funcname, 
                      funcname);
      return 0;
  }
