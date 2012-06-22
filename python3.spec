@@ -53,7 +53,7 @@
 %global with_systemtap 1
 
 # some arches don't have valgrind so we need to disable its support on them
-%ifarch %{ix86} x86_64 ppc ppc64 s390x
+%ifarch %{ix86} x86_64 ppc %{power64} s390x
 %global with_valgrind 1
 %else
 %global with_valgrind 0
@@ -122,7 +122,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.3
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -650,7 +650,7 @@ done
 
 %patch129 -p1
 
-%ifarch ppc ppc64
+%ifarch ppc %{power64}
 %patch131 -p1
 %endif
 
@@ -674,7 +674,7 @@ done
 %patch147 -p1
 # 00148: upstream as of Python 3.2.3
 # 00149: upstream as of Python 3.2.3
-%ifarch ppc ppc64
+%ifarch ppc %{power64}
 %patch150 -p1
 %endif
 # 00151: not for python3
@@ -797,7 +797,7 @@ BuildPython() {
 BuildPython debug \
   python-debug \
   python%{pybasever}-debug \
-%ifarch %{ix86} x86_64 ppc ppc64
+%ifarch %{ix86} x86_64 ppc %{power64}
   "--with-pydebug --with-tsc --with-count-allocs --with-call-profile" \
 %else
   "--with-pydebug --with-count-allocs --with-call-profile" \
@@ -912,7 +912,7 @@ install -d -m 0755 %{buildroot}/usr/lib/python%{pybasever}/site-packages/__pycac
 %global _pyconfig32_h pyconfig-32.h
 %global _pyconfig64_h pyconfig-64.h
 
-%ifarch ppc64 s390x x86_64 ia64 alpha sparc64
+%ifarch %{power64} s390x x86_64 ia64 alpha sparc64
 %global _pyconfig_h %{_pyconfig64_h}
 %else
 %global _pyconfig_h %{_pyconfig32_h}
@@ -1071,7 +1071,7 @@ ln -s \
 # Install a tapset for this libpython into tapsetdir, fixing up the path to the
 # library:
 mkdir -p %{buildroot}%{tapsetdir}
-%ifarch ppc64 s390x x86_64 ia64 alpha sparc64
+%ifarch %{power64} s390x x86_64 ia64 alpha sparc64
 %global libpython_stp_optimized libpython%{pybasever}-64.stp
 %global libpython_stp_debug     libpython%{pybasever}-debug-64.stp
 %else
@@ -1510,6 +1510,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Jun 22 2012 David Malcolm <dmalcolm@redhat.com> - 3.2.3-10
+- use macro for power64 (rhbz#834653)
+
 * Mon Jun 18 2012 David Malcolm <dmalcolm@redhat.com> - 3.2.3-9
 - fix missing include in uid/gid handling patch (patch 157; rhbz#830405)
 
