@@ -1,13 +1,13 @@
-diff -up Python-3.2b2/Lib/test/test_sys.py.fix-test-sys-COUNT_ALLOCS Python-3.2b2/Lib/test/test_sys.py
---- Python-3.2b2/Lib/test/test_sys.py.fix-test-sys-COUNT_ALLOCS	2010-12-28 20:52:43.236310184 -0500
-+++ Python-3.2b2/Lib/test/test_sys.py	2010-12-28 20:58:09.164184094 -0500
-@@ -817,6 +817,9 @@ class SizeofTest(unittest.TestCase):
-         # (PyTypeObject + PyNumberMethods + PyMappingMethods +
-         #  PySequenceMethods + PyBufferProcs)
-         s = size(vh + 'P2P15Pl4PP9PP11PI') + size('16Pi17P 3P 10P 2P 2P')
+diff -up Python-3.3.0b1/Lib/test/test_sys.py.fix-COUNT_ALLOCS-failure-in-test_sys Python-3.3.0b1/Lib/test/test_sys.py
+--- Python-3.3.0b1/Lib/test/test_sys.py.fix-COUNT_ALLOCS-failure-in-test_sys	2012-06-26 16:19:48.000000000 -0400
++++ Python-3.3.0b1/Lib/test/test_sys.py	2012-07-20 13:44:23.050740172 -0400
+@@ -869,6 +869,9 @@ class SizeofTest(unittest.TestCase):
+         s = size(vh + 'P2P15Pl4PP9PP11PI') + size('34P 3P 10P 2P 4P')
+         # Separate block for PyDictKeysObject with 4 entries
+         s += size("PPPP") + 4*size("PPP")
 +        # COUNT_ALLOCS adds a further 3 Py_ssize_t and 2 pointers:
 +        if hasattr(sys, 'getcounts'):
 +            s += size('3P2P')
-         check(int, s)
          # class
          class newstyleclass(object): pass
+         check(newstyleclass, s)

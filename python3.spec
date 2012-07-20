@@ -2,10 +2,11 @@
 # Conditionals and other variables controlling the build
 # ======================================================
 
-%global pybasever 3.2
+%global pybasever 3.3
+%global alphatag  b1
 
 # pybasever without the dot:
-%global pyshortver 32
+%global pyshortver 33
 
 %global pylibdir %{_libdir}/python%{pybasever}
 %global dynload_dir %{pylibdir}/lib-dynload
@@ -14,9 +15,13 @@
 # for PEP 3149:
 #   http://www.python.org/dev/peps/pep-3149/
 
+# ("configure.in" became "configure.ac" in Python 3.3 onwards, and in
+# backports)
+
 # ABIFLAGS, LDVERSION and SOABI are in the upstream Makefile
-%global ABIFLAGS_optimized mu
-%global ABIFLAGS_debug     dmu
+# With Python 3.3, we lose the "u" suffix due to PEP 393
+%global ABIFLAGS_optimized m
+%global ABIFLAGS_debug     dm
 
 %global LDVERSION_optimized %{pybasever}%{ABIFLAGS_optimized}
 %global LDVERSION_debug     %{pybasever}%{ABIFLAGS_debug}
@@ -31,9 +36,9 @@
 # For example,
 #   foo/bar.py
 # now has bytecode at:
-#   foo/__pycache__/bar.cpython-32.pyc
-#   foo/__pycache__/bar.cpython-32.pyo
-%global bytecode_suffixes .cpython-32.py?
+#   foo/__pycache__/bar.cpython-33.pyc
+#   foo/__pycache__/bar.cpython-33.pyo
+%global bytecode_suffixes .cpython-33.py?
 
 # Python's configure script defines SOVERSION, and this is used in the Makefile
 # to determine INSTSONAME, the name of the libpython DSO:
@@ -121,8 +126,8 @@
 # ==================
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
-Version: %{pybasever}.3
-Release: 10%{?dist}
+Version: %{pybasever}.0
+Release: 0.1.%{alphatag}%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -182,7 +187,7 @@ BuildRequires: zlib-devel
 # Source code and patches
 # =======================
 
-Source: http://www.python.org/ftp/python/%{version}/Python-%{version}.tar.xz
+Source: http://www.python.org/ftp/python/%{version}/Python-%{version}%{alphatag}.tar.xz
 
 # Avoid having various bogus auto-generated Provides lines for the various
 # python c modules' SONAMEs:
@@ -219,17 +224,14 @@ Patch1:         Python-3.1.1-rpath.patch
 
 # The four TestMIMEAudio tests fail due to "audiotest.au" not being packaged.
 # It's simplest to remove them:
-Patch3: python-3.2b2-remove-mimeaudio-tests.patch
+Patch3: 00003-remove-mimeaudio-tests.patch
 
 # 00055 #
 # Systemtap support: add statically-defined probe points
-# Patch based on upstream bug: http://bugs.python.org/issue4111
-# fixed up by mjw and wcohen for 2.6.2, then fixed up by dmalcolm for 2.6.4
-# then rewritten by mjw (attachment 390110 of rhbz 545179); ported to 3.1.1 by
-# dmalcolm
+# Patch sent upstream as http://bugs.python.org/issue14776
 Patch55: 00055-systemtap.patch
 
-Patch102: python-3.2.3-lib64.patch
+Patch102: python-3.3.0b1-lib64.patch
 
 # 00104 #
 # Only used when "%{_lib}" == "lib64"
@@ -387,9 +389,9 @@ Patch146: 00146-hashlib-fips.patch
 
 # 00147 #
 # Add a sys._debugmallocstats() function
-# Based on patch 202 from RHEL 5's python.spec, with updates from rhbz#737198
 # Sent upstream as http://bugs.python.org/issue14785
-Patch147: 00147-add-debug-malloc-stats.patch
+# Upstream as of Python 3.3.0
+#  Patch147: 00147-add-debug-malloc-stats.patch
 
 # 00148 #
 # Upstream as of Python 3.2.3:
@@ -594,7 +596,7 @@ can load its own extensions.
 # ======================================================
 
 %prep
-%setup -q -n Python-%{version}
+%setup -q -n Python-%{version}%{alphatag}
 chmod +x %{SOURCE1}
 
 %if 0%{?with_systemtap}
@@ -671,7 +673,7 @@ done
 # 00144: not for python3
 # 00145: not for python3
 %patch146 -p1
-%patch147 -p1
+# 00147: upstream as of Python 3.3.0
 # 00148: upstream as of Python 3.2.3
 # 00149: upstream as of Python 3.2.3
 %ifarch ppc %{power64}
@@ -765,10 +767,8 @@ BuildPython() {
   --with-dbmliborder=gdbm:ndbm:bdb \
   --with-system-expat \
   --with-system-ffi \
-  --with-wide-unicode \
 %if 0%{?with_systemtap}
-  --with-dtrace \
-  --with-tapset-install-dir=%{tapsetdir} \
+  --with-systemtap \
 %endif
 %if 0%{?with_valgrind}
   --with-valgrind \
@@ -919,8 +919,8 @@ install -d -m 0755 %{buildroot}/usr/lib/python%{pybasever}/site-packages/__pycac
 %endif
 
 # ABIFLAGS, LDVERSION and SOABI are in the upstream Makefile
-%global ABIFLAGS_optimized mu
-%global ABIFLAGS_debug     dmu
+%global ABIFLAGS_optimized m
+%global ABIFLAGS_debug     dm
 
 %global LDVERSION_optimized %{pybasever}%{ABIFLAGS_optimized}
 %global LDVERSION_debug     %{pybasever}%{ABIFLAGS_debug}
@@ -1160,7 +1160,9 @@ rm -fr %{buildroot}
 %{_bindir}/pydoc*
 %{_bindir}/python3
 %{_bindir}/python%{pybasever}
-%{_bindir}/python%{pybasever}mu
+%{_bindir}/python%{pybasever}m
+%{_bindir}/pyvenv
+%{_bindir}/pyvenv-3.3
 %{_mandir}/*/*
 
 %files libs
@@ -1168,19 +1170,21 @@ rm -fr %{buildroot}
 %doc LICENSE README
 %dir %{pylibdir}
 %dir %{dynload_dir}
-%{dynload_dir}/Python-%{version}-py%{pybasever}.egg-info
 %{dynload_dir}/_bisect.%{SOABI_optimized}.so
+%{dynload_dir}/_bz2.%{SOABI_optimized}.so
 %{dynload_dir}/_codecs_cn.%{SOABI_optimized}.so
 %{dynload_dir}/_codecs_hk.%{SOABI_optimized}.so
 %{dynload_dir}/_codecs_iso2022.%{SOABI_optimized}.so
 %{dynload_dir}/_codecs_jp.%{SOABI_optimized}.so
 %{dynload_dir}/_codecs_kr.%{SOABI_optimized}.so
 %{dynload_dir}/_codecs_tw.%{SOABI_optimized}.so
+%{dynload_dir}/_crypt.%{SOABI_optimized}.so
 %{dynload_dir}/_csv.%{SOABI_optimized}.so
 %{dynload_dir}/_ctypes.%{SOABI_optimized}.so
 %{dynload_dir}/_curses.%{SOABI_optimized}.so
 %{dynload_dir}/_curses_panel.%{SOABI_optimized}.so
 %{dynload_dir}/_dbm.%{SOABI_optimized}.so
+%{dynload_dir}/_decimal.%{SOABI_optimized}.so
 %{dynload_dir}/_elementtree.%{SOABI_optimized}.so
 %if %{with_gdbm}
 %{dynload_dir}/_gdbm.%{SOABI_optimized}.so
@@ -1189,6 +1193,7 @@ rm -fr %{buildroot}
 %{dynload_dir}/_heapq.%{SOABI_optimized}.so
 %{dynload_dir}/_json.%{SOABI_optimized}.so
 %{dynload_dir}/_lsprof.%{SOABI_optimized}.so
+%{dynload_dir}/_lzma.%{SOABI_optimized}.so
 %{dynload_dir}/_multibytecodec.%{SOABI_optimized}.so
 %{dynload_dir}/_multiprocessing.%{SOABI_optimized}.so
 %{dynload_dir}/_pickle.%{SOABI_optimized}.so
@@ -1202,9 +1207,7 @@ rm -fr %{buildroot}
 %{dynload_dir}/atexit.%{SOABI_optimized}.so
 %{dynload_dir}/audioop.%{SOABI_optimized}.so
 %{dynload_dir}/binascii.%{SOABI_optimized}.so
-%{dynload_dir}/bz2.%{SOABI_optimized}.so
 %{dynload_dir}/cmath.%{SOABI_optimized}.so
-%{dynload_dir}/crypt.%{SOABI_optimized}.so
 %{dynload_dir}/_datetime.%{SOABI_optimized}.so
 %{dynload_dir}/fcntl.%{SOABI_optimized}.so
 %{dynload_dir}/grp.%{SOABI_optimized}.so
@@ -1231,7 +1234,11 @@ rm -fr %{buildroot}
 %{pylibdir}/*.py
 %dir %{pylibdir}/__pycache__/
 %{pylibdir}/__pycache__/*%{bytecode_suffixes}
-%{pylibdir}/wsgiref.egg-info
+
+%dir %{pylibdir}/collections/
+%dir %{pylibdir}/collections/__pycache__/
+%{pylibdir}/collections/*.py
+%{pylibdir}/collections/__pycache__/*%{bytecode_suffixes}
 
 %dir %{pylibdir}/concurrent/
 %dir %{pylibdir}/concurrent/__pycache__/
@@ -1268,6 +1275,7 @@ rm -fr %{buildroot}
 %{pylibdir}/email/*.py
 %{pylibdir}/email/__pycache__/*%{bytecode_suffixes}
 %{pylibdir}/email/mime
+%doc %{pylibdir}/email/architecture.rst
 
 %{pylibdir}/encodings
 %{pylibdir}/html
@@ -1288,7 +1296,7 @@ rm -fr %{buildroot}
 %exclude %{pylibdir}/lib2to3/tests
 %{pylibdir}/logging
 %{pylibdir}/multiprocessing
-%{pylibdir}/plat-linux2
+%{pylibdir}/plat-linux
 %{pylibdir}/pydoc_data
 
 %dir %{pylibdir}/sqlite3/
@@ -1312,6 +1320,13 @@ rm -fr %{buildroot}
 %{pylibdir}/unittest/__pycache__/*%{bytecode_suffixes}
 
 %{pylibdir}/urllib
+
+%dir %{pylibdir}/venv/
+%dir %{pylibdir}/venv/__pycache__/
+%{pylibdir}/venv/*.py
+%{pylibdir}/venv/__pycache__/*%{bytecode_suffixes}
+%{pylibdir}/venv/scripts
+
 %{pylibdir}/wsgiref
 %{pylibdir}/xml
 %{pylibdir}/xmlrpc
@@ -1380,11 +1395,11 @@ rm -fr %{buildroot}
 %defattr(-, root, root)
 %{pylibdir}/ctypes/test
 %{pylibdir}/distutils/tests
-%{pylibdir}/email/test
 %{pylibdir}/importlib/test
 %{pylibdir}/sqlite3/test
 %{pylibdir}/test
 %{dynload_dir}/_ctypes_test.%{SOABI_optimized}.so
+%{dynload_dir}/_testbuffer.%{SOABI_optimized}.so
 %{dynload_dir}/_testcapi.%{SOABI_optimized}.so
 %{pylibdir}/lib2to3/tests
 %{pylibdir}/tkinter/test
@@ -1408,17 +1423,20 @@ rm -fr %{buildroot}
 # Analog of the -libs subpackage's files:
 # ...with debug builds of the built-in "extension" modules:
 %{dynload_dir}/_bisect.%{SOABI_debug}.so
+%{dynload_dir}/_bz2.%{SOABI_debug}.so
 %{dynload_dir}/_codecs_cn.%{SOABI_debug}.so
 %{dynload_dir}/_codecs_hk.%{SOABI_debug}.so
 %{dynload_dir}/_codecs_iso2022.%{SOABI_debug}.so
 %{dynload_dir}/_codecs_jp.%{SOABI_debug}.so
 %{dynload_dir}/_codecs_kr.%{SOABI_debug}.so
 %{dynload_dir}/_codecs_tw.%{SOABI_debug}.so
+%{dynload_dir}/_crypt.%{SOABI_debug}.so
 %{dynload_dir}/_csv.%{SOABI_debug}.so
 %{dynload_dir}/_ctypes.%{SOABI_debug}.so
 %{dynload_dir}/_curses.%{SOABI_debug}.so
 %{dynload_dir}/_curses_panel.%{SOABI_debug}.so
 %{dynload_dir}/_dbm.%{SOABI_debug}.so
+%{dynload_dir}/_decimal.%{SOABI_debug}.so
 %{dynload_dir}/_elementtree.%{SOABI_debug}.so
 %if %{with_gdbm}
 %{dynload_dir}/_gdbm.%{SOABI_debug}.so
@@ -1427,6 +1445,7 @@ rm -fr %{buildroot}
 %{dynload_dir}/_heapq.%{SOABI_debug}.so
 %{dynload_dir}/_json.%{SOABI_debug}.so
 %{dynload_dir}/_lsprof.%{SOABI_debug}.so
+%{dynload_dir}/_lzma.%{SOABI_debug}.so
 %{dynload_dir}/_multibytecodec.%{SOABI_debug}.so
 %{dynload_dir}/_multiprocessing.%{SOABI_debug}.so
 %{dynload_dir}/_pickle.%{SOABI_debug}.so
@@ -1440,9 +1459,7 @@ rm -fr %{buildroot}
 %{dynload_dir}/atexit.%{SOABI_debug}.so
 %{dynload_dir}/audioop.%{SOABI_debug}.so
 %{dynload_dir}/binascii.%{SOABI_debug}.so
-%{dynload_dir}/bz2.%{SOABI_debug}.so
 %{dynload_dir}/cmath.%{SOABI_debug}.so
-%{dynload_dir}/crypt.%{SOABI_debug}.so
 %{dynload_dir}/_datetime.%{SOABI_debug}.so
 %{dynload_dir}/fcntl.%{SOABI_debug}.so
 %{dynload_dir}/grp.%{SOABI_debug}.so
@@ -1487,6 +1504,7 @@ rm -fr %{buildroot}
 
 # Analog  of the -test subpackage's files:
 %{dynload_dir}/_ctypes_test.%{SOABI_debug}.so
+%{dynload_dir}/_testbuffer.%{SOABI_debug}.so
 %{dynload_dir}/_testcapi.%{SOABI_debug}.so
 
 %endif # with_debug_build
@@ -1510,6 +1528,18 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Jul 20 2012 David Malcolm <dmalcolm@redhat.com> - 3.3.0-0.1.b1
+- 3.2 -> 3.3: https://fedoraproject.org/wiki/Features/Python_3.3
+- 3.3.0b1: refresh patches 3, 55, 102, 111, 113, 114, 134, 157; drop upstream
+patch 147; regenenerate autotools patch; drop "--with-wide-unicode" from
+configure (PEP 393); "plat-linux2" -> "plat-linux" (upstream issue 12326);
+"bz2" -> "_bz2" and "crypt" -> "_crypt"; egg-info files are no longer shipped
+for stdlib (upstream issues 10645 and 12218); email/test moved to
+test/test_email; add /usr/bin/pyvenv[-3.3] and venv module (PEP 405); add
+_decimal and _lzma modules; make collections modules explicit in payload again
+(upstream issue 11085); add _testbuffer module to tests subpackage (added in
+upstream commit 3f9b3b6f7ff0)
+
 * Fri Jun 22 2012 David Malcolm <dmalcolm@redhat.com> - 3.2.3-10
 - use macro for power64 (rhbz#834653)
 
