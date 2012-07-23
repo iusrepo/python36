@@ -458,6 +458,14 @@ Patch156: 00156-gdb-autoload-safepath.patch
 # (rhbz#697470)
 Patch157: 00157-uid-gid-overflows.patch
 
+# 00158 #
+# Python 3.3 added os.SEEK_DATA and os.SEEK_HOLE, which may be present in the
+# header files in the build chroot, but may not be supported in the running
+# kernel, hence we disable this test in an rpm build.
+# Adding these was upstream issue http://bugs.python.org/issue10142
+# Not yet sent upstream
+Patch158: 00158-disable-test_fs_holes-in-rpm-build.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -686,6 +694,7 @@ done
 %patch155 -p1
 %patch156 -p1
 %patch157 -p1
+%patch158 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
