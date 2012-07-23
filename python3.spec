@@ -466,6 +466,13 @@ Patch157: 00157-uid-gid-overflows.patch
 # Not yet sent upstream
 Patch158: 00158-disable-test_fs_holes-in-rpm-build.patch
 
+# 00159 #
+# http://bugs.python.org/issue13447 added tests for the Tools scripts, but
+# these appear to assume that srcdir == builddir, which isn't the case for our
+# builds.
+# Not yet sent upstream
+Patch159: 00159-fix-test_tools-directory.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -695,6 +702,7 @@ done
 %patch156 -p1
 %patch157 -p1
 %patch158 -p1
+%patch159 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.

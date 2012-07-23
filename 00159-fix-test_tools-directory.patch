@@ -1,0 +1,12 @@
+diff -up Python-3.3.0b1/Lib/test/test_tools.py.fix-test_tools-directory Python-3.3.0b1/Lib/test/test_tools.py
+--- Python-3.3.0b1/Lib/test/test_tools.py.fix-test_tools-directory	2012-07-23 14:29:51.317348183 -0400
++++ Python-3.3.0b1/Lib/test/test_tools.py	2012-07-23 14:30:09.883116080 -0400
+@@ -19,7 +19,7 @@ if not sysconfig.is_python_build():
+     # and run the tests in that case too?
+     raise unittest.SkipTest('test irrelevant for an installed Python')
+ 
+-srcdir = sysconfig.get_config_var('projectbase')
++srcdir = sysconfig.get_config_var('srcdir')
+ basepath = os.path.join(os.getcwd(), srcdir, 'Tools')
+ scriptsdir = os.path.join(basepath, 'scripts')
+ print('srcdir: %r' % srcdir)
