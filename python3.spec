@@ -459,19 +459,29 @@ Patch156: 00156-gdb-autoload-safepath.patch
 Patch157: 00157-uid-gid-overflows.patch
 
 # 00158 #
+#  Patch158: 00158-fix-hashlib-leak.patch
+# in python.spec
+# TODO: python3 status?
+
+# 00159 #
+#  Patch159: 00159-correct-libdb-include-path.patch
+# in python.spec
+# TODO: python3 status?
+
+# 00160 #
 # Python 3.3 added os.SEEK_DATA and os.SEEK_HOLE, which may be present in the
 # header files in the build chroot, but may not be supported in the running
 # kernel, hence we disable this test in an rpm build.
 # Adding these was upstream issue http://bugs.python.org/issue10142
 # Not yet sent upstream
-Patch158: 00158-disable-test_fs_holes-in-rpm-build.patch
+Patch160: 00160-disable-test_fs_holes-in-rpm-build.patch
 
-# 00159 #
+# 00161 #
 # http://bugs.python.org/issue13447 added tests for the Tools scripts, but
 # these appear to assume that srcdir == builddir, which isn't the case for our
 # builds.
 # Not yet sent upstream
-Patch159: 00159-fix-test_tools-directory.patch
+Patch161: 00161-fix-test_tools-directory.patch
 
 # (New patches go here ^^^)
 #
@@ -701,8 +711,10 @@ done
 %patch155 -p1
 %patch156 -p1
 %patch157 -p1
-%patch158 -p1
-%patch159 -p1
+#00158: FIXME
+#00159: FIXME
+%patch160 -p1
+%patch161 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1568,7 +1580,7 @@ for stdlib (upstream issues 10645 and 12218); email/test moved to
 test/test_email; add /usr/bin/pyvenv[-3.3] and venv module (PEP 405); add
 _decimal and _lzma modules; make collections modules explicit in payload again
 (upstream issue 11085); add _testbuffer module to tests subpackage (added in
-upstream commit 3f9b3b6f7ff0); fix test failures (patches 158 and 159);
+upstream commit 3f9b3b6f7ff0); fix test failures (patches 160 and 161);
 workaround erroneously shared _sysconfigdata.py upstream issue #14774
 
 * Fri Jun 22 2012 David Malcolm <dmalcolm@redhat.com> - 3.2.3-10
