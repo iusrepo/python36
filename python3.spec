@@ -489,6 +489,12 @@ Patch161: 00161-fix-test_tools-directory.patch
 # Not yet sent upstream
 Patch162: 00162-distutils-sysconfig-fix-CC-options.patch
 
+# 00163 #
+# Some tests within test_socket fail intermittently when run inside Koji;
+# disable them using unittest._skipInRpmBuild
+# Not yet sent upstream
+Patch163: 00163-disable-parts-of-test_socket-in-rpm-build.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -722,6 +728,7 @@ done
 %patch160 -p1
 %patch161 -p1
 %patch162 -p1
+%patch163 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1590,7 +1597,7 @@ _decimal and _lzma modules; make collections modules explicit in payload again
 upstream commit 3f9b3b6f7ff0); fix test failures (patches 160 and 161);
 workaround erroneously shared _sysconfigdata.py upstream issue #14774; fix
 distutils.sysconfig traceback (patch 162); add BuildRequires: xz-devel (for
-_lzma module)
+_lzma module); skip some tests within test_socket (patch 163)
 
 * Fri Jun 22 2012 David Malcolm <dmalcolm@redhat.com> - 3.2.3-10
 - use macro for power64 (rhbz#834653)
