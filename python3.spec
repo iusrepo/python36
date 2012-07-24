@@ -483,6 +483,12 @@ Patch160: 00160-disable-test_fs_holes-in-rpm-build.patch
 # Not yet sent upstream
 Patch161: 00161-fix-test_tools-directory.patch
 
+# 00162 #
+# Fix a bug in distutils.sysconfig.get_config_vars() in which find_executable()
+# would traceback when "CC" contains options (e.g. "gcc -pthread")
+# Not yet sent upstream
+Patch162: 00162-distutils-sysconfig-fix-CC-options.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -715,6 +721,7 @@ done
 #00159: FIXME
 %patch160 -p1
 %patch161 -p1
+%patch162 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1581,7 +1588,8 @@ test/test_email; add /usr/bin/pyvenv[-3.3] and venv module (PEP 405); add
 _decimal and _lzma modules; make collections modules explicit in payload again
 (upstream issue 11085); add _testbuffer module to tests subpackage (added in
 upstream commit 3f9b3b6f7ff0); fix test failures (patches 160 and 161);
-workaround erroneously shared _sysconfigdata.py upstream issue #14774
+workaround erroneously shared _sysconfigdata.py upstream issue #14774; fix
+distutils.sysconfig traceback (patch 162)
 
 * Fri Jun 22 2012 David Malcolm <dmalcolm@redhat.com> - 3.2.3-10
 - use macro for power64 (rhbz#834653)
