@@ -179,8 +179,8 @@ BuildRequires: tk-devel
 BuildRequires: valgrind-devel
 %endif
 
+BuildRequires: xz-devel
 BuildRequires: zlib-devel
-
 
 
 # =======================
@@ -1589,7 +1589,8 @@ _decimal and _lzma modules; make collections modules explicit in payload again
 (upstream issue 11085); add _testbuffer module to tests subpackage (added in
 upstream commit 3f9b3b6f7ff0); fix test failures (patches 160 and 161);
 workaround erroneously shared _sysconfigdata.py upstream issue #14774; fix
-distutils.sysconfig traceback (patch 162)
+distutils.sysconfig traceback (patch 162); add BuildRequires: xz-devel (for
+_lzma module)
 
 * Fri Jun 22 2012 David Malcolm <dmalcolm@redhat.com> - 3.2.3-10
 - use macro for power64 (rhbz#834653)
