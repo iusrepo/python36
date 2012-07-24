@@ -849,6 +849,12 @@ InstallPython() {
 
   pushd $ConfDir
 
+  # Workaround for http://bugs.python.org/issue14774 : Lib/_sysconfigdata.py
+  # is in the srcdir but contains per-config data.
+  # Regenerate it each time:
+  rm -f ../../Lib/_sysconfigdata.py
+  make $topdir/Lib/_sysconfigdata.py
+
 make install DESTDIR=%{buildroot} INSTALL="install -p"
 
   popd
@@ -1129,6 +1135,13 @@ CheckPython() {
 
   # Note that we're running the tests using the version of the code in the
   # builddir, not in the buildroot.
+
+  # Workaround for http://bugs.python.org/issue14774, as per the install
+  # stanza (albeit from a different directory):
+  rm -f Lib/_sysconfigdata.py
+  pushd $ConfDir
+  make $topdir/Lib/_sysconfigdata.py
+  popd
 
   # Run the upstream test suite, setting "WITHIN_PYTHON_RPM_BUILD" so that the
   # our non-standard decorators take effect on the relevant tests:
@@ -1555,7 +1568,8 @@ for stdlib (upstream issues 10645 and 12218); email/test moved to
 test/test_email; add /usr/bin/pyvenv[-3.3] and venv module (PEP 405); add
 _decimal and _lzma modules; make collections modules explicit in payload again
 (upstream issue 11085); add _testbuffer module to tests subpackage (added in
-upstream commit 3f9b3b6f7ff0)
+upstream commit 3f9b3b6f7ff0); fix test failures (patches 158 and 159);
+workaround erroneously shared _sysconfigdata.py upstream issue #14774
 
 * Fri Jun 22 2012 David Malcolm <dmalcolm@redhat.com> - 3.2.3-10
 - use macro for power64 (rhbz#834653)
