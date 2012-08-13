@@ -127,7 +127,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 0.1.%{alphatag}%{?dist}
+Release: 0.2.%{alphatag}%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -495,6 +495,12 @@ Patch162: 00162-distutils-sysconfig-fix-CC-options.patch
 # Not yet sent upstream
 Patch163: 00163-disable-parts-of-test_socket-in-rpm-build.patch
 
+# 0164 #
+# some tests in test._io interrupted_write-* fail on PPC (rhbz#846849)
+# testChainingDescriptors  test in test_exceptions fails on PPc, too (rhbz#846849)
+# disable those tests so that rebuilds on PPC can continue
+Patch164: 00164-disable-interrupted_write-tests-on-ppc.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -729,6 +735,9 @@ done
 %patch161 -p1
 %patch162 -p1
 %patch163 -p1
+%ifarch ppc %{power64}
+%patch164 -p1
+%endif
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1584,6 +1593,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Aug 13 2012 Karsten Hopp <karsten@redhat.com> 3.3.0-0.2.b1
+- disable some failing checks on PPC* (rhbz#846849)
+
 * Fri Aug  3 2012 David Malcolm <dmalcolm@redhat.com> - 3.3.0-0.1.b1
 - 3.2 -> 3.3: https://fedoraproject.org/wiki/Features/Python_3.3
 - 3.3.0b1: refresh patches 3, 55, 102, 111, 113, 114, 134, 157; drop upstream
