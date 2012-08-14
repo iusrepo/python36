@@ -1,7 +1,7 @@
-diff -up Python-3.3.0b1/configure.ac.systemtap Python-3.3.0b1/configure.ac
---- Python-3.3.0b1/configure.ac.systemtap	2012-06-26 16:19:58.000000000 -0400
-+++ Python-3.3.0b1/configure.ac	2012-07-20 13:05:39.221792032 -0400
-@@ -2616,6 +2616,23 @@ if test "$with_valgrind" != no; then
+diff -up Python-3.3.0b2/configure.ac.systemtap Python-3.3.0b2/configure.ac
+--- Python-3.3.0b2/configure.ac.systemtap	2012-08-11 02:54:25.000000000 -0400
++++ Python-3.3.0b2/configure.ac	2012-08-13 15:24:22.968120645 -0400
+@@ -2678,6 +2678,23 @@ if test "$with_valgrind" != no; then
      OPT="-DDYNAMIC_ANNOTATIONS_ENABLED=1 $OPT"
  fi
  
@@ -25,10 +25,10 @@ diff -up Python-3.3.0b1/configure.ac.systemtap Python-3.3.0b1/configure.ac
  # -I${DLINCLDIR} is added to the compile rule for importdl.o
  AC_SUBST(DLINCLDIR)
  DLINCLDIR=.
-diff -up Python-3.3.0b1/configure.systemtap Python-3.3.0b1/configure
---- Python-3.3.0b1/configure.systemtap	2012-06-26 16:19:58.000000000 -0400
-+++ Python-3.3.0b1/configure	2012-07-20 13:05:39.220792044 -0400
-@@ -638,6 +638,8 @@ TRUE
+diff -up Python-3.3.0b2/configure.systemtap Python-3.3.0b2/configure
+--- Python-3.3.0b2/configure.systemtap	2012-08-11 02:54:25.000000000 -0400
++++ Python-3.3.0b2/configure	2012-08-13 15:24:22.973120583 -0400
+@@ -618,6 +618,8 @@ TRUE
  MACHDEP_OBJS
  DYNLOADFILE
  DLINCLDIR
@@ -37,7 +37,7 @@ diff -up Python-3.3.0b1/configure.systemtap Python-3.3.0b1/configure
  THREADOBJ
  LDLAST
  USE_THREAD_MODULE
-@@ -793,6 +795,7 @@ with_doc_strings
+@@ -779,6 +781,7 @@ with_doc_strings
  with_tsc
  with_pymalloc
  with_valgrind
@@ -45,7 +45,7 @@ diff -up Python-3.3.0b1/configure.systemtap Python-3.3.0b1/configure
  with_fpectl
  with_libm
  with_libc
-@@ -1468,6 +1471,7 @@ Optional Packages:
+@@ -1456,6 +1459,7 @@ Optional Packages:
    --with(out)-tsc         enable/disable timestamp counter profile
    --with(out)-pymalloc    disable/enable specialized mallocs
    --with-valgrind         Enable Valgrind support
@@ -53,7 +53,7 @@ diff -up Python-3.3.0b1/configure.systemtap Python-3.3.0b1/configure
    --with-fpectl           enable SIGFPE catching
    --with-libm=STRING      math library
    --with-libc=STRING      C library
-@@ -9639,6 +9643,31 @@ fi
+@@ -10065,6 +10069,31 @@ fi
      OPT="-DDYNAMIC_ANNOTATIONS_ENABLED=1 $OPT"
  fi
  
@@ -85,18 +85,18 @@ diff -up Python-3.3.0b1/configure.systemtap Python-3.3.0b1/configure
  # -I${DLINCLDIR} is added to the compile rule for importdl.o
  
  DLINCLDIR=.
-diff -up Python-3.3.0b1/Doc/howto/index.rst.systemtap Python-3.3.0b1/Doc/howto/index.rst
---- Python-3.3.0b1/Doc/howto/index.rst.systemtap	2012-06-26 16:19:37.000000000 -0400
-+++ Python-3.3.0b1/Doc/howto/index.rst	2012-07-20 13:05:39.215792107 -0400
+diff -up Python-3.3.0b2/Doc/howto/index.rst.systemtap Python-3.3.0b2/Doc/howto/index.rst
+--- Python-3.3.0b2/Doc/howto/index.rst.systemtap	2012-08-11 02:54:06.000000000 -0400
++++ Python-3.3.0b2/Doc/howto/index.rst	2012-08-13 15:24:22.973120584 -0400
 @@ -29,4 +29,5 @@ Currently, the HOWTOs are:
     webservers.rst
     argparse.rst
     ipaddress.rst
 +   instrumentation.rst
  
-diff -up Python-3.3.0b1/Doc/howto/instrumentation.rst.systemtap Python-3.3.0b1/Doc/howto/instrumentation.rst
---- Python-3.3.0b1/Doc/howto/instrumentation.rst.systemtap	2012-07-20 13:05:39.215792107 -0400
-+++ Python-3.3.0b1/Doc/howto/instrumentation.rst	2012-07-20 13:05:39.215792107 -0400
+diff -up Python-3.3.0b2/Doc/howto/instrumentation.rst.systemtap Python-3.3.0b2/Doc/howto/instrumentation.rst
+--- Python-3.3.0b2/Doc/howto/instrumentation.rst.systemtap	2012-08-13 15:24:22.975120558 -0400
++++ Python-3.3.0b2/Doc/howto/instrumentation.rst	2012-08-13 15:24:22.975120558 -0400
 @@ -0,0 +1,295 @@
 +.. _instrumentation:
 +
@@ -393,10 +393,10 @@ diff -up Python-3.3.0b1/Doc/howto/instrumentation.rst.systemtap Python-3.3.0b1/D
 +        delete fn_calls;
 +    }
 +
-diff -up Python-3.3.0b1/Lib/test/test_systemtap.py.systemtap Python-3.3.0b1/Lib/test/test_systemtap.py
---- Python-3.3.0b1/Lib/test/test_systemtap.py.systemtap	2012-07-20 13:05:39.215792107 -0400
-+++ Python-3.3.0b1/Lib/test/test_systemtap.py	2012-07-20 13:05:39.215792107 -0400
-@@ -0,0 +1,205 @@
+diff -up Python-3.3.0b2/Lib/test/test_systemtap.py.systemtap Python-3.3.0b2/Lib/test/test_systemtap.py
+--- Python-3.3.0b2/Lib/test/test_systemtap.py.systemtap	2012-08-13 15:24:22.976120545 -0400
++++ Python-3.3.0b2/Lib/test/test_systemtap.py	2012-08-13 15:42:44.278352371 -0400
+@@ -0,0 +1,234 @@
 +# Verify that systemtap static probes work
 +#
 +import subprocess
@@ -567,10 +567,10 @@ diff -up Python-3.3.0b1/Lib/test/test_systemtap.py.systemtap Python-3.3.0b1/Lib/
 +            self.assertIn(b'=> <module> in <string>:1', out,
 +                          msg="stdout: %s\nstderr: %s\n" % (out, err))
 +
-+    def test_encoding(self):
-+        # Ensure that scripts and function names containing non-Latin 1 code
++    def test_function_encoding(self):
++        # Ensure that function names containing non-Latin 1 code
 +        # points are handled:
-+        pythonfile = TESTFN + '_☠.py'
++        pythonfile = TESTFN
 +        try:
 +            unlink(pythonfile)
 +            f = open(pythonfile, "wb")
@@ -597,15 +597,44 @@ diff -up Python-3.3.0b1/Lib/test/test_systemtap.py.systemtap Python-3.3.0b1/Lib/
 +        finally:
 +            unlink(pythonfile)
 +
++    @unittest.skipIf(sys.getfilesystemencoding() == 'ascii',
++                     'the test filename is not encodable with ASCII')
++    def test_filename_encoding(self):
++        # Ensure that scripts names containing non-Latin 1 code
++        # points are handled:
++        pythonfile = TESTFN + '_☠.py'
++        try:
++            unlink(pythonfile)
++            f = open(pythonfile, "wb")
++            f.write("""
++def foo():
++    '''Function with non-ASCII identifier; I believe this reads "mojibake"'''
++    print("hello world!")
++
++foo()
++""".encode('utf-8'))
++            f.close()
++
++            out, err = invoke_python_under_systemtap(hierarchy_script,
++                                                     pythonfile=pythonfile)
++            out_utf8 = out.decode('utf-8')
++            with ErrorDumper(out, err):
++                self.assertIn('=> <module> in %s:2' % pythonfile, out_utf8)
++                self.assertIn(' => foo in %s:2' % pythonfile, out_utf8)
++                self.assertIn(' <= foo in %s:4' % pythonfile, out_utf8)
++                self.assertIn('<= <module> in %s:6' % pythonfile, out_utf8)
++        finally:
++            unlink(pythonfile)
++
 +def test_main():
 +    run_unittest(SystemtapTests)
 +
 +if __name__ == "__main__":
 +    test_main()
-diff -up Python-3.3.0b1/Makefile.pre.in.systemtap Python-3.3.0b1/Makefile.pre.in
---- Python-3.3.0b1/Makefile.pre.in.systemtap	2012-06-26 16:19:51.000000000 -0400
-+++ Python-3.3.0b1/Makefile.pre.in	2012-07-20 13:05:39.216792095 -0400
-@@ -358,6 +358,7 @@ PYTHON_OBJS=	\
+diff -up Python-3.3.0b2/Makefile.pre.in.systemtap Python-3.3.0b2/Makefile.pre.in
+--- Python-3.3.0b2/Makefile.pre.in.systemtap	2012-08-11 02:54:18.000000000 -0400
++++ Python-3.3.0b2/Makefile.pre.in	2012-08-13 15:24:22.977120532 -0400
+@@ -363,6 +363,7 @@ PYTHON_OBJS=	\
  		Python/formatter_unicode.o \
  		Python/fileutils.o \
  		Python/$(DYNLOADFILE) \
@@ -613,7 +642,7 @@ diff -up Python-3.3.0b1/Makefile.pre.in.systemtap Python-3.3.0b1/Makefile.pre.in
  		$(LIBOBJS) \
  		$(MACHDEP_OBJS) \
  		$(THREADOBJ)
-@@ -708,7 +709,8 @@ Objects/setobject.o: $(srcdir)/Objects/s
+@@ -713,7 +714,8 @@ Objects/setobject.o: $(srcdir)/Objects/s
  $(OPCODETARGETS_H): $(OPCODETARGETGEN_FILES)
  	$(OPCODETARGETGEN) $(OPCODETARGETS_H)
  
@@ -623,7 +652,7 @@ diff -up Python-3.3.0b1/Makefile.pre.in.systemtap Python-3.3.0b1/Makefile.pre.in
  
  Python/formatter_unicode.o: $(srcdir)/Python/formatter_unicode.c \
  				$(BYTESTR_DEPS)
-@@ -719,6 +721,13 @@ Objects/typeobject.o: $(srcdir)/Objects/
+@@ -724,6 +726,13 @@ Objects/typeobject.o: $(srcdir)/Objects/
  $(srcdir)/Objects/typeslots.inc: $(srcdir)/Include/typeslots.h $(srcdir)/Objects/typeslots.py
  	$(PYTHON) $(srcdir)/Objects/typeslots.py < $(srcdir)/Include/typeslots.h > $(srcdir)/Objects/typeslots.inc
  
@@ -637,7 +666,7 @@ diff -up Python-3.3.0b1/Makefile.pre.in.systemtap Python-3.3.0b1/Makefile.pre.in
  ############################################################################
  # Header files
  
-@@ -1335,6 +1344,7 @@ clean: pycremoval
+@@ -1343,6 +1352,7 @@ clean: pycremoval
  	-rm -f Lib/lib2to3/*Grammar*.pickle
  	-rm -f $(SYSCONFIGDATA)
  	-rm -f Modules/_testembed Modules/_freeze_importlib
@@ -645,10 +674,10 @@ diff -up Python-3.3.0b1/Makefile.pre.in.systemtap Python-3.3.0b1/Makefile.pre.in
  
  profile-removal:
  	find . -name '*.gc??' -exec rm -f {} ';'
-diff -up Python-3.3.0b1/Misc/NEWS.systemtap Python-3.3.0b1/Misc/NEWS
---- Python-3.3.0b1/Misc/NEWS.systemtap	2012-06-26 16:19:51.000000000 -0400
-+++ Python-3.3.0b1/Misc/NEWS	2012-07-20 13:05:39.217792083 -0400
-@@ -55,6 +55,11 @@ Core and Builtins
+diff -up Python-3.3.0b2/Misc/NEWS.systemtap Python-3.3.0b2/Misc/NEWS
+--- Python-3.3.0b2/Misc/NEWS.systemtap	2012-08-11 02:54:18.000000000 -0400
++++ Python-3.3.0b2/Misc/NEWS	2012-08-13 15:24:22.980120496 -0400
+@@ -403,6 +403,11 @@ Core and Builtins
  
  - Issue #15038: Optimize python Locks on Windows.
  
@@ -660,9 +689,9 @@ diff -up Python-3.3.0b1/Misc/NEWS.systemtap Python-3.3.0b1/Misc/NEWS
  Library
  -------
  
-diff -up Python-3.3.0b1/pyconfig.h.in.systemtap Python-3.3.0b1/pyconfig.h.in
---- Python-3.3.0b1/pyconfig.h.in.systemtap	2012-06-26 16:19:58.000000000 -0400
-+++ Python-3.3.0b1/pyconfig.h.in	2012-07-20 13:05:39.222792020 -0400
+diff -up Python-3.3.0b2/pyconfig.h.in.systemtap Python-3.3.0b2/pyconfig.h.in
+--- Python-3.3.0b2/pyconfig.h.in.systemtap	2012-08-11 02:54:25.000000000 -0400
++++ Python-3.3.0b2/pyconfig.h.in	2012-08-13 15:24:22.981120483 -0400
 @@ -1306,6 +1306,9 @@
  /* Define if you want to compile in Python-specific mallocs */
  #undef WITH_PYMALLOC
@@ -673,9 +702,9 @@ diff -up Python-3.3.0b1/pyconfig.h.in.systemtap Python-3.3.0b1/pyconfig.h.in
  /* Define if you want to compile in rudimentary thread support */
  #undef WITH_THREAD
  
-diff -up Python-3.3.0b1/Python/ceval.c.systemtap Python-3.3.0b1/Python/ceval.c
---- Python-3.3.0b1/Python/ceval.c.systemtap	2012-06-26 16:19:56.000000000 -0400
-+++ Python-3.3.0b1/Python/ceval.c	2012-07-20 13:05:39.218792070 -0400
+diff -up Python-3.3.0b2/Python/ceval.c.systemtap Python-3.3.0b2/Python/ceval.c
+--- Python-3.3.0b2/Python/ceval.c.systemtap	2012-08-11 02:54:24.000000000 -0400
++++ Python-3.3.0b2/Python/ceval.c	2012-08-13 15:24:22.982120470 -0400
 @@ -18,6 +18,8 @@
  
  #include <ctype.h>
@@ -708,9 +737,9 @@ diff -up Python-3.3.0b1/Python/ceval.c.systemtap Python-3.3.0b1/Python/ceval.c
      Py_LeaveRecursiveCall();
      tstate->frame = f->f_back;
  
-diff -up Python-3.3.0b1/Python/ceval_systemtap.h.systemtap Python-3.3.0b1/Python/ceval_systemtap.h
---- Python-3.3.0b1/Python/ceval_systemtap.h.systemtap	2012-07-20 13:05:39.218792070 -0400
-+++ Python-3.3.0b1/Python/ceval_systemtap.h	2012-07-20 13:05:39.218792070 -0400
+diff -up Python-3.3.0b2/Python/ceval_systemtap.h.systemtap Python-3.3.0b2/Python/ceval_systemtap.h
+--- Python-3.3.0b2/Python/ceval_systemtap.h.systemtap	2012-08-13 15:24:22.983120457 -0400
++++ Python-3.3.0b2/Python/ceval_systemtap.h	2012-08-13 15:24:22.983120457 -0400
 @@ -0,0 +1,86 @@
 +/*
 +  Support for SystemTap static markers  
@@ -798,9 +827,9 @@ diff -up Python-3.3.0b1/Python/ceval_systemtap.h.systemtap Python-3.3.0b1/Python
 +#define systemtap_function_return(f)
 +
 +#endif
-diff -up Python-3.3.0b1/Python/pysystemtap.d.systemtap Python-3.3.0b1/Python/pysystemtap.d
---- Python-3.3.0b1/Python/pysystemtap.d.systemtap	2012-07-20 13:05:39.218792070 -0400
-+++ Python-3.3.0b1/Python/pysystemtap.d	2012-07-20 13:05:39.218792070 -0400
+diff -up Python-3.3.0b2/Python/pysystemtap.d.systemtap Python-3.3.0b2/Python/pysystemtap.d
+--- Python-3.3.0b2/Python/pysystemtap.d.systemtap	2012-08-13 15:24:22.983120457 -0400
++++ Python-3.3.0b2/Python/pysystemtap.d	2012-08-13 15:24:22.983120457 -0400
 @@ -0,0 +1,4 @@
 +provider python {
 +    probe function__entry(const char *, const char *, int, PyFrameObject *);

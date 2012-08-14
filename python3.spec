@@ -3,7 +3,7 @@
 # ======================================================
 
 %global pybasever 3.3
-%global alphatag  b1
+%global alphatag  b2
 
 # pybasever without the dot:
 %global pyshortver 33
@@ -127,7 +127,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 0.2.%{alphatag}%{?dist}
+Release: 0.3.%{alphatag}%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -229,6 +229,8 @@ Patch3: 00003-remove-mimeaudio-tests.patch
 # 00055 #
 # Systemtap support: add statically-defined probe points
 # Patch sent upstream as http://bugs.python.org/issue14776
+# with some subsequent reworking to cope with LANG=C in an rpmbuild
+# (where sys.getfilesystemencoding() == 'ascii')
 Patch55: 00055-systemtap.patch
 
 Patch102: python-3.3.0b1-lib64.patch
@@ -415,8 +417,9 @@ Patch150: 00150-disable-rAssertAlmostEqual-cmath-on-ppc.patch
 # 00152 #
 # Fix a regex in test_gdb so that it doesn't choke when gdb provides a full
 # path to Python/bltinmodule.c:
-# Not yet sent upstream
-Patch152: 00152-fix-test-gdb-regex.patch
+# Committed upstream as 77824:abcd29c9a791 as part of fix for
+# http://bugs.python.org/issue12605
+#  Patch152: 00152-fix-test-gdb-regex.patch
 
 # 00153 #
 # Strip out lines of the form "warning: Unable to open ..." from gdb's stderr
@@ -477,17 +480,10 @@ Patch157: 00157-uid-gid-overflows.patch
 Patch160: 00160-disable-test_fs_holes-in-rpm-build.patch
 
 # 00161 #
-# http://bugs.python.org/issue13447 added tests for the Tools scripts, but
-# these appear to assume that srcdir == builddir, which isn't the case for our
-# builds.
-# Not yet sent upstream
-Patch161: 00161-fix-test_tools-directory.patch
+# (Was only needed for Python 3.3.0b1)
 
 # 00162 #
-# Fix a bug in distutils.sysconfig.get_config_vars() in which find_executable()
-# would traceback when "CC" contains options (e.g. "gcc -pthread")
-# Not yet sent upstream
-Patch162: 00162-distutils-sysconfig-fix-CC-options.patch
+# (Was only needed for Python 3.3.0b1)
 
 # 00163 #
 # Some tests within test_socket fail intermittently when run inside Koji;
@@ -723,8 +719,8 @@ done
 %patch150 -p1
 %endif
 # 00151: not for python3
-%patch152 -p0
-%patch153 -p0
+# 00152: upstream as of Python 3.3.0b2
+%patch153 -p1
 # 00154: not for this branch
 %patch155 -p1
 %patch156 -p1
@@ -732,8 +728,8 @@ done
 #00158: FIXME
 #00159: FIXME
 %patch160 -p1
-%patch161 -p1
-%patch162 -p1
+# 00161: was only needed for Python 3.3.0b1
+# 00162: was only needed for Python 3.3.0b1
 %patch163 -p1
 %ifarch ppc %{power64}
 %patch164 -p1
@@ -1460,7 +1456,6 @@ rm -fr %{buildroot}
 %defattr(-, root, root)
 %{pylibdir}/ctypes/test
 %{pylibdir}/distutils/tests
-%{pylibdir}/importlib/test
 %{pylibdir}/sqlite3/test
 %{pylibdir}/test
 %{dynload_dir}/_ctypes_test.%{SOABI_optimized}.so
@@ -1593,6 +1588,12 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Aug 13 2012 David Malcolm <dmalcolm@redhat.com> - 3.3.0-0.3.b2
+- 3.3b1 -> 3.3b2; drop upstreamed patch 152; refresh patches 3, 102, 111,
+134, 153, 160; regenenerate autotools patch; rework systemtap patch to work
+correctly when LANG=C (patch 55); importlib.test was moved to
+test.test_importlib upstream
+
 * Mon Aug 13 2012 Karsten Hopp <karsten@redhat.com> 3.3.0-0.2.b1
 - disable some failing checks on PPC* (rhbz#846849)
 
