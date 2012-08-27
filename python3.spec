@@ -3,7 +3,7 @@
 # ======================================================
 
 %global pybasever 3.3
-%global alphatag  b2
+%global alphatag  rc1
 
 # pybasever without the dot:
 %global pyshortver 33
@@ -127,7 +127,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 0.3.%{alphatag}%{?dist}
+Release: 0.4.%{alphatag}%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1588,6 +1588,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Aug 27 2012 David Malcolm <dmalcolm@redhat.com> - 3.3.0-0.4.rc1
+- 3.3.0b2 -> 3.3.0rc1; refresh patches 3, 55
+
 * Mon Aug 13 2012 David Malcolm <dmalcolm@redhat.com> - 3.3.0-0.3.b2
 - 3.3b1 -> 3.3b2; drop upstreamed patch 152; refresh patches 3, 102, 111,
 134, 153, 160; regenenerate autotools patch; rework systemtap patch to work

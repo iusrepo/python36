@@ -1,8 +1,8 @@
-diff -up cpython-59223da36dec/Lib/test/test_email/test_email.py.remove-mimeaudio-tests cpython-59223da36dec/Lib/test/test_email/test_email.py
---- cpython-59223da36dec/Lib/test/test_email/test_email.py.remove-mimeaudio-tests	2012-08-07 16:39:41.698482943 -0400
-+++ cpython-59223da36dec/Lib/test/test_email/test_email.py	2012-08-07 16:39:47.861482521 -0400
-@@ -1307,47 +1307,6 @@ Blah blah blah
-                                   if x.startswith('>From ')]), 2)
+diff -up Python-3.3.0rc1/Lib/test/test_email/test_email.py.remove-mimeaudio-tests Python-3.3.0rc1/Lib/test/test_email/test_email.py
+--- Python-3.3.0rc1/Lib/test/test_email/test_email.py.remove-mimeaudio-tests	2012-08-25 15:22:10.000000000 -0400
++++ Python-3.3.0rc1/Lib/test/test_email/test_email.py	2012-08-27 11:00:11.936964586 -0400
+@@ -1321,47 +1321,6 @@ Blah blah blah
+         self.assertEqual(b.getvalue(), source + b'>From R\xc3\xb6lli\n')
  
  
 -# Test the basic MIMEAudio class
