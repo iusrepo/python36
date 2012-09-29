@@ -3,7 +3,6 @@
 # ======================================================
 
 %global pybasever 3.3
-%global alphatag  rc3
 
 # pybasever without the dot:
 %global pyshortver 33
@@ -127,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 0.6.%{alphatag}%{?dist}
+Release: 1%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -187,7 +186,7 @@ BuildRequires: zlib-devel
 # Source code and patches
 # =======================
 
-Source: http://www.python.org/ftp/python/%{version}/Python-%{version}%{alphatag}.tar.xz
+Source: http://www.python.org/ftp/python/%{version}/Python-%{version}.tar.xz
 
 # Avoid having various bogus auto-generated Provides lines for the various
 # python c modules' SONAMEs:
@@ -635,7 +634,7 @@ can load its own extensions.
 # ======================================================
 
 %prep
-%setup -q -n Python-%{version}%{alphatag}
+%setup -q -n Python-%{version}
 chmod +x %{SOURCE1}
 
 %if 0%{?with_systemtap}
@@ -1588,6 +1587,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Sat Sep 29 2012 David Malcolm <dmalcolm@redhat.com> - 3.3.0-1
+- 3.3.0rc3 -> 3.3.0; drop alphatag
+
 * Mon Sep 24 2012 David Malcolm <dmalcolm@redhat.com> - 3.3.0-0.6.rc3
 - 3.3.0rc2 -> 3.3.0rc3
 
