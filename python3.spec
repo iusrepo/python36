@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -138,6 +138,7 @@ Group: Development/Languages
 # (keep this list alphabetized)
 
 BuildRequires: autoconf
+BuildRequires: bluez-libs-devel
 BuildRequires: bzip2
 BuildRequires: bzip2-devel
 BuildRequires: db4-devel >= 4.7
@@ -1587,6 +1588,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Thu Nov 29 2012 David Malcolm <dmalcolm@redhat.com> - 3.3.0-2
+- add BR on bluez-libs-devel (rhbz#879720)
+
 * Sat Sep 29 2012 David Malcolm <dmalcolm@redhat.com> - 3.3.0-1
 - 3.3.0rc3 -> 3.3.0; drop alphatag
 
