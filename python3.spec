@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -966,7 +966,7 @@ install -d -m 0755 %{buildroot}/usr/lib/python%{pybasever}/site-packages/__pycac
 %global _pyconfig32_h pyconfig-32.h
 %global _pyconfig64_h pyconfig-64.h
 
-%ifarch %{power64} s390x x86_64 ia64 alpha sparc64
+%ifarch %{power64} s390x x86_64 ia64 alpha sparc64 aarch64
 %global _pyconfig_h %{_pyconfig64_h}
 %else
 %global _pyconfig_h %{_pyconfig32_h}
@@ -1125,7 +1125,7 @@ ln -s \
 # Install a tapset for this libpython into tapsetdir, fixing up the path to the
 # library:
 mkdir -p %{buildroot}%{tapsetdir}
-%ifarch %{power64} s390x x86_64 ia64 alpha sparc64
+%ifarch %{power64} s390x x86_64 ia64 alpha sparc64 aarch64
 %global libpython_stp_optimized libpython%{pybasever}-64.stp
 %global libpython_stp_debug     libpython%{pybasever}-debug-64.stp
 %else
@@ -1588,6 +1588,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Feb 11 2013 David Malcolm <dmalcolm@redhat.com> - 3.3.0-3
+- add aarch64 (rhbz#909783)
+
 * Thu Nov 29 2012 David Malcolm <dmalcolm@redhat.com> - 3.3.0-2
 - add BR on bluez-libs-devel (rhbz#879720)
 
