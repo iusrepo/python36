@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1427,8 +1427,8 @@ rm -fr %{buildroot}
 %{_libdir}/pkgconfig/python-%{LDVERSION_optimized}.pc
 %{_libdir}/pkgconfig/python-%{pybasever}.pc
 %{_libdir}/pkgconfig/python3.pc
-%config(noreplace) %{_sysconfdir}/rpm/macros.python3
-%config(noreplace) %{_sysconfdir}/rpm/macros.pybytecompile
+%{_sysconfdir}/rpm/macros.python3
+%{_sysconfdir}/rpm/macros.pybytecompile
 
 %files tools
 %defattr(-,root,root,755)
@@ -1588,6 +1588,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Mar  4 2013 David Malcolm <dmalcolm@redhat.com> - 3.3.0-4
+- remove config flag from /etc/rpm/macros.{python3|pybytecompile}
+
 * Mon Feb 11 2013 David Malcolm <dmalcolm@redhat.com> - 3.3.0-3
 - add aarch64 (rhbz#909783)
 
