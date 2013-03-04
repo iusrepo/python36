@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -497,6 +497,51 @@ Patch163: 00163-disable-parts-of-test_socket-in-rpm-build.patch
 # disable those tests so that rebuilds on PPC can continue
 Patch164: 00164-disable-interrupted_write-tests-on-ppc.patch
 
+# 00165 #
+# python.spec has:
+#   Patch165: 00165-crypt-module-salt-backport.patch
+# which is a backport from 3.3 and thus not relevant to "python3"
+
+# 00166 #
+#  Patch166: 00166-fix-fake-repr-in-gdb-hooks.patch
+# in python.spec
+# TODO: python3 status?
+
+# 00167 #
+#  Patch167: 00167-disable-stack-navigation-tests-when-optimized-in-test_gdb.patch
+# in python.spec
+# TODO: python3 status?
+
+# 00168 #
+#  Patch168: 00168-distutils-cflags.patch
+# in python.spec
+# TODO: python3 status?
+
+# 00169 #
+#  Patch169: 00169-avoid-implicit-usage-of-md5-in-multiprocessing.patch
+# in python.spec
+# TODO: python3 status?
+
+# 00170 #
+#  Patch170: 00170-gc-assertions.patch
+# in python.spec
+# TODO: python3 status?
+
+# 00171 #
+#  Patch171: 00171-raise-correct-exception-when-dev-urandom-is-missing.patch
+# in python.spec
+# TODO: python3 status?
+
+# 00172 #
+#  Patch172: 00172-use-poll-for-multiprocessing-socket-connection.patch
+# in python.spec
+# TODO: python3 status?
+
+# 00173 #
+# Workaround for ENOPROTOOPT seen in Koji withi test.support.bind_port()
+# (rhbz#913732)
+Patch173: 00173-workaround-ENOPROTOOPT-in-bind_port.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -734,6 +779,15 @@ done
 %ifarch ppc %{power64}
 %patch164 -p1
 %endif
+#00165: TODO
+#00166: TODO
+#00167: TODO
+#00168: TODO
+#00169: TODO
+#00170: TODO
+#00171: TODO
+#00172: TODO
+%patch173 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1588,6 +1642,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Mar  4 2013 David Malcolm <dmalcolm@redhat.com> - 3.3.0-5
+- add workaround for ENOPROTOOPT seen running selftests in Koji
+(rhbz#913732)
+
 * Mon Mar  4 2013 David Malcolm <dmalcolm@redhat.com> - 3.3.0-4
 - remove config flag from /etc/rpm/macros.{python3|pybytecompile}
 
