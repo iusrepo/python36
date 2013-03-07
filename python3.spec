@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -805,6 +805,8 @@ sed --in-place \
 %patch5000 -p0 -b .autotool-intermediates
 %endif
 
+# Add target for optimized Power7 binaries:
+sed -i -e "s/ppc64-\*/ppc64-\* \| ppc64p7-\*/" config.sub
 
 # ======================================================
 # Configuring and building the code:
@@ -1642,6 +1644,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Thu Mar 07 2013 Karsten Hopp <karsten@redhat.com> 3.3.0-6
+- add ppc64p7 build target, optimized for Power7
+
 * Mon Mar  4 2013 David Malcolm <dmalcolm@redhat.com> - 3.3.0-5
 - add workaround for ENOPROTOOPT seen running selftests in Koji
 (rhbz#913732)
