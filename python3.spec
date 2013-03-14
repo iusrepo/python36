@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -542,6 +542,11 @@ Patch164: 00164-disable-interrupted_write-tests-on-ppc.patch
 # (rhbz#913732)
 Patch173: 00173-workaround-ENOPROTOOPT-in-bind_port.patch
 
+# Potential patch for so extensions being wrong since SOABI in upstream python3.
+# http://bugs.python.org/issue16754
+# (rhbz#889784)
+Patch174: python3-upstream-issue16754-so-extension.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -788,6 +793,7 @@ done
 #00171: TODO
 #00172: TODO
 %patch173 -p1
+%patch174 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1644,6 +1650,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Thu Mar 14 2013 Toshio Kuratomi <toshio@fedoraproject.org> - .0-7
+- Fix up shared library extension (rhbz#889784)
+
 * Thu Mar 07 2013 Karsten Hopp <karsten@redhat.com> 3.3.0-6
 - add ppc64p7 build target, optimized for Power7
 
