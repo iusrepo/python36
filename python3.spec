@@ -545,7 +545,15 @@ Patch173: 00173-workaround-ENOPROTOOPT-in-bind_port.patch
 # Potential patch for so extensions being wrong since SOABI in upstream python3.
 # http://bugs.python.org/issue16754
 # (rhbz#889784)
-Patch174: python3-upstream-issue16754-so-extension.patch
+# Does not affect python2 (python2 does not have compiled extensions with the
+# problematic information)
+Patch174: 00174-upstream-issue16754-so-extension.patch
+
+# Patch for potential unicode error when determining OS release names
+# http://bugs.python.org/issue17429
+# (rhbz#922149)
+# Does not affect python2 (python2 uses a byte string so it doesn't need to decode)
+Patch175: 00175-platform-unicode.patch
 
 # (New patches go here ^^^)
 #
@@ -794,6 +802,7 @@ done
 #00172: TODO
 %patch173 -p1
 %patch174 -p1
+%patch175 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1650,7 +1659,11 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
-* Thu Mar 14 2013 Toshio Kuratomi <toshio@fedoraproject.org> - .0-7
+* Fri Mar 15 2013 Toshio Kuratomi <toshio@fedoraproject.org> - 3.3.0-8
+- Fix error in platform.platform() when non-ascii byte strings are decoded to
+  unicode (rhbz#922149)
+
+* Thu Mar 14 2013 Toshio Kuratomi <toshio@fedoraproject.org> - 3.3.0-7
 - Fix up shared library extension (rhbz#889784)
 
 * Thu Mar 07 2013 Karsten Hopp <karsten@redhat.com> 3.3.0-6
