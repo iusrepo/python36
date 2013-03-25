@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -542,18 +542,29 @@ Patch164: 00164-disable-interrupted_write-tests-on-ppc.patch
 # (rhbz#913732)
 Patch173: 00173-workaround-ENOPROTOOPT-in-bind_port.patch
 
+# 00174 #
+#  Patch174: 00174-fix-for-usr-move.patch
+# TODO: python3 status?
+
+# 00175 #
+#  Patch175: 00175-fix-configure-Wformat.patch
+# TODO: python3 status?
+
+# 00176 #
 # Potential patch for so extensions being wrong since SOABI in upstream python3.
 # http://bugs.python.org/issue16754
 # (rhbz#889784)
 # Does not affect python2 (python2 does not have compiled extensions with the
 # problematic information)
-Patch174: 00174-upstream-issue16754-so-extension.patch
+Patch176: 00176-upstream-issue16754-so-extension.patch
 
+# 00177 #
 # Patch for potential unicode error when determining OS release names
 # http://bugs.python.org/issue17429
 # (rhbz#922149)
 # Does not affect python2 (python2 uses a byte string so it doesn't need to decode)
-Patch175: 00175-platform-unicode.patch
+Patch177: 00177-platform-unicode.patch
+
 
 # (New patches go here ^^^)
 #
@@ -801,8 +812,10 @@ done
 #00171: TODO
 #00172: TODO
 %patch173 -p1
-%patch174 -p1
-%patch175 -p1
+#00174: TODO
+#00175: TODO
+%patch176 -p1
+%patch177 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1659,6 +1672,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Mar 25 2013 David Malcolm <dmalcolm@redhat.com> - 3.3.0-9
+- renumber patches to keep them in sync with python.spec
+
 * Fri Mar 15 2013 Toshio Kuratomi <toshio@fedoraproject.org> - 3.3.0-8
 - Fix error in platform.platform() when non-ascii byte strings are decoded to
   unicode (rhbz#922149)
