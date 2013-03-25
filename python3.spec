@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -547,8 +547,13 @@ Patch173: 00173-workaround-ENOPROTOOPT-in-bind_port.patch
 # TODO: python3 status?
 
 # 00175 #
-#  Patch175: 00175-fix-configure-Wformat.patch
-# TODO: python3 status?
+# Fix for configure.ac mistakenly detecting
+#   checking whether gcc supports ParseTuple __format__... yes
+# when it doesn't, when compiling with gcc 4.8
+#
+# Sent upstream as http://bugs.python.org/issue17547
+# (rhbz#927358)
+Patch175: 00175-fix-configure-Wformat.patch
 
 # 00176 #
 # Potential patch for so extensions being wrong since SOABI in upstream python3.
@@ -813,7 +818,7 @@ done
 #00172: TODO
 %patch173 -p1
 #00174: TODO
-#00175: TODO
+%patch175 -p1
 %patch176 -p1
 %patch177 -p1
 
@@ -1672,6 +1677,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Mar 25 2013 David Malcolm <dmalcolm@redhat.com> - 3.3.0-10
+- fix gcc 4.8 incompatibility (rhbz#927358); regenerate autotool intermediates
+
 * Mon Mar 25 2013 David Malcolm <dmalcolm@redhat.com> - 3.3.0-9
 - renumber patches to keep them in sync with python.spec
 

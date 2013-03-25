@@ -1,6 +1,6 @@
 diff -up ./configure.autotool-intermediates ./configure
---- ./configure.autotool-intermediates	2012-08-07 17:21:25.249311751 -0400
-+++ ./configure	2012-08-07 17:21:35.503311049 -0400
+--- ./configure.autotool-intermediates	2013-03-25 16:11:38.140657282 -0400
++++ ./configure	2013-03-25 16:11:46.922656680 -0400
 @@ -779,6 +779,8 @@ with_thread
  enable_ipv6
  with_doc_strings
@@ -19,10 +19,28 @@ diff -up ./configure.autotool-intermediates ./configure
    --with(out)-pymalloc    disable/enable specialized mallocs
    --with-valgrind         Enable Valgrind support
    --with(out)-systemtap   disable/enable SystemTap support
-@@ -10017,6 +10021,50 @@ $as_echo "no" >&6; }
- fi
+@@ -6471,7 +6475,7 @@ then
+   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether gcc supports ParseTuple __format__" >&5
+ $as_echo_n "checking whether gcc supports ParseTuple __format__... " >&6; }
+   save_CFLAGS=$CFLAGS
+-  CFLAGS="$CFLAGS -Werror"
++  CFLAGS="$CFLAGS -Werror -Wformat"
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
  
+@@ -10008,6 +10012,50 @@ $as_echo "#define WITH_TSC 1" >>confdefs
  
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+ $as_echo "yes" >&6; }
++else { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
++$as_echo "no" >&6; }
++fi
++else
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
++$as_echo "no" >&6; }
++fi
++
++
 +{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for --with-count-allocs" >&5
 +$as_echo_n "checking for --with-count-allocs... " >&6; }
 +
@@ -58,16 +76,7 @@ diff -up ./configure.autotool-intermediates ./configure
 +
 +    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 +$as_echo "yes" >&6; }
-+else { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-+$as_echo "no" >&6; }
-+fi
-+else
-+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-+$as_echo "no" >&6; }
-+fi
-+
-+
- # Check for Python-specific malloc support
- { $as_echo "$as_me:${as_lineno-$LINENO}: checking for --with-pymalloc" >&5
- $as_echo_n "checking for --with-pymalloc... " >&6; }
+ else { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+ $as_echo "no" >&6; }
+ fi
 diff -up ./pyconfig.h.in.autotool-intermediates ./pyconfig.h.in
