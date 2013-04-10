@@ -653,8 +653,8 @@ diff -up Python-3.3.0rc2/Makefile.pre.in.systemtap Python-3.3.0rc2/Makefile.pre.
  Python/formatter_unicode.o: $(srcdir)/Python/formatter_unicode.c \
  				$(BYTESTR_DEPS)
 @@ -724,6 +726,13 @@ Objects/typeobject.o: $(srcdir)/Objects/
- $(srcdir)/Objects/typeslots.inc: $(srcdir)/Include/typeslots.h $(srcdir)/Objects/typeslots.py
- 	$(PYTHON) $(srcdir)/Objects/typeslots.py < $(srcdir)/Include/typeslots.h > $(srcdir)/Objects/typeslots.inc
+ Objects/typeslots.inc: $(srcdir)/Include/typeslots.h $(srcdir)/Objects/typeslots.py
+ 	$(PYTHON) $(srcdir)/Objects/typeslots.py < $(srcdir)/Include/typeslots.h > Objects/typeslots.inc
  
 +# Only needed with --with-systemtap; not a public header:
 +$(srcdir)/Python/pysystemtap.h: $(srcdir)/Python/pysystemtap.d
@@ -667,8 +667,8 @@ diff -up Python-3.3.0rc2/Makefile.pre.in.systemtap Python-3.3.0rc2/Makefile.pre.
  # Header files
  
 @@ -1345,6 +1354,7 @@ clean: pycremoval
+ 	-rm -f pybuilddir.txt
  	-rm -f Lib/lib2to3/*Grammar*.pickle
- 	-rm -f $(SYSCONFIGDATA)
  	-rm -f Modules/_testembed Modules/_freeze_importlib
 +	-rm -f $(srcdir)/Python/pysystemtap.h
  
