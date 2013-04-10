@@ -125,8 +125,8 @@
 # ==================
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
-Version: %{pybasever}.0
-Release: 10%{?dist}
+Version: %{pybasever}.1
+Release: 1%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -222,9 +222,9 @@ Source7: pyfuntop.stp
 # Was Patch0 in ivazquez' python3000 specfile:
 Patch1:         Python-3.1.1-rpath.patch
 
-# The four TestMIMEAudio tests fail due to "audiotest.au" not being packaged.
-# It's simplest to remove them:
-Patch3: 00003-remove-mimeaudio-tests.patch
+# Some tests were removed due to audiotest.au not being packaged. This was
+# however added to the archive in 3.3.1, so we no longer delete the tests.
+#  Patch3: 00003-remove-mimeaudio-tests.patch
 
 # 00055 #
 # Systemtap support: add statically-defined probe points
@@ -462,9 +462,7 @@ Patch156: 00156-gdb-autoload-safepath.patch
 Patch157: 00157-uid-gid-overflows.patch
 
 # 00158 #
-#  Patch158: 00158-fix-hashlib-leak.patch
-# in python.spec
-# TODO: python3 status?
+# Upstream as of Python 3.3.1
 
 # 00159 #
 #  Patch159: 00159-correct-libdb-include-path.patch
@@ -528,13 +526,13 @@ Patch164: 00164-disable-interrupted_write-tests-on-ppc.patch
 # TODO: python3 status?
 
 # 00171 #
+# python.spec had:
 #  Patch171: 00171-raise-correct-exception-when-dev-urandom-is-missing.patch
-# in python.spec
 # TODO: python3 status?
 
 # 00172 #
+# python.spec had:
 #  Patch172: 00172-use-poll-for-multiprocessing-socket-connection.patch
-# in python.spec
 # TODO: python3 status?
 
 # 00173 #
@@ -556,12 +554,8 @@ Patch173: 00173-workaround-ENOPROTOOPT-in-bind_port.patch
 Patch175: 00175-fix-configure-Wformat.patch
 
 # 00176 #
-# Potential patch for so extensions being wrong since SOABI in upstream python3.
-# http://bugs.python.org/issue16754
-# (rhbz#889784)
-# Does not affect python2 (python2 does not have compiled extensions with the
-# problematic information)
-Patch176: 00176-upstream-issue16754-so-extension.patch
+# Fixed upstream as of Python 3.3.1
+#  Patch176: 00176-upstream-issue16754-so-extension.patch
 
 # 00177 #
 # Patch for potential unicode error when determining OS release names
@@ -570,6 +564,11 @@ Patch176: 00176-upstream-issue16754-so-extension.patch
 # Does not affect python2 (python2 uses a byte string so it doesn't need to decode)
 Patch177: 00177-platform-unicode.patch
 
+# 00178 #
+# Don't duplicate various FLAGS in sysconfig values
+# http://bugs.python.org/issue17679
+# Does not affect python2 AFAICS (different sysconfig values initialization)
+Patch178: 00178-dont-duplicate-flags-in-sysconfig.patch
 
 # (New patches go here ^^^)
 #
@@ -744,7 +743,7 @@ done
 # Apply patches:
 #
 %patch1 -p1
-%patch3 -p1 -b .remove-mimeaudio-tests
+# 3: upstream as of Python 3.3.1
 
 %if 0%{?with_systemtap}
 %patch55 -p1 -b .systemtap
@@ -819,8 +818,9 @@ done
 %patch173 -p1
 #00174: TODO
 %patch175 -p1
-%patch176 -p1
+# 00176: upstream as of Python 3.3.1
 %patch177 -p1
+%patch178 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -868,7 +868,7 @@ for f in pyconfig.h.in configure ; do
 done
 
 # Rerun the autotools:
-PATH=~/autoconf-2.65/bin:$PATH autoreconf
+autoreconf
 
 # Regenerate the patch:
 gendiff . .autotool-intermediates > %{PATCH5000}
@@ -968,12 +968,6 @@ InstallPython() {
   mkdir -p $ConfDir
 
   pushd $ConfDir
-
-  # Workaround for http://bugs.python.org/issue14774 : Lib/_sysconfigdata.py
-  # is in the srcdir but contains per-config data.
-  # Regenerate it each time:
-  rm -f ../../Lib/_sysconfigdata.py
-  make $topdir/Lib/_sysconfigdata.py
 
 make install DESTDIR=%{buildroot} INSTALL="install -p"
 
@@ -1255,13 +1249,6 @@ CheckPython() {
 
   # Note that we're running the tests using the version of the code in the
   # builddir, not in the buildroot.
-
-  # Workaround for http://bugs.python.org/issue14774, as per the install
-  # stanza (albeit from a different directory):
-  rm -f Lib/_sysconfigdata.py
-  pushd $ConfDir
-  make $topdir/Lib/_sysconfigdata.py
-  popd
 
   # Run the upstream test suite, setting "WITHIN_PYTHON_RPM_BUILD" so that the
   # our non-standard decorators take effect on the relevant tests:
@@ -1677,6 +1664,15 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Tue Apr 09 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.1-1
+- Updated to Python 3.3.1.
+- Refreshed patches: 55 (systemtap), 111 (no static lib), 146 (hashlib fips),
+153 (fix test_gdb noise), 157 (uid, gid overflow - fixed upstream, just
+keeping few more downstream tests)
+- Removed patches: 3 (audiotest.au made it to upstream tarball)
+- Removed workaround for http://bugs.python.org/issue14774, discussed in
+http://bugs.python.org/issue15298 and fixed in revision 24d52d3060e8.
+
 * Mon Mar 25 2013 David Malcolm <dmalcolm@redhat.com> - 3.3.0-10
 - fix gcc 4.8 incompatibility (rhbz#927358); regenerate autotool intermediates
 

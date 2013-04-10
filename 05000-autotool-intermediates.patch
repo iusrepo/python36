@@ -1,7 +1,7 @@
 diff -up ./configure.autotool-intermediates ./configure
---- ./configure.autotool-intermediates	2013-03-25 16:11:38.140657282 -0400
-+++ ./configure	2013-03-25 16:11:46.922656680 -0400
-@@ -779,6 +779,8 @@ with_thread
+--- ./configure.autotool-intermediates	2013-04-09 14:52:49.831773426 +0200
++++ ./configure	2013-04-09 14:52:53.204765347 +0200
+@@ -802,6 +802,8 @@ with_thread
  enable_ipv6
  with_doc_strings
  with_tsc
@@ -10,7 +10,7 @@ diff -up ./configure.autotool-intermediates ./configure
  with_pymalloc
  with_valgrind
  with_systemtap
-@@ -1457,6 +1459,8 @@ Optional Packages:
+@@ -1479,6 +1481,8 @@ Optional Packages:
                            deprecated; use --with(out)-threads
    --with(out)-doc-strings disable/enable documentation strings
    --with(out)-tsc         enable/disable timestamp counter profile
@@ -19,7 +19,7 @@ diff -up ./configure.autotool-intermediates ./configure
    --with(out)-pymalloc    disable/enable specialized mallocs
    --with-valgrind         Enable Valgrind support
    --with(out)-systemtap   disable/enable SystemTap support
-@@ -6471,7 +6475,7 @@ then
+@@ -6529,7 +6533,7 @@ then
    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether gcc supports ParseTuple __format__" >&5
  $as_echo_n "checking whether gcc supports ParseTuple __format__... " >&6; }
    save_CFLAGS=$CFLAGS
@@ -28,7 +28,7 @@ diff -up ./configure.autotool-intermediates ./configure
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  
-@@ -10008,6 +10012,50 @@ $as_echo "#define WITH_TSC 1" >>confdefs
+@@ -10117,6 +10121,50 @@ $as_echo "#define WITH_TSC 1" >>confdefs
  
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
  $as_echo "yes" >&6; }
@@ -80,3 +80,15 @@ diff -up ./configure.autotool-intermediates ./configure
  $as_echo "no" >&6; }
  fi
 diff -up ./pyconfig.h.in.autotool-intermediates ./pyconfig.h.in
+--- ./pyconfig.h.in.autotool-intermediates	2013-04-09 14:52:49.829773431 +0200
++++ ./pyconfig.h.in	2013-04-09 14:52:53.488764667 +0200
+@@ -1193,9 +1193,6 @@
+ /* Define if setpgrp() must be called as setpgrp(0, 0). */
+ #undef SETPGRP_HAVE_ARG
+ 
+-/* Define this to be extension of shared libraries (including the dot!). */
+-#undef SHLIB_EXT
+-
+ /* Define if i>>j for signed int i does not extend the sign bit when i < 0 */
+ #undef SIGNED_RIGHT_SHIFT_ZERO_FILLS
+ 
