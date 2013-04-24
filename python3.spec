@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -570,6 +570,15 @@ Patch177: 00177-platform-unicode.patch
 # Does not affect python2 AFAICS (different sysconfig values initialization)
 Patch178: 00178-dont-duplicate-flags-in-sysconfig.patch
 
+# 00179 #
+# Workaround for https://bugzilla.redhat.com/show_bug.cgi?id=951802
+# Reported upstream in http://bugs.python.org/issue17737
+# This patch basically looks at every frame and if it is somehow corrupted,
+# it just stops printing the traceback - it doesn't fix the actual bug.
+# This bug seems to only affect ARM.
+# Doesn't seem to affect Python 2 AFAICS.
+Patch179: 00179-dont-raise-error-on-gdb-corrupted-frames-in-backtrace.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -821,6 +830,7 @@ done
 # 00176: upstream as of Python 3.3.1
 %patch177 -p1
 %patch178 -p1
+%patch179 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1664,6 +1674,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed Apr 24 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.1-2
+- Add fix for gdb tests failing on arm, rhbz#951802.
+
 * Tue Apr 09 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.1-1
 - Updated to Python 3.3.1.
 - Refreshed patches: 55 (systemtap), 111 (no static lib), 146 (hashlib fips),
