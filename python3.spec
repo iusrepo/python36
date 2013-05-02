@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -579,6 +579,11 @@ Patch178: 00178-dont-duplicate-flags-in-sysconfig.patch
 # Doesn't seem to affect Python 2 AFAICS.
 Patch179: 00179-dont-raise-error-on-gdb-corrupted-frames-in-backtrace.patch
 
+# 00180 #
+# Enable building on ppc64p7
+# Not appropriate for upstream, Fedora-specific naming
+Patch180: 00180-python-add-support-for-ppc64p7.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -831,6 +836,7 @@ done
 %patch177 -p1
 %patch178 -p1
 %patch179 -p1
+%patch180 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -847,9 +853,6 @@ sed --in-place \
 # We don't apply the patch if we're working towards regenerating it
 %patch5000 -p0 -b .autotool-intermediates
 %endif
-
-# Add target for optimized Power7 binaries:
-sed -i -e "s/ppc64-\*/ppc64-\* \| ppc64p7-\*/" config.sub
 
 # ======================================================
 # Configuring and building the code:
@@ -1674,6 +1677,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Thu May 02 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.1-3
+- Add patch that enables building on ppc64p7 (replace the sed, so that
+we get consistent with python2 spec and it's more obvious that we're doing it.
+
 * Wed Apr 24 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.1-2
 - Add fix for gdb tests failing on arm, rhbz#951802.
 
