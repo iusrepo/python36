@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -584,6 +584,14 @@ Patch179: 00179-dont-raise-error-on-gdb-corrupted-frames-in-backtrace.patch
 # Not appropriate for upstream, Fedora-specific naming
 Patch180: 00180-python-add-support-for-ppc64p7.patch
 
+# 00181 #
+# Fix test.test_gdb.PyBtTests.test_threads on ppc64
+# Cherrypicked from upstream commit:
+#   http://hg.python.org/cpython/rev/f4a6b731905a/
+# for upstream issue http://bugs.python.org/issue17833
+# (rhbz#960010)
+Patch181: 00181-fix-test_gdb-test_threads.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -837,6 +845,7 @@ done
 %patch178 -p1
 %patch179 -p1
 %patch180 -p1
+%patch181 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1677,6 +1686,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Thu May  9 2013 David Malcolm <dmalcolm@redhat.com> - 3.3.1-4
+- fix test.test_gdb.PyBtTests.test_threads on ppc64 (patch 181; rhbz#960010)
+
 * Thu May 02 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.1-3
 - Add patch that enables building on ppc64p7 (replace the sed, so that
 we get consistent with python2 spec and it's more obvious that we're doing it.
