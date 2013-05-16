@@ -125,8 +125,8 @@
 # ==================
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
-Version: %{pybasever}.1
-Release: 4%{?dist}
+Version: %{pybasever}.2
+Release: 1%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -545,13 +545,8 @@ Patch173: 00173-workaround-ENOPROTOOPT-in-bind_port.patch
 # TODO: python3 status?
 
 # 00175 #
-# Fix for configure.ac mistakenly detecting
-#   checking whether gcc supports ParseTuple __format__... yes
-# when it doesn't, when compiling with gcc 4.8
-#
-# Sent upstream as http://bugs.python.org/issue17547
-# (rhbz#927358)
-Patch175: 00175-fix-configure-Wformat.patch
+# Upstream as of Python 3.3.2
+#  Patch175: 00175-fix-configure-Wformat.patch
 
 # 00176 #
 # Fixed upstream as of Python 3.3.1
@@ -585,12 +580,18 @@ Patch179: 00179-dont-raise-error-on-gdb-corrupted-frames-in-backtrace.patch
 Patch180: 00180-python-add-support-for-ppc64p7.patch
 
 # 00181 #
+# python.spec has
+#  Patch181: 00181-allow-arbitrary-timeout-in-condition-wait.patch
+# Does not affect python3
+
+# 00181 #
 # Fix test.test_gdb.PyBtTests.test_threads on ppc64
 # Cherrypicked from upstream commit:
 #   http://hg.python.org/cpython/rev/f4a6b731905a/
 # for upstream issue http://bugs.python.org/issue17833
 # (rhbz#960010)
-Patch181: 00181-fix-test_gdb-test_threads.patch
+Patch182: 00182-fix-test_gdb-test_threads.patch
+
 
 # (New patches go here ^^^)
 #
@@ -815,7 +816,7 @@ done
 %endif
 # 00151: not for python3
 # 00152: upstream as of Python 3.3.0b2
-%patch153 -p1
+%patch153 -p0
 # 00154: not for this branch
 %patch155 -p1
 %patch156 -p1
@@ -839,13 +840,14 @@ done
 #00172: TODO
 %patch173 -p1
 #00174: TODO
-%patch175 -p1
+# 00175: upstream as of Python 3.3.2
 # 00176: upstream as of Python 3.3.1
 %patch177 -p1
 %patch178 -p1
 %patch179 -p1
 %patch180 -p1
-%patch181 -p1
+# 00181: not for python3
+%patch182 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1686,6 +1688,12 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Thu May 16 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.2-1
+- Updated to Python 3.3.2.
+- Refreshed patches: 153 (gdb test noise)
+- Dropped patches: 175 (configure -Wformat, fixed upstream)
+- Synced patch numbers with python.spec.
+
 * Thu May  9 2013 David Malcolm <dmalcolm@redhat.com> - 3.3.1-4
 - fix test.test_gdb.PyBtTests.test_threads on ppc64 (patch 181; rhbz#960010)
 
