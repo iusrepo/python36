@@ -585,12 +585,8 @@ Patch180: 00180-python-add-support-for-ppc64p7.patch
 # Does not affect python3
 
 # 00181 #
-# Fix test.test_gdb.PyBtTests.test_threads on ppc64
-# Cherrypicked from upstream commit:
-#   http://hg.python.org/cpython/rev/f4a6b731905a/
-# for upstream issue http://bugs.python.org/issue17833
-# (rhbz#960010)
-Patch182: 00182-fix-test_gdb-test_threads.patch
+# Fixed upstream as of Python 3.3.2
+#  Patch182: 00182-fix-test_gdb-test_threads.patch
 
 
 # (New patches go here ^^^)
@@ -847,7 +843,7 @@ done
 %patch179 -p1
 %patch180 -p1
 # 00181: not for python3
-%patch182 -p1
+# 00182: upstream as of Python 3.3.2
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1691,7 +1687,8 @@ rm -fr %{buildroot}
 * Thu May 16 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.2-1
 - Updated to Python 3.3.2.
 - Refreshed patches: 153 (gdb test noise)
-- Dropped patches: 175 (configure -Wformat, fixed upstream)
+- Dropped patches: 175 (configure -Wformat, fixed upstream), 182 (gdb
+test threads)
 - Synced patch numbers with python.spec.
 
 * Thu May  9 2013 David Malcolm <dmalcolm@redhat.com> - 3.3.1-4
