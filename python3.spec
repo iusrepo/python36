@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -584,9 +584,15 @@ Patch180: 00180-python-add-support-for-ppc64p7.patch
 #  Patch181: 00181-allow-arbitrary-timeout-in-condition-wait.patch
 # Does not affect python3
 
-# 00181 #
+# 00182 #
 # Fixed upstream as of Python 3.3.2
 #  Patch182: 00182-fix-test_gdb-test_threads.patch
+
+# 00183 #
+# Upstream fix for CVE-2013-2099 (ssl.match_hostname DOS)
+# http://bugs.python.org/issue17980
+# http://hg.python.org/cpython/rev/c627638753e2
+Patch183: 00183-cve-2013-2099-fix-ssl-match_hostname-dos.patch
 
 
 # (New patches go here ^^^)
@@ -844,6 +850,7 @@ done
 %patch180 -p1
 # 00181: not for python3
 # 00182: upstream as of Python 3.3.2
+%patch183 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1684,6 +1691,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon May 20 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.2-2
+- Add patch for CVE-2013-2099 (rhbz#963261).
+
 * Thu May 16 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.2-1
 - Updated to Python 3.3.2.
 - Refreshed patches: 153 (gdb test noise)
