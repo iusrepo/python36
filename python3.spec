@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -594,6 +594,14 @@ Patch180: 00180-python-add-support-for-ppc64p7.patch
 # http://hg.python.org/cpython/rev/c627638753e2
 Patch183: 00183-cve-2013-2099-fix-ssl-match_hostname-dos.patch
 
+# 00184 #
+# Fix for https://bugzilla.redhat.com/show_bug.cgi?id=979696
+# Fixes build of ctypes against libffi with multilib wrapper
+# Python recognizes ffi.h only if it contains "#define LIBFFI_H",
+# but the wrapper doesn't contain that, which makes the build fail
+# We patch this by also accepting "#define ffi_wrapper_h"
+Patch184: 00184-ctypes-should-build-with-libffi-multilib-wrapper.patch
+
 
 # (New patches go here ^^^)
 #
@@ -851,6 +859,7 @@ done
 # 00181: not for python3
 # 00182: upstream as of Python 3.3.2
 %patch183 -p1
+%patch184 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1691,6 +1700,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Tue Jul 02 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.2-3
+- Fix build with libffi containing multilib wrapper for ffi.h (rhbz#979696).
+
 * Mon May 20 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.2-2
 - Add patch for CVE-2013-2099 (rhbz#963261).
 
