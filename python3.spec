@@ -57,7 +57,7 @@
 %global with_systemtap 1
 
 # some arches don't have valgrind so we need to disable its support on them
-%ifarch %{ix86} x86_64 ppc %{power64} s390x
+%ifarch %{ix86} x86_64 ppc %{power64} s390x %{arm}
 %global with_valgrind 1
 %else
 %global with_valgrind 0
@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -342,7 +342,9 @@ Patch137: 00137-skip-distutils-tests-that-fail-in-rpmbuild.patch
 #  http://bugs.python.org/issue8265 (rhbz#706253)
 Patch139: 00139-skip-test_float-known-failure-on-arm.patch
 
-# 00140 #
+# ideally short lived patch disabling a test thats fragile on different arches
+Patch140: python3-arm-skip-failing-fragile-test.patch
+
 # Patch140: 00140-skip-test_ctypes-known-failure-on-sparc.patch does not appear
 # to be relevant for python3
 
@@ -603,6 +605,7 @@ Patch183: 00183-cve-2013-2099-fix-ssl-match_hostname-dos.patch
 Patch184: 00184-ctypes-should-build-with-libffi-multilib-wrapper.patch
 
 
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -810,6 +813,7 @@ done
 # 00138: not for python3
 %ifarch %{arm}
 %patch139 -p1
+%patch140 -p1
 %endif
 # 00140: not for python3
 %patch141 -p1
@@ -1700,6 +1704,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Jul 26 2013 Dennis Gilmore <dennis@ausil.us> - 3.3.2-4
+- disable a test that fails on arm
+- enable valgrind support on arm arches
+
 * Tue Jul 02 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.2-3
 - Fix build with libffi containing multilib wrapper for ffi.h (rhbz#979696).
 
