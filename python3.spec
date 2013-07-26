@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1704,6 +1704,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Jul 26 2013 Dennis Gilmore <dennis@ausil.us> - 3.3.2-5
+- fix up indentation in arm patch
+
 * Fri Jul 26 2013 Dennis Gilmore <dennis@ausil.us> - 3.3.2-4
 - disable a test that fails on arm
 - enable valgrind support on arm arches
