@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -604,6 +604,12 @@ Patch183: 00183-cve-2013-2099-fix-ssl-match_hostname-dos.patch
 # We patch this by also accepting "#define ffi_wrapper_h"
 Patch184: 00184-ctypes-should-build-with-libffi-multilib-wrapper.patch
 
+# 00185 #
+# Fix for CVE-2013-4238 --
+# SSL module fails to handle NULL bytes inside subjectAltNames general names
+# http://bugs.python.org/issue18709
+# rhbz#996399
+Patch185: 00185-CVE-2013-4238-hostname-check-bypass-in-SSL-module.patch
 
 
 # (New patches go here ^^^)
@@ -864,6 +870,7 @@ done
 # 00182: upstream as of Python 3.3.2
 %patch183 -p1
 %patch184 -p1
+%patch185 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1704,6 +1711,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Aug 23 2013 Matej Stuchlik <mstuchli@redhat.com> - 3.3.2-6
+- Added fix for CVE-2013-4238 (rhbz#996399)
+
 * Fri Jul 26 2013 Dennis Gilmore <dennis@ausil.us> - 3.3.2-5
 - fix up indentation in arm patch
 
