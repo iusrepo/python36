@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -217,6 +217,10 @@ Source6: systemtap-example.stp
 # Written by dmalcolm; not yet sent upstream
 Source7: pyfuntop.stp
 
+# A simple script to check timestamps of bytecode files
+# Run in check section with Python that is currently being built
+# Written by bkabrda
+Source8: check-pyc-and-pyo-timestamps.py
 
 # Fixup distutils/unixccompiler.py to remove standard library path from rpath:
 # Was Patch0 in ivazquez' python3000 specfile:
@@ -611,6 +615,14 @@ Patch184: 00184-ctypes-should-build-with-libffi-multilib-wrapper.patch
 # rhbz#996399
 Patch185: 00185-CVE-2013-4238-hostname-check-bypass-in-SSL-module.patch
 
+# 00186 #
+# Fix for https://bugzilla.redhat.com/show_bug.cgi?id=1023607
+# Fixes the problem of some *.py files not being bytecompiled properly
+# during build. This was result of py_compile.compile raising exception
+# when trying to convert test file with bad encoding, and thus not
+# continuing bytecompilation for other files.
+Patch186: 00186-dont-raise-from-py_compile.patch
+
 
 # (New patches go here ^^^)
 #
@@ -871,6 +883,7 @@ done
 %patch183 -p1
 %patch184 -p1
 %patch185 -p1
+%patch186 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1200,12 +1213,12 @@ iconv -f iso8859-1 -t utf-8 %{buildroot}/%{pylibdir}/Demo/rpc/README > README.co
 # compile *.pyo
 find %{buildroot} -type f -a -name "*.py" -print0 | \
     LD_LIBRARY_PATH="%{buildroot}%{dynload_dir}/:%{buildroot}%{_libdir}" \
-    PYTHONPATH="%{buildroot}%{_libdir}python%{pybasever} %{buildroot}/%{_libdir}python%{pybasever}/site-packages" \
+    PYTHONPATH="%{buildroot}%{_libdir}/python%{pybasever} %{buildroot}%{_libdir}/python%{pybasever}/site-packages" \
     xargs -0 %{buildroot}%{_bindir}/python%{pybasever} -O -c 'import py_compile, sys; [py_compile.compile(f, dfile=f.partition("%{buildroot}")[2]) for f in sys.argv[1:]]' || :
 # compile *.pyc
 find %{buildroot} -type f -a -name "*.py" -print0 | \
     LD_LIBRARY_PATH="%{buildroot}%{dynload_dir}/:%{buildroot}%{_libdir}" \
-    PYTHONPATH="%{buildroot}%{_libdir}python%{pybasever} %{buildroot}/%{_libdir}python%{pybasever}/site-packages" \
+    PYTHONPATH="%{buildroot}%{_libdir}/python%{pybasever} %{buildroot}%{_libdir}/python%{pybasever}/site-packages" \
     xargs -0 %{buildroot}%{_bindir}/python%{pybasever} -O -c 'import py_compile, sys; [py_compile.compile(f, dfile=f.partition("%{buildroot}")[2], optimize=0) for f in sys.argv[1:]]' || :
 
 # Fixup permissions for shared libraries from non-standard 555 to standard 755:
@@ -1287,6 +1300,14 @@ sed \
 # ======================================================
 
 %check
+
+# first of all, check timestamps of bytecode files
+find %{buildroot} -type f -a -name "*.py" -print0 | \
+    LD_LIBRARY_PATH="%{buildroot}%{dynload_dir}/:%{buildroot}%{_libdir}" \
+    PYTHONPATH="%{buildroot}%{_libdir}/python%{pybasever} %{buildroot}%{_libdir}/python%{pybasever}/site-packages" \
+    xargs -0 %{buildroot}%{_bindir}/python%{pybasever} %{SOURCE8}
+
+
 topdir=$(pwd)
 CheckPython() {
   ConfName=$1	      
@@ -1711,6 +1732,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed Oct 30 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.2-7
+- Bytecompile all *.py files properly during build (rhbz#1023607)
+
 * Fri Aug 23 2013 Matej Stuchlik <mstuchli@redhat.com> - 3.3.2-6
 - Added fix for CVE-2013-4238 (rhbz#996399)
 
