@@ -1,0 +1,188 @@
+--- a/Doc/library/ssl.rst
++++ b/Doc/library/ssl.rst
+@@ -283,10 +283,10 @@ Certificate handling
+    Verify that *cert* (in decoded format as returned by
+    :meth:`SSLSocket.getpeercert`) matches the given *hostname*.  The rules
+    applied are those for checking the identity of HTTPS servers as outlined
+-   in :rfc:`2818`, except that IP addresses are not currently supported.
+-   In addition to HTTPS, this function should be suitable for checking the
+-   identity of servers in various SSL-based protocols such as FTPS, IMAPS,
+-   POPS and others.
++   in :rfc:`2818` and :rfc:`6125`, except that IP addresses are not currently
++   supported. In addition to HTTPS, this function should be suitable for
++   checking the identity of servers in various SSL-based protocols such as
++   FTPS, IMAPS, POPS and others.
+ 
+    :exc:`CertificateError` is raised on failure. On success, the function
+    returns nothing::
+@@ -301,6 +301,13 @@ Certificate handling
+ 
+    .. versionadded:: 3.2
+ 
++   .. versionchanged:: 3.3.3
++      The function now follows :rfc:`6125`, section 6.4.3 and does neither
++      match multiple wildcards (e.g. ``*.*.com`` or ``*a*.example.org``) nor
++      a wildcard inside an internationalized domain names (IDN) fragment.
++      IDN A-labels such as ``www*.xn--pthon-kva.org`` are still supported,
++      but ``x*.python.org`` no longer matches ``xn--tda.python.org``.
++
+ .. function:: cert_time_to_seconds(timestring)
+ 
+    Returns a floating-point value containing a normal seconds-after-the-epoch
+unchanged:
+--- a/Lib/ssl.py
++++ b/Lib/ssl.py
+@@ -129,25 +129,53 @@ class CertificateError(ValueError):
+     pass
+ 
+ 
+-def _dnsname_to_pat(dn, max_wildcards=1):
++def _dnsname_match(dn, hostname, max_wildcards=1):
++    """Matching according to RFC 6125, section 6.4.3
++
++    http://tools.ietf.org/html/rfc6125#section-6.4.3
++    """
+     pats = []
+-    for frag in dn.split(r'.'):
+-        if frag.count('*') > max_wildcards:
+-            # Issue #17980: avoid denials of service by refusing more
+-            # than one wildcard per fragment.  A survery of established
+-            # policy among SSL implementations showed it to be a
+-            # reasonable choice.
+-            raise CertificateError(
+-                "too many wildcards in certificate DNS name: " + repr(dn))
+-        if frag == '*':
+-            # When '*' is a fragment by itself, it matches a non-empty dotless
+-            # fragment.
+-            pats.append('[^.]+')
+-        else:
+-            # Otherwise, '*' matches any dotless fragment.
+-            frag = re.escape(frag)
+-            pats.append(frag.replace(r'\*', '[^.]*'))
+-    return re.compile(r'\A' + r'\.'.join(pats) + r'\Z', re.IGNORECASE)
++    if not dn:
++        return False
++
++    leftmost, *remainder = dn.split(r'.')
++
++    wildcards = leftmost.count('*')
++    if wildcards > max_wildcards:
++        # Issue #17980: avoid denials of service by refusing more
++        # than one wildcard per fragment.  A survery of established
++        # policy among SSL implementations showed it to be a
++        # reasonable choice.
++        raise CertificateError(
++            "too many wildcards in certificate DNS name: " + repr(dn))
++
++    # speed up common case w/o wildcards
++    if not wildcards:
++        return dn.lower() == hostname.lower()
++
++    # RFC 6125, section 6.4.3, subitem 1.
++    # The client SHOULD NOT attempt to match a presented identifier in which
++    # the wildcard character comprises a label other than the left-most label.
++    if leftmost == '*':
++        # When '*' is a fragment by itself, it matches a non-empty dotless
++        # fragment.
++        pats.append('[^.]+')
++    elif leftmost.startswith('xn--') or hostname.startswith('xn--'):
++        # RFC 6125, section 6.4.3, subitem 3.
++        # The client SHOULD NOT attempt to match a presented identifier
++        # where the wildcard character is embedded within an A-label or
++        # U-label of an internationalized domain name.
++        pats.append(re.escape(leftmost))
++    else:
++        # Otherwise, '*' matches any dotless string, e.g. www*
++        pats.append(re.escape(leftmost).replace(r'\*', '[^.]*'))
++
++    # add the remaining fragments, ignore any wildcards
++    for frag in remainder:
++        pats.append(re.escape(frag))
++
++    pat = re.compile(r'\A' + r'\.'.join(pats) + r'\Z', re.IGNORECASE)
++    return pat.match(hostname)
+ 
+ 
+ def match_hostname(cert, hostname):
+unchanged:
+--- a/Lib/test/test_ssl.py
++++ b/Lib/test/test_ssl.py
+@@ -304,11 +304,7 @@ class BasicSocketTests(unittest.TestCase
+         fail(cert, 'Xa.com')
+         fail(cert, '.a.com')
+ 
+-        cert = {'subject': ((('commonName', 'a.*.com'),),)}
+-        ok(cert, 'a.foo.com')
+-        fail(cert, 'a..com')
+-        fail(cert, 'a.com')
+-
++        # only match one left-most wildcard
+         cert = {'subject': ((('commonName', 'f*.com'),),)}
+         ok(cert, 'foo.com')
+         ok(cert, 'f.com')
+@@ -323,6 +319,36 @@ class BasicSocketTests(unittest.TestCase
+         fail(cert, 'example.org')
+         fail(cert, 'null.python.org')
+ 
++        # error cases with wildcards
++        cert = {'subject': ((('commonName', '*.*.a.com'),),)}
++        fail(cert, 'bar.foo.a.com')
++        fail(cert, 'a.com')
++        fail(cert, 'Xa.com')
++        fail(cert, '.a.com')
++
++        cert = {'subject': ((('commonName', 'a.*.com'),),)}
++        fail(cert, 'a.foo.com')
++        fail(cert, 'a..com')
++        fail(cert, 'a.com')
++
++        # wildcard doesn't match IDNA prefix 'xn--'
++        idna = 'püthon.python.org'.encode("idna").decode("ascii")
++        cert = {'subject': ((('commonName', idna),),)}
++        ok(cert, idna)
++        cert = {'subject': ((('commonName', 'x*.python.org'),),)}
++        fail(cert, idna)
++        cert = {'subject': ((('commonName', 'xn--p*.python.org'),),)}
++        fail(cert, idna)
++
++        # wildcard in first fragment and  IDNA A-labels in sequent fragments
++        # are supported.
++        idna = 'www*.pythön.org'.encode("idna").decode("ascii")
++        cert = {'subject': ((('commonName', idna),),)}
++        ok(cert, 'www.pythön.org'.encode("idna").decode("ascii"))
++        ok(cert, 'www1.pythön.org'.encode("idna").decode("ascii"))
++        fail(cert, 'ftp.pythön.org'.encode("idna").decode("ascii"))
++        fail(cert, 'pythön.org'.encode("idna").decode("ascii"))
++
+         # Slightly fake real-world example
+         cert = {'notAfter': 'Jun 26 21:41:46 2011 GMT',
+                 'subject': ((('commonName', 'linuxfrz.org'),),),
+@@ -383,7 +409,7 @@ class BasicSocketTests(unittest.TestCase
+         cert = {'subject': ((('commonName', 'a*b.com'),),)}
+         ok(cert, 'axxb.com')
+         cert = {'subject': ((('commonName', 'a*b.co*'),),)}
+-        ok(cert, 'axxb.com')
++        fail(cert, 'axxb.com')
+         cert = {'subject': ((('commonName', 'a*b*.com'),),)}
+         with self.assertRaises(ssl.CertificateError) as cm:
+             ssl.match_hostname(cert, 'axxbxxc.com')
+--- a/Lib/ssl.py
++++ b/Lib/ssl.py
+@@ -192,7 +192,7 @@ def match_hostname(cert, hostname):
+     san = cert.get('subjectAltName', ())
+     for key, value in san:
+         if key == 'DNS':
+-            if _dnsname_to_pat(value).match(hostname):
++            if _dnsname_match(value, hostname):
+                 return
+             dnsnames.append(value)
+     if not dnsnames:
+@@ -203,7 +203,7 @@ def match_hostname(cert, hostname):
+                 # XXX according to RFC 2818, the most specific Common Name
+                 # must be used.
+                 if key == 'commonName':
+-                    if _dnsname_to_pat(value).match(hostname):
++                    if _dnsname_match(value, hostname):
+                         return
+                     dnsnames.append(value)
+     if len(dnsnames) > 1:

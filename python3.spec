@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -623,6 +623,11 @@ Patch185: 00185-CVE-2013-4238-hostname-check-bypass-in-SSL-module.patch
 # continuing bytecompilation for other files.
 Patch186: 00186-dont-raise-from-py_compile.patch
 
+# 00187 #
+# Fix for rhbz#1023742
+# Change behavior of ssl.match_hostname() to follow RFC 6125
+# See http://bugs.python.org/issue17997#msg194950 for more.
+Patch187: 00187-change-match_hostname-to-follow-RFC-6125.patch
 
 # (New patches go here ^^^)
 #
@@ -884,6 +889,7 @@ done
 %patch184 -p1
 %patch185 -p1
 %patch186 -p1
+%patch187 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1732,6 +1738,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Tue Nov 05 2013 Matej Stuchlik <mstuchli@redhat.com> - 3.3.2-8
+- Changed behavior of ssl.match_hostname() to follow RFC 6125 (rhbz#1023742)
+
 * Wed Oct 30 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.2-7
 - Bytecompile all *.py files properly during build (rhbz#1023607)
 
