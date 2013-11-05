@@ -970,8 +970,8 @@ BuildPython() {
   #    missing symbol AnnotateRWLockDestroy
   #
   # Invoke the build:
-  # TODO: it seems that 3.4.0a4 fails without -J1, have to figure out why
-  make EXTRA_CFLAGS="$CFLAGS -J1" %{?_smp_mflags}
+  # TODO: it seems that 3.4.0a4 fails with %{?_smp_flags}, have to figure out why
+  make EXTRA_CFLAGS="$CFLAGS"
 
   popd
   echo FINISHED: BUILD OF PYTHON FOR CONFIGURATION: $ConfDir
