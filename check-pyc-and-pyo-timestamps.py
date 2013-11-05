@@ -16,10 +16,12 @@ not_compiled = [
     'test/badsyntax_future7.py',
     'test/badsyntax_future8.py',
     'test/badsyntax_future9.py',
+    'test/badsyntax_future10.py',
     'test/badsyntax_pep3120.py',
     'lib2to3/tests/data/bom.py',
     'lib2to3/tests/data/crlf.py',
     'lib2to3/tests/data/different_encoding.py',
+    'lib2to3/tests/data/false_encoding.py',
     'lib2to3/tests/data/py2_test_grammar.py',
     '.debug-gdb.py',
 ]

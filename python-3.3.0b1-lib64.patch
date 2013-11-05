@@ -39,9 +39,9 @@ diff -up cpython-59223da36dec/Lib/site.py.lib64 cpython-59223da36dec/Lib/site.py
 --- cpython-59223da36dec/Lib/site.py.lib64	2012-08-07 06:10:57.000000000 -0400
 +++ cpython-59223da36dec/Lib/site.py	2012-08-07 16:41:00.573477549 -0400
 @@ -303,12 +303,16 @@ def getsitepackages(prefixes=None):
-         if sys.platform in ('os2emx', 'riscos'):
-             sitepackages.append(os.path.join(prefix, "Lib", "site-packages"))
-         elif os.sep == '/':
+         seen.add(prefix)
+
+         if os.sep == '/':
 +            sitepackages.append(os.path.join(prefix, "lib64",
 +                                        "python" + sys.version[:3],
 +                                        "site-packages"))

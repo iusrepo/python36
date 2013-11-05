@@ -73,9 +73,9 @@ diff -up Python-3.2.2/Lib/hashlib.py.hashlib-fips Python-3.2.2/Lib/hashlib.py
 diff -up Python-3.2.2/Lib/test/test_hashlib.py.hashlib-fips Python-3.2.2/Lib/test/test_hashlib.py
 --- Python-3.2.2/Lib/test/test_hashlib.py.hashlib-fips	2011-09-03 12:16:43.000000000 -0400
 +++ Python-3.2.2/Lib/test/test_hashlib.py	2011-09-14 01:45:48.462251974 -0400
-@@ -22,6 +22,19 @@ from test.support import _4G, precisionb
- # Were we compiled --with-pydebug or with #define Py_DEBUG?
- COMPILED_WITH_PYDEBUG = hasattr(sys, 'gettotalrefcount')
+@@ -22,6 +22,20 @@ from test.support import _4G, precisionb
+ c_hashlib = import_fresh_module('hashlib', fresh=['_hashlib'])
+ py_hashlib = import_fresh_module('hashlib', blocked=['_hashlib'])
  
 +def openssl_enforces_fips():
 +    # Use the "openssl" command (if present) to try to determine if the local
@@ -90,9 +90,10 @@ diff -up Python-3.2.2/Lib/test/test_hashlib.py.hashlib-fips Python-3.2.2/Lib/tes
 +    stdout, stderr = p.communicate(input=b'abc')
 +    return b'unknown cipher' in stderr
 +OPENSSL_ENFORCES_FIPS = openssl_enforces_fips()
- 
++
  def hexstr(s):
      assert isinstance(s, bytes), repr(s)
+     h = "0123456789abcdef"
 @@ -31,6 +44,16 @@ def hexstr(s):
          r += h[(i >> 4) & 0xF] + h[i & 0xF]
      return r
@@ -146,15 +147,15 @@ diff -up Python-3.2.2/Lib/test/test_hashlib.py.hashlib-fips Python-3.2.2/Lib/tes
 -            self.constructors_to_test['sha384'].add(_sha512.sha384)
 -            self.constructors_to_test['sha512'].add(_sha512.sha512)
 +                    constructors.add(suppress_fips(constructor))
- 
-         super(HashLibTestCase, self).__init__(*args, **kwargs)
- 
+         _sha3 = self._conditional_import_module('_sha3')
+         if _sha3:
+             self.constructors_to_test['sha3_224'].add(_sha3.sha3_224)
 @@ -138,7 +146,7 @@ class HashLibTestCase(unittest.TestCase)
  
      def test_hexdigest(self):
-         for name in self.supported_hash_names:
--            h = hashlib.new(name)
-+            h = hashlib.new(name, usedforsecurity=False)
+         for cons in self.hash_constructors:
+-            h = cons()
++            h = cons(usedforsecurity=False)
              assert isinstance(h.digest(), bytes), name
              self.assertEqual(hexstr(h.digest()), h.hexdigest())
  
@@ -162,14 +163,14 @@ diff -up Python-3.2.2/Lib/test/test_hashlib.py.hashlib-fips Python-3.2.2/Lib/tes
          cees = b'c' * 126
  
          for name in self.supported_hash_names:
--            m1 = hashlib.new(name)
-+            m1 = hashlib.new(name, usedforsecurity=False)
+-            m1 = cons()
++            m1 = cons(usedforsecurity=False)
              m1.update(aas)
              m1.update(bees)
              m1.update(cees)
  
--            m2 = hashlib.new(name)
-+            m2 = hashlib.new(name, usedforsecurity=False)
+-            m2 = cons()
++            m2 = cons(usedforsecurity=False)
              m2.update(aas + bees + cees)
              self.assertEqual(m1.digest(), m2.digest())
  

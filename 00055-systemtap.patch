@@ -650,8 +650,8 @@ diff -up Python-3.3.0rc2/Makefile.pre.in.systemtap Python-3.3.0rc2/Makefile.pre.
 +Python/ceval.o: $(OPCODETARGETS_H) $(srcdir)/Python/ceval_gil.h \
 +			$(srcdir)/Python/ceval_systemtap.h @SYSTEMTAPDEPS@
  
- Python/formatter_unicode.o: $(srcdir)/Python/formatter_unicode.c \
- 				$(BYTESTR_DEPS)
+ Python/frozen.o: Python/importlib.h
+ 
 @@ -724,6 +726,13 @@ Objects/typeobject.o: $(srcdir)/Objects/
  Objects/typeslots.inc: $(srcdir)/Include/typeslots.h $(srcdir)/Objects/typeslots.py
  	$(PYTHON) $(srcdir)/Objects/typeslots.py < $(srcdir)/Include/typeslots.h > Objects/typeslots.inc
@@ -735,8 +735,8 @@ diff -up Python-3.3.0rc2/Python/ceval.c.systemtap Python-3.3.0rc2/Python/ceval.c
 +    }
 +
      Py_LeaveRecursiveCall();
+     f->f_executing = 0;
      tstate->frame = f->f_back;
- 
 diff -up Python-3.3.0rc2/Python/ceval_systemtap.h.systemtap Python-3.3.0rc2/Python/ceval_systemtap.h
 --- Python-3.3.0rc2/Python/ceval_systemtap.h.systemtap	2012-09-10 09:17:21.122511781 -0400
 +++ Python-3.3.0rc2/Python/ceval_systemtap.h	2012-09-10 09:17:21.122511781 -0400

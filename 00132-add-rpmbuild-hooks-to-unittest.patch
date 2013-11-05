@@ -6,11 +6,11 @@ diff -up Python-3.2.2/Lib/unittest/case.py.add-rpmbuild-hooks-to-unittest Python
  import functools
  import difflib
 +import os
+ import logging
  import pprint
  import re
- import warnings
 @@ -101,6 +102,43 @@ def expectedFailure(func):
-     return wrapper
+         raise self.test_case.failureException(msg)
  
  
 +# Non-standard/downstream-only hooks for handling issues with specific test
@@ -50,7 +50,7 @@ diff -up Python-3.2.2/Lib/unittest/case.py.add-rpmbuild-hooks-to-unittest Python
 +            func(*args, **kwargs)
 +    return wrapper
 +
- class _AssertRaisesBaseContext(object):
+ class _AssertRaisesBaseContext(_BaseTestCaseContext):
  
      def __init__(self, expected, test_case, callable_obj=None,
 diff -up Python-3.2.2/Lib/unittest/__init__.py.add-rpmbuild-hooks-to-unittest Python-3.2.2/Lib/unittest/__init__.py

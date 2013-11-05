@@ -2,10 +2,13 @@
 # Conditionals and other variables controlling the build
 # ======================================================
 
-%global pybasever 3.3
+%global pybasever 3.4
 
 # pybasever without the dot:
-%global pyshortver 33
+%global pyshortver 34
+
+# prereleasetag
+%global prerel a4
 
 %global pylibdir %{_libdir}/python%{pybasever}
 %global dynload_dir %{pylibdir}/lib-dynload
@@ -35,9 +38,9 @@
 # For example,
 #   foo/bar.py
 # now has bytecode at:
-#   foo/__pycache__/bar.cpython-33.pyc
-#   foo/__pycache__/bar.cpython-33.pyo
-%global bytecode_suffixes .cpython-33.py?
+#   foo/__pycache__/bar.cpython-34.pyc
+#   foo/__pycache__/bar.cpython-34.pyo
+%global bytecode_suffixes .cpython-34.py?
 
 # Python's configure script defines SOVERSION, and this is used in the Makefile
 # to determine INSTSONAME, the name of the libpython DSO:
@@ -125,8 +128,8 @@
 # ==================
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
-Version: %{pybasever}.2
-Release: 7%{?dist}
+Version: %{pybasever}.0
+Release: %{?prerel:0.}1%{?prerel:.%{prerel}}%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -187,7 +190,7 @@ BuildRequires: zlib-devel
 # Source code and patches
 # =======================
 
-Source: http://www.python.org/ftp/python/%{version}/Python-%{version}.tar.xz
+Source: http://www.python.org/ftp/python/%{version}/Python-%{version}%{?prerel}.tar.xz
 
 # Avoid having various bogus auto-generated Provides lines for the various
 # python c modules' SONAMEs:
@@ -276,17 +279,6 @@ Patch114: 00114-statvfs-f_flag-constants.patch
 # Not yet sent upstream
 Patch125: 00125-less-verbose-COUNT_ALLOCS.patch
 
-# In my koji builds, /root/bin is in the PATH for some reason
-# This leads to test_subprocess.py failing, due to "test_leaking_fds_on_error"
-# trying every dir in PATH for "nonexisting_i_hope", which leads to it raising
-#  OSError: [Errno 13] Permission denied
-# when it tries to read /root/bin, rather than raising "No such file"
-#
-# Work around this by specifying an absolute path for the non-existant
-# executable
-# Not yet sent upstream
-Patch129: python-3.2.1-fix-test-subprocess-with-nonreadable-path-dir.patch
-
 # 00130 #
 # Python 2's:
 #   Patch130: python-2.7.2-add-extension-suffix-to-python-config.patch
@@ -357,10 +349,6 @@ Patch140: python3-arm-skip-failing-fragile-test.patch
 # Not yet sent upstream
 Patch141: 00141-fix-test_gc_with_COUNT_ALLOCS.patch
 
-# 00142 #
-# Some pty tests fail when run in mock (rhbz#714627):
-Patch142: 00142-skip-failing-pty-tests-in-rpmbuild.patch
-
 # 00143 #
 # Fix the --with-tsc option on ppc64, and rework it on 32-bit ppc to avoid
 # aliasing violations (rhbz#698726)
@@ -393,7 +381,8 @@ Patch143: 00143-tsc-on-ppc.patch
 # - don't build the _md5 and _sha* modules; rely on the _hashlib implementation
 #   of hashlib
 # (rhbz#563986)
-Patch146: 00146-hashlib-fips.patch
+# TODO: figure out how to update properly for sha3
+# Patch146: 00146-hashlib-fips.patch
 
 # 00147 #
 # Add a sys._debugmallocstats() function
@@ -595,10 +584,8 @@ Patch180: 00180-python-add-support-for-ppc64p7.patch
 #  Patch182: 00182-fix-test_gdb-test_threads.patch
 
 # 00183 #
-# Upstream fix for CVE-2013-2099 (ssl.match_hostname DOS)
-# http://bugs.python.org/issue17980
-# http://hg.python.org/cpython/rev/c627638753e2
-Patch183: 00183-cve-2013-2099-fix-ssl-match_hostname-dos.patch
+# Fixed upstream as of Python 3.4.0a4
+#  Patch183: 00183-cve-2013-2099-fix-ssl-match_hostname-dos.patch
 
 # 00184 #
 # Fix for https://bugzilla.redhat.com/show_bug.cgi?id=979696
@@ -609,19 +596,21 @@ Patch183: 00183-cve-2013-2099-fix-ssl-match_hostname-dos.patch
 Patch184: 00184-ctypes-should-build-with-libffi-multilib-wrapper.patch
 
 # 00185 #
-# Fix for CVE-2013-4238 --
-# SSL module fails to handle NULL bytes inside subjectAltNames general names
-# http://bugs.python.org/issue18709
-# rhbz#996399
-Patch185: 00185-CVE-2013-4238-hostname-check-bypass-in-SSL-module.patch
+# Fixed upstream as of Python 3.4.0a4
+#  Patch185: 00185-CVE-2013-4238-hostname-check-bypass-in-SSL-module.patch
 
 # 00186 #
 # Fix for https://bugzilla.redhat.com/show_bug.cgi?id=1023607
-# Fixes the problem of some *.py files not being bytecompiled properly
-# during build. This was result of py_compile.compile raising exception
-# when trying to convert test file with bad encoding, and thus not
-# continuing bytecompilation for other files.
+# Previously, this fixed a problem where some *.py files were not being
+# bytecompiled properly during build. This was result of py_compile.compile
+# raising exception when trying to convert test file with bad encoding, and
+# thus not continuing bytecompilation for other files.
+# This was fixed upstream, but the test hasn't been merged yet, so we keep it
 Patch186: 00186-dont-raise-from-py_compile.patch
+
+# 00187 #
+# Temporarily add this upstream patch, should be in next upstream release
+Patch187: 00187-remove-pthread-atfork.patch
 
 
 # (New patches go here ^^^)
@@ -762,7 +751,7 @@ can load its own extensions.
 # ======================================================
 
 %prep
-%setup -q -n Python-%{version}
+%setup -q -n Python-%{version}%{?prerel}
 chmod +x %{SOURCE1}
 
 %if 0%{?with_systemtap}
@@ -789,6 +778,7 @@ rm -r Modules/zlib || exit 1
 #
 # For example, in our builds hashlib.md5 is implemented within _hashlib via
 # OpenSSL (and thus respects FIPS mode), and does not fall back to _md5
+# TODO: there seems to be no OpenSSL support in Python for sha3, investigate
 for f in md5module.c sha1module.c sha256module.c sha512module.c; do
     rm Modules/$f
 done
@@ -816,8 +806,6 @@ done
 
 %patch125 -p1 -b .less-verbose-COUNT_ALLOCS
 
-%patch129 -p1
-
 %ifarch ppc %{power64}
 %patch131 -p1
 %endif
@@ -835,11 +823,10 @@ done
 %endif
 # 00140: not for python3
 %patch141 -p1
-%patch142 -p1
 %patch143 -p1 -b .tsc-on-ppc
 # 00144: not for python3
 # 00145: not for python3
-%patch146 -p1
+#patch146 -p1
 # 00147: upstream as of Python 3.3.0
 # 00148: upstream as of Python 3.2.3
 # 00149: upstream as of Python 3.2.3
@@ -880,10 +867,11 @@ done
 %patch180 -p1
 # 00181: not for python3
 # 00182: upstream as of Python 3.3.2
-%patch183 -p1
-%patch184 -p1
-%patch185 -p1
+# 00183  upstream as of Python 3.4.0a4
+%patch184  -p1
+# 00185  upstream as of Python 3.4.0a4
 %patch186 -p1
+%patch187 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -982,7 +970,8 @@ BuildPython() {
   #    missing symbol AnnotateRWLockDestroy
   #
   # Invoke the build:
-  make EXTRA_CFLAGS="$CFLAGS" %{?_smp_mflags}
+  # TODO: it seems that 3.4.0a4 fails without -J1, have to figure out why
+  make EXTRA_CFLAGS="$CFLAGS -J1" %{?_smp_mflags}
 
   popd
   echo FINISHED: BUILD OF PYTHON FOR CONFIGURATION: $ConfDir
@@ -1732,6 +1721,20 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Nov 04 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.4.0-0.1.a4
+- Update to Python 3.4 alpha 4.
+- Refreshed patches: 55 (systemtap), 102 (lib64), 111 (no static lib),
+114 (statvfs flags), 132 (unittest rpmbuild hooks), 134 (fix COUNT_ALLOCS in
+test_sys), 143 (tsc on ppc64), 146 (hashlib fips), 153 (test gdb noise),
+157 (UID+GID overflows), 173 (ENOPROTOOPT in bind_port), 186 (dont raise
+from py_compile)
+- Removed patches: 129 (test_subprocess nonreadable dir - no longer fails in
+Koji), 142 (the mock issue that caused this is fixed)
+- Added patch 187 (remove thread atfork) - will be in next version
+- Refreshed script for checking pyc and pyo timestamps with new ignored files.
+- The fips patch is disabled for now until upstream makes a final decision
+what to do with sha3 implementation for 3.4.0.
+
 * Wed Oct 30 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.2-7
 - Bytecompile all *.py files properly during build (rhbz#1023607)
 
