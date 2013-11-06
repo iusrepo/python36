@@ -612,6 +612,21 @@ Patch186: 00186-dont-raise-from-py_compile.patch
 # Temporarily add this upstream patch, should be in next upstream release
 Patch187: 00187-remove-pthread-atfork.patch
 
+# 00188 #
+# Downstream only patch that should be removed when we compile all guaranteed
+# hashlib algorithms properly. The problem is this:
+# - during tests, test_hashlib is imported and executed before test_lib2to3
+# - if at least one hash function has failed, trying to import it triggers an
+#   exception that is being caught and exception is logged:
+#   http://hg.python.org/cpython/file/2de806c8b070/Lib/hashlib.py#l217
+# - logging the exception makes logging module run basicConfig
+# - when lib2to3 tests are run again, lib2to3 runs basicConfig again, which
+#   doesn't do anything, because it was run previously
+#   (logging.root.handlers != []), which means that the default setup
+#   (most importantly logging level) is not overriden. That means that a test
+#   relying on this will fail (test_filename_changing_on_output_single_dir)
+Patch188: 00188-fix-lib2to3-tests-when-hashlib-doesnt-compile-properly.patch
+
 
 # (New patches go here ^^^)
 #
@@ -872,6 +887,7 @@ done
 # 00185  upstream as of Python 3.4.0a4
 %patch186 -p1
 %patch187 -p1
+%patch188 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
