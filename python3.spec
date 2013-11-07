@@ -381,8 +381,10 @@ Patch143: 00143-tsc-on-ppc.patch
 # - don't build the _md5 and _sha* modules; rely on the _hashlib implementation
 #   of hashlib
 # (rhbz#563986)
-# TODO: figure out how to update properly for sha3
-# Patch146: 00146-hashlib-fips.patch
+# Note: for now we're using sha3 from Python tarball, not from OpenSSL, since
+# OpenSSL didn't implement it yet. When OpenSSL implements it again,
+# we will need to rm -rf Modules/_sha3 in prep and adapt the patch.
+Patch146: 00146-hashlib-fips.patch
 
 # 00147 #
 # Add a sys._debugmallocstats() function
@@ -841,7 +843,7 @@ done
 %patch143 -p1 -b .tsc-on-ppc
 # 00144: not for python3
 # 00145: not for python3
-#patch146 -p1
+%patch146 -p1
 # 00147: upstream as of Python 3.3.0
 # 00148: upstream as of Python 3.2.3
 # 00149: upstream as of Python 3.2.3
