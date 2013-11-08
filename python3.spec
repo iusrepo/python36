@@ -1374,7 +1374,7 @@ rm -fr %{buildroot}
 %{_bindir}/python%{pybasever}
 %{_bindir}/python%{pybasever}m
 %{_bindir}/pyvenv
-%{_bindir}/pyvenv-3.3
+%{_bindir}/pyvenv-%{pybasever}
 %{_mandir}/*/*
 
 %files libs
