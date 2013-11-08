@@ -345,9 +345,9 @@ Patch140: python3-arm-skip-failing-fragile-test.patch
 # to be relevant for python3
 
 # 00141 #
-# Fix test_gc's test_newinstance case when configured with COUNT_ALLOCS:
-# Not yet sent upstream
-Patch141: 00141-fix-test_gc_with_COUNT_ALLOCS.patch
+# Fix test_gc and test_module tests for case when configured with COUNT_ALLOCS:
+# http://bugs.python.org/issue19527
+Patch141: 00141-fix-tests_with_COUNT_ALLOCS.patch
 
 # 00143 #
 # Fix the --with-tsc option on ppc64, and rework it on 32-bit ppc to avoid

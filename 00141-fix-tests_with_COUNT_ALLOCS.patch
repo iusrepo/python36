@@ -1,0 +1,70 @@
+diff -r e245b0d7209b Lib/test/test_gc.py
+--- a/Lib/test/test_gc.py	Sun Oct 20 02:01:29 2013 -0700
++++ b/Lib/test/test_gc.py	Fri Nov 08 13:25:29 2013 +0100
+@@ -127,10 +127,16 @@
+         del a
+         self.assertNotEqual(gc.collect(), 0)
+         del B, C
+-        self.assertNotEqual(gc.collect(), 0)
++        if hasattr(sys, 'getcounts'):
++            self.assertEqual(gc.collect(), 0)
++        else:
++            self.assertNotEqual(gc.collect(), 0)
+         A.a = A()
+         del A
+-        self.assertNotEqual(gc.collect(), 0)
++        if hasattr(sys, 'getcounts'):
++            self.assertEqual(gc.collect(), 0)
++        else:
++            self.assertNotEqual(gc.collect(), 0)
+         self.assertEqual(gc.collect(), 0)
+ 
+     def test_method(self):
+@@ -618,6 +624,8 @@
+         stderr = run_command(code % "gc.DEBUG_SAVEALL")
+         self.assertNotIn(b"uncollectable objects at shutdown", stderr)
+ 
++    @unittest.skipIf(hasattr(sys, 'getcounts'),
++                     'types are immortal if COUNT_ALLOCS is used')
+     def test_gc_main_module_at_shutdown(self):
+         # Create a reference cycle through the __main__ module and check
+         # it gets collected at interpreter shutdown.
+@@ -632,6 +640,8 @@
+         rc, out, err = assert_python_ok('-c', code)
+         self.assertEqual(out.strip(), b'__del__ called')
+ 
++    @unittest.skipIf(hasattr(sys, 'getcounts'),
++                     'types are immortal if COUNT_ALLOCS is used')
+     def test_gc_ordinary_module_at_shutdown(self):
+         # Same as above, but with a non-__main__ module.
+         with temp_dir() as script_dir:
+diff -r e245b0d7209b Lib/test/test_module.py
+--- a/Lib/test/test_module.py	Sun Oct 20 02:01:29 2013 -0700
++++ b/Lib/test/test_module.py	Fri Nov 08 13:25:29 2013 +0100
+@@ -81,6 +81,8 @@
+         gc_collect()
+         self.assertEqual(f().__dict__["bar"], 4)
+ 
++    @unittest.skipIf(hasattr(sys, 'getcounts'), 
++                     'types are immortal if COUNT_ALLOCS is used')
+     def test_clear_dict_in_ref_cycle(self):
+         destroyed = []
+         m = ModuleType("foo")
+@@ -96,6 +98,8 @@
+         gc_collect()
+         self.assertEqual(destroyed, [1])
+ 
++    @unittest.skipIf(hasattr(sys, 'getcounts'), 
++                     'types are immortal if COUNT_ALLOCS is used')
+     def test_weakref(self):
+         m = ModuleType("foo")
+         wr = weakref.ref(m)
+@@ -190,6 +194,8 @@
+         self.assertEqual(r[:25], "<module 'unittest' from '")
+         self.assertEqual(r[-13:], "__init__.py'>")
+ 
++    @unittest.skipIf(hasattr(sys, 'getcounts'),
++                     'skipping since COUNT_ALLOCS was used, see issue19527')
+     def test_module_finalization_at_shutdown(self):
+         # Module globals and builtins should still be available during shutdown
+         rc, out, err = assert_python_ok("-c", "from test import final_a")
