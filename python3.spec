@@ -795,7 +795,8 @@ rm -r Modules/zlib || exit 1
 #
 # For example, in our builds hashlib.md5 is implemented within _hashlib via
 # OpenSSL (and thus respects FIPS mode), and does not fall back to _md5
-# TODO: there seems to be no OpenSSL support in Python for sha3, investigate
+# TODO: there seems to be no OpenSSL support in Python for sha3 so far
+# when it is there, also remove _sha3/ dir
 for f in md5module.c sha1module.c sha256module.c sha512module.c; do
     rm Modules/$f
 done
@@ -1411,6 +1412,8 @@ rm -fr %{buildroot}
 %{dynload_dir}/_pickle.%{SOABI_optimized}.so
 %{dynload_dir}/_posixsubprocess.%{SOABI_optimized}.so
 %{dynload_dir}/_random.%{SOABI_optimized}.so
+# TODO: remove _sha3 when it reaches OpenSSL
+%{dynload_dir}/_sha3.%{SOABI_optimized}.so
 %{dynload_dir}/_socket.%{SOABI_optimized}.so
 %{dynload_dir}/_sqlite3.%{SOABI_optimized}.so
 %{dynload_dir}/_ssl.%{SOABI_optimized}.so
@@ -1445,6 +1448,11 @@ rm -fr %{buildroot}
 %{pylibdir}/*.py
 %dir %{pylibdir}/__pycache__/
 %{pylibdir}/__pycache__/*%{bytecode_suffixes}
+
+%dir %{pylibdir}/asyncio/
+%dir %{pylibdir}/asyncio/__pycache__/
+%{pylibdir}/asyncio/*.py
+%{pylibdir}/asyncio/__pycache__/*%{bytecode_suffixes}
 
 %dir %{pylibdir}/collections/
 %dir %{pylibdir}/collections/__pycache__/
@@ -1613,6 +1621,7 @@ rm -fr %{buildroot}
 %{dynload_dir}/_ctypes_test.%{SOABI_optimized}.so
 %{dynload_dir}/_testbuffer.%{SOABI_optimized}.so
 %{dynload_dir}/_testcapi.%{SOABI_optimized}.so
+%{dynload_dir}/_testimportmultiple.%{SOABI_optimized}.so
 %{pylibdir}/lib2to3/tests
 %{pylibdir}/tkinter/test
 %{pylibdir}/unittest/test
@@ -1663,6 +1672,8 @@ rm -fr %{buildroot}
 %{dynload_dir}/_pickle.%{SOABI_debug}.so
 %{dynload_dir}/_posixsubprocess.%{SOABI_debug}.so
 %{dynload_dir}/_random.%{SOABI_debug}.so
+# TODO: remove _sha3 when it reaches OpenSSL
+%{dynload_dir}/_sha3.%{SOABI_debug}.so
 %{dynload_dir}/_socket.%{SOABI_debug}.so
 %{dynload_dir}/_sqlite3.%{SOABI_debug}.so
 %{dynload_dir}/_ssl.%{SOABI_debug}.so
@@ -1717,6 +1728,7 @@ rm -fr %{buildroot}
 %{dynload_dir}/_ctypes_test.%{SOABI_debug}.so
 %{dynload_dir}/_testbuffer.%{SOABI_debug}.so
 %{dynload_dir}/_testcapi.%{SOABI_debug}.so
+%{dynload_dir}/_testimportmultiple.%{SOABI_debug}.so
 
 %endif # with_debug_build
 
