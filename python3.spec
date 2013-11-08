@@ -1416,7 +1416,6 @@ rm -fr %{buildroot}
 %{dynload_dir}/_ssl.%{SOABI_optimized}.so
 %{dynload_dir}/_struct.%{SOABI_optimized}.so
 %{dynload_dir}/array.%{SOABI_optimized}.so
-%{dynload_dir}/atexit.%{SOABI_optimized}.so
 %{dynload_dir}/audioop.%{SOABI_optimized}.so
 %{dynload_dir}/binascii.%{SOABI_optimized}.so
 %{dynload_dir}/cmath.%{SOABI_optimized}.so
@@ -1667,7 +1666,6 @@ rm -fr %{buildroot}
 %{dynload_dir}/_ssl.%{SOABI_debug}.so
 %{dynload_dir}/_struct.%{SOABI_debug}.so
 %{dynload_dir}/array.%{SOABI_debug}.so
-%{dynload_dir}/atexit.%{SOABI_debug}.so
 %{dynload_dir}/audioop.%{SOABI_debug}.so
 %{dynload_dir}/binascii.%{SOABI_debug}.so
 %{dynload_dir}/cmath.%{SOABI_debug}.so
