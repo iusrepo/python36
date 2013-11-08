@@ -1517,10 +1517,12 @@ rm -fr %{buildroot}
 
 %dir %{pylibdir}/test/
 %dir %{pylibdir}/test/__pycache__/
+%dir %{pylibdir}/test/support/
+%dir %{pylibdir}/test/support/__pycache__/
 %{pylibdir}/test/__init__.py
-%{pylibdir}/test/support.py
 %{pylibdir}/test/__pycache__/__init__%{bytecode_suffixes}
-%{pylibdir}/test/__pycache__/support%{bytecode_suffixes}
+%{pylibdir}/test/support/__init__.py
+%{pylibdir}/test/support/__pycache__/__init__%{bytecode_suffixes}
 
 %exclude %{pylibdir}/turtle.py
 %exclude %{pylibdir}/__pycache__/turtle*%{bytecode_suffixes}
