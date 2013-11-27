@@ -8,7 +8,7 @@
 %global pyshortver 34
 
 # prereleasetag
-%global prerel a4
+%global prerel b1
 
 %global pylibdir %{_libdir}/python%{pybasever}
 %global dynload_dir %{pylibdir}/lib-dynload
@@ -240,7 +240,7 @@ Patch1:         Python-3.1.1-rpath.patch
 # (where sys.getfilesystemencoding() == 'ascii')
 Patch55: 00055-systemtap.patch
 
-Patch102: python-3.3.0b1-lib64.patch
+Patch102: 00102-lib64.patch
 
 # 00104 #
 # Only used when "%{_lib}" == "lib64"
@@ -611,8 +611,8 @@ Patch184: 00184-ctypes-should-build-with-libffi-multilib-wrapper.patch
 Patch186: 00186-dont-raise-from-py_compile.patch
 
 # 00187 #
-# Temporarily add this upstream patch, should be in next upstream release
-Patch187: 00187-remove-pthread-atfork.patch
+# Fixed upstream as of Python 3.4.0b1
+#  Patch187: 00187-remove-pthread-atfork.patch
 
 # 00188 #
 # Downstream only patch that should be removed when we compile all guaranteed
@@ -889,7 +889,7 @@ done
 %patch184  -p1
 # 00185  upstream as of Python 3.4.0a4
 %patch186 -p1
-%patch187 -p1
+# 00187: upstream as of Python 3.4.0b1
 %patch188 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
@@ -1751,6 +1751,13 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Nov 25 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.4.0-0.1.b1
+- Update to Python 3.4 beta 1.
+- Refreshed patches: 102 (lib64), 111 (no static lib), 125 (less verbose COUNT
+ALLOCS), 141 (fix COUNT_ALLOCS in test_module), 146 (hashlib fips),
+157 (UID+GID overflows), 173 (ENOPROTOOPT in bind_port)
+- Removed patch 00187 (remove pthread atfork; upstreamed)
+
 * Mon Nov 04 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.4.0-0.1.a4
 - Update to Python 3.4 alpha 4.
 - Refreshed patches: 55 (systemtap), 102 (lib64), 111 (no static lib),

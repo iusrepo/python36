@@ -60,8 +60,8 @@ diff -r e245b0d7209b Lib/test/test_module.py
          m = ModuleType("foo")
          wr = weakref.ref(m)
 @@ -190,6 +194,8 @@
-         self.assertEqual(r[:25], "<module 'unittest' from '")
-         self.assertEqual(r[-13:], "__init__.py'>")
+         self.assertEqual(r[-len(ends_with):], ends_with,
+                          '{!r} does not end with {!r}'.format(r, ends_with))
  
 +    @unittest.skipIf(hasattr(sys, 'getcounts'),
 +                     'skipping since COUNT_ALLOCS was used, see issue19527')
