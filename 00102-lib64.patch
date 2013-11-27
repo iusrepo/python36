@@ -132,7 +132,7 @@
      _prefix = _Py_char2wchar(PREFIX, NULL);
      _exec_prefix = _Py_char2wchar(EXEC_PREFIX, NULL);
 -    lib_python = _Py_char2wchar("lib/python" VERSION, NULL);
-+    lib_python = _Py_char2wchar("lib/python64" VERSION, NULL);
++    lib_python = _Py_char2wchar("lib64/python" VERSION, NULL);
  
      if (!_pythonpath || !_prefix || !_exec_prefix || !lib_python) {
          Py_FatalError(
