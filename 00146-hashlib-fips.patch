@@ -17,7 +17,27 @@
  Hash objects have these methods:
   - update(arg): Update the hash object with the bytes in arg. Repeated calls
                  are equivalent to a single call with the concatenation of all
-@@ -108,34 +118,41 @@
+@@ -63,6 +73,19 @@
+ __all__ = __always_supported + ('new', 'algorithms_guaranteed',
+                                 'algorithms_available', 'pbkdf2_hmac')
+ 
++import functools
++def __ignore_usedforsecurity(func):
++    """Used for sha3_* functions. Until OpenSSL implements them, we want
++    to use them from Python _sha3 module, but we want them to accept
++    usedforsecurity argument too."""
++    # TODO: remove this function when OpenSSL implements sha3
++    @functools.wraps(func)
++    def inner(*args, **kwargs):
++        if 'usedforsecurity' in kwargs:
++            kwargs.pop('usedforsecurity')
++        return func(*args, **kwargs)
++    return inner
++
+ 
+ __builtin_constructor_cache = {}
+ 
+@@ -108,34 +131,41 @@
          f = getattr(_hashlib, 'openssl_' + name)
          # Allow the C module to raise ValueError.  The function will be
          # defined but the hash not actually available thanks to OpenSSL.
@@ -72,7 +92,7 @@
  try:
      import _hashlib
      new = __hash_new
-@@ -215,7 +232,10 @@
+@@ -215,7 +245,10 @@
      # try them all, some may not work due to the OpenSSL
      # version not supporting that algorithm.
      try:
@@ -84,7 +104,7 @@
      except ValueError:
          import logging
          logging.exception('code for hash %s was not found.', __func_name)
-@@ -223,3 +243,4 @@
+@@ -223,3 +256,4 @@
  # Cleanup locals()
  del __always_supported, __func_name, __get_hash
  del __py_new, __hash_new, __get_openssl_constructor
