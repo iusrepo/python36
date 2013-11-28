@@ -1409,6 +1409,7 @@ rm -fr %{buildroot}
 %{dynload_dir}/_lzma.%{SOABI_optimized}.so
 %{dynload_dir}/_multibytecodec.%{SOABI_optimized}.so
 %{dynload_dir}/_multiprocessing.%{SOABI_optimized}.so
+%{dynload_dir}/_opcode.%{SOABI_optimized}.so
 %{dynload_dir}/_pickle.%{SOABI_optimized}.so
 %{dynload_dir}/_posixsubprocess.%{SOABI_optimized}.so
 %{dynload_dir}/_random.%{SOABI_optimized}.so
@@ -1676,6 +1677,7 @@ rm -fr %{buildroot}
 %{dynload_dir}/_lzma.%{SOABI_debug}.so
 %{dynload_dir}/_multibytecodec.%{SOABI_debug}.so
 %{dynload_dir}/_multiprocessing.%{SOABI_debug}.so
+%{dynload_dir}/_opcode.%{SOABI_debug}.so
 %{dynload_dir}/_pickle.%{SOABI_debug}.so
 %{dynload_dir}/_posixsubprocess.%{SOABI_debug}.so
 %{dynload_dir}/_random.%{SOABI_debug}.so
