@@ -1003,9 +1003,9 @@ BuildPython debug \
   python-debug \
   python%{pybasever}-debug \
 %ifarch %{ix86} x86_64 ppc %{power64}
-  "--with-pydebug --with-tsc --with-count-allocs --with-call-profile" \
+  "--with-pydebug --with-tsc --with-count-allocs --with-call-profile --without-ensurepip" \
 %else
-  "--with-pydebug --with-count-allocs --with-call-profile" \
+  "--with-pydebug --with-count-allocs --with-call-profile --without-ensurepip" \
 %endif
   false
 %endif # with_debug_build
@@ -1013,7 +1013,7 @@ BuildPython debug \
 BuildPython optimized \
   python \
   python%{pybasever} \
-  "" \
+  "--without-ensurepip" \
   true
 
 # ======================================================
@@ -1497,6 +1497,13 @@ rm -fr %{buildroot}
 %doc %{pylibdir}/email/architecture.rst
 
 %{pylibdir}/encodings
+
+%dir %{pylibdir}/ensurepip/
+%dir %{pylibdir}/ensurepip/__pycache__/
+%{pylibdir}/ensurepip/*.py
+%{pylibdir}/ensurepip/__pycache__/*%{bytecode_suffixes}
+%exclude %{pylibdir}/ensurepip/_bundled
+
 %{pylibdir}/html
 %{pylibdir}/http
 %{pylibdir}/idlelib
