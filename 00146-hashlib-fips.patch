@@ -109,12 +109,16 @@
  del __always_supported, __func_name, __get_hash
  del __py_new, __hash_new, __get_openssl_constructor
 +del __ignore_usedforsecurity
---- Python-3.4.0b1/Lib/test/test_hashlib.py.hashlib-fips	2013-11-24 21:36:55.000000000 +0100
-+++ Python-3.4.0b1/Lib/test/test_hashlib.py	2013-11-27 11:55:42.769601363 +0100
-@@ -26,6 +26,20 @@
- c_hashlib = import_fresh_module('hashlib', fresh=['_hashlib'])
- py_hashlib = import_fresh_module('hashlib', blocked=['_hashlib'])
+--- Python-3.4.0b1/Lib/test/test_hashlib.py	2013-11-27 11:55:42.769601363 +0100
++++ Python-3.4.0b1/Lib/test/test_hashlib.py	2013-11-28 09:33:03.929008508 +0100
+@@ -24,7 +24,22 @@
+ COMPILED_WITH_PYDEBUG = hasattr(sys, 'gettotalrefcount')
  
+ c_hashlib = import_fresh_module('hashlib', fresh=['_hashlib'])
+-py_hashlib = import_fresh_module('hashlib', blocked=['_hashlib'])
++# skipped on Fedora, since we always use OpenSSL implementation
++# py_hashlib = import_fresh_module('hashlib', blocked=['_hashlib'])
++
 +def openssl_enforces_fips():
 +    # Use the "openssl" command (if present) to try to determine if the local
 +    # OpenSSL is configured to enforce FIPS
@@ -128,11 +132,10 @@
 +    stdout, stderr = p.communicate(input=b'abc')
 +    return b'unknown cipher' in stderr
 +OPENSSL_ENFORCES_FIPS = openssl_enforces_fips()
-+
+ 
  def hexstr(s):
      assert isinstance(s, bytes), repr(s)
-     h = "0123456789abcdef"
-@@ -34,6 +48,16 @@
+@@ -34,6 +49,16 @@
          r += h[(i >> 4) & 0xF] + h[i & 0xF]
      return r
  
@@ -149,7 +152,7 @@
  
  class HashLibTestCase(unittest.TestCase):
      supported_hash_names = ( 'md5', 'MD5', 'sha1', 'SHA1',
-@@ -66,11 +90,11 @@
+@@ -66,11 +91,11 @@
          # For each algorithm, test the direct constructor and the use
          # of hashlib.new given the algorithm name.
          for algorithm, constructors in self.constructors_to_test.items():
@@ -164,7 +167,7 @@
              constructors.add(_test_algorithm_via_hashlib_new)
  
          _hashlib = self._conditional_import_module('_hashlib')
-@@ -82,27 +106,13 @@
+@@ -82,26 +107,13 @@
              for algorithm, constructors in self.constructors_to_test.items():
                  constructor = getattr(_hashlib, 'openssl_'+algorithm, None)
                  if constructor:
@@ -189,12 +192,21 @@
 -        if _sha512:
 -            add_builtin_constructor('sha384')
 -            add_builtin_constructor('sha512')
--        _sha3 = self._conditional_import_module('_sha3')
 +        # TODO: remove this after sha3 is available through OpenSSL
+         _sha3 = self._conditional_import_module('_sha3')
          if _sha3:
              add_builtin_constructor('sha3_224')
-             add_builtin_constructor('sha3_256')
-@@ -558,6 +568,65 @@
+@@ -157,9 +169,6 @@
+             else:
+                 del sys.modules['_md5']
+         self.assertRaises(TypeError, get_builtin_constructor, 3)
+-        constructor = get_builtin_constructor('md5')
+-        self.assertIs(constructor, _md5.md5)
+-        self.assertEqual(sorted(builtin_constructor_cache), ['MD5', 'md5'])
+ 
+     def test_hexdigest(self):
+         for cons in self.hash_constructors:
+@@ -558,6 +567,65 @@
  
          self.assertEqual(expected_hash, hasher.hexdigest())
  
@@ -260,7 +272,7 @@
  
  class KDFTests(unittest.TestCase):
  
-@@ -639,6 +708,7 @@
+@@ -639,6 +707,7 @@
          with self.assertRaisesRegex(ValueError, 'unsupported hash type'):
              pbkdf2('unknown', b'pass', b'salt', 1)
  
