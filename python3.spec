@@ -161,6 +161,8 @@ BuildRequires: libffi-devel
 BuildRequires: libGL-devel
 BuildRequires: libX11-devel
 BuildRequires: ncurses-devel
+# workaround http://bugs.python.org/issue19804 (test_uuid requires ifconfig)
+BuildRequires: net-tools
 BuildRequires: openssl-devel
 BuildRequires: pkgconfig
 BuildRequires: readline-devel
