@@ -8,7 +8,7 @@
 %global pyshortver 34
 
 # prereleasetag
-%global prerel b1
+%global prerel b2
 
 %global pylibdir %{_libdir}/python%{pybasever}
 %global dynload_dir %{pylibdir}/lib-dynload
@@ -53,7 +53,7 @@
 %global py_INSTSONAME_optimized libpython%{LDVERSION_optimized}.so.%{py_SOVERSION}
 %global py_INSTSONAME_debug     libpython%{LDVERSION_debug}.so.%{py_SOVERSION}
 
-%global with_debug_build 1
+%global with_debug_build 0
 
 %global with_gdb_hooks 1
 
@@ -266,10 +266,8 @@ Patch111: 00111-no-static-lib.patch
 Patch113: 00113-more-configuration-flags.patch
 
 # 00114 #
-# Add flags for statvfs.f_flag to the constant list in posixmodule (i.e. "os")
-# (rhbz:553020); partially upstream as http://bugs.python.org/issue7647
-# Not yet sent upstream
-Patch114: 00114-statvfs-f_flag-constants.patch
+# Upstream as of Python 3.4.0.b2
+#  Patch114: 00114-statvfs-f_flag-constants.patch
 
 # 00125 #
 # COUNT_ALLOCS is useful for debugging, but the upstream behaviour of always
@@ -381,9 +379,13 @@ Patch143: 00143-tsc-on-ppc.patch
 # - don't build the _md5 and _sha* modules; rely on the _hashlib implementation
 #   of hashlib
 # (rhbz#563986)
-# Note: for now we're using sha3 from Python tarball, not from OpenSSL, since
-# OpenSSL didn't implement it yet. When OpenSSL implements it again,
-# we will need to rm -rf Modules/_sha3 in prep and adapt the patch.
+# Note: Up to Python 3.4.0.b1, upstream had their own implementation of what
+# they assumed would become sha3. This patch was adapted to give it the
+# usedforsecurity argument, even though it did nothing (OpenSSL didn't have
+# sha3 implementation at that time).In 3.4.0.b2, sha3 implementation was reverted
+# (see http://bugs.python.org/issue16113), but the alterations were left in the
+# patch, since they may be useful again if upstream decides to rerevert sha3
+# implementation and OpenSSL still doesn't support it. For now, they're harmless.
 Patch146: 00146-hashlib-fips.patch
 
 # 00147 #
@@ -550,11 +552,8 @@ Patch173: 00173-workaround-ENOPROTOOPT-in-bind_port.patch
 #  Patch176: 00176-upstream-issue16754-so-extension.patch
 
 # 00177 #
-# Patch for potential unicode error when determining OS release names
-# http://bugs.python.org/issue17429
-# (rhbz#922149)
-# Does not affect python2 (python2 uses a byte string so it doesn't need to decode)
-Patch177: 00177-platform-unicode.patch
+# Fixed upstream as of Python 3.4.0.b2
+#  Patch177: 00177-platform-unicode.patch
 
 # 00178 #
 # Don't duplicate various FLAGS in sysconfig values
@@ -820,7 +819,7 @@ done
 %patch111 -p1
 # 112: not for python3
 %patch113 -p1
-%patch114 -p1
+# 00114: Upstream as of Python 3.4.0.b2
 
 %patch125 -p1 -b .less-verbose-COUNT_ALLOCS
 
@@ -879,7 +878,7 @@ done
 #00174: TODO
 # 00175: upstream as of Python 3.3.2
 # 00176: upstream as of Python 3.3.1
-%patch177 -p1
+# 00177: upstream as of Python 3.4.0.b2
 %patch178 -p1
 %patch179 -p1
 %patch180 -p1
@@ -1413,8 +1412,6 @@ rm -fr %{buildroot}
 %{dynload_dir}/_pickle.%{SOABI_optimized}.so
 %{dynload_dir}/_posixsubprocess.%{SOABI_optimized}.so
 %{dynload_dir}/_random.%{SOABI_optimized}.so
-# TODO: remove _sha3 when it reaches OpenSSL
-%{dynload_dir}/_sha3.%{SOABI_optimized}.so
 %{dynload_dir}/_socket.%{SOABI_optimized}.so
 %{dynload_dir}/_sqlite3.%{SOABI_optimized}.so
 %{dynload_dir}/_ssl.%{SOABI_optimized}.so
@@ -1681,8 +1678,6 @@ rm -fr %{buildroot}
 %{dynload_dir}/_pickle.%{SOABI_debug}.so
 %{dynload_dir}/_posixsubprocess.%{SOABI_debug}.so
 %{dynload_dir}/_random.%{SOABI_debug}.so
-# TODO: remove _sha3 when it reaches OpenSSL
-%{dynload_dir}/_sha3.%{SOABI_debug}.so
 %{dynload_dir}/_socket.%{SOABI_debug}.so
 %{dynload_dir}/_sqlite3.%{SOABI_debug}.so
 %{dynload_dir}/_ssl.%{SOABI_debug}.so
@@ -1760,6 +1755,11 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed Jan 08 2014 Bohuslav Kabrda <bkabrda@redhat.com> - 3.4.0-0.1.b2
+- Update to Python 3.4 beta 2.
+- Refreshed patches: 55 (systemtap), 146 (hashlib-fips), 154 (test_gdb noise)
+- Dropped patches: 114 (statvfs constants), 177 (platform unicode)
+
 * Mon Nov 25 2013 Bohuslav Kabrda <bkabrda@redhat.com> - 3.4.0-0.1.b1
 - Update to Python 3.4 beta 1.
 - Refreshed patches: 102 (lib64), 111 (no static lib), 125 (less verbose COUNT

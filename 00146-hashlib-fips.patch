@@ -167,7 +167,7 @@
              constructors.add(_test_algorithm_via_hashlib_new)
  
          _hashlib = self._conditional_import_module('_hashlib')
-@@ -82,26 +107,13 @@
+@@ -82,26 +107,12 @@
              for algorithm, constructors in self.constructors_to_test.items():
                  constructor = getattr(_hashlib, 'openssl_'+algorithm, None)
                  if constructor:
@@ -192,10 +192,9 @@
 -        if _sha512:
 -            add_builtin_constructor('sha384')
 -            add_builtin_constructor('sha512')
-+        # TODO: remove this after sha3 is available through OpenSSL
-         _sha3 = self._conditional_import_module('_sha3')
-         if _sha3:
-             add_builtin_constructor('sha3_224')
+ 
+         super(HashLibTestCase, self).__init__(*args, **kwargs)
+ 
 @@ -157,9 +169,6 @@
              else:
                  del sys.modules['_md5']
