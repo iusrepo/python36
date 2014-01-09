@@ -68,3 +68,56 @@ diff -r e245b0d7209b Lib/test/test_module.py
      def test_module_finalization_at_shutdown(self):
          # Module globals and builtins should still be available during shutdown
          rc, out, err = assert_python_ok("-c", "from test import final_a")
+--- a/Lib/test/test_io.py.orig	2014-01-09 14:43:44.000000000 +0100
++++ b/Lib/test/test_io.py	2014-01-09 14:50:30.839597351 +0100
+@@ -2611,6 +2611,8 @@
+             """.format(iomod=iomod, kwargs=kwargs)
+         return assert_python_ok("-c", code)
+ 
++    @unittest.skipIf(hasattr(sys, 'getrefcount'),
++                     'types are immortal if COUNT_ALLOCS is used')
+     def test_create_at_shutdown_without_encoding(self):
+         rc, out, err = self._check_create_at_shutdown()
+         if err:
+@@ -2621,6 +2623,8 @@
+         else:
+             self.assertEqual("ok", out.decode().strip())
+ 
++    @unittest.skipIf(hasattr(sys, 'getrefcount'),
++                     'types are immortal if COUNT_ALLOCS is used')
+     def test_create_at_shutdown_with_encoding(self):
+         rc, out, err = self._check_create_at_shutdown(encoding='utf-8',
+                                                       errors='strict')
+--- a/Lib/test/test_logging.py.orig	2014-01-09 14:53:07.016388198 +0100
++++ b/Lib/test/test_logging.py	2014-01-09 14:54:25.654282973 +0100
+@@ -3398,6 +3398,8 @@
+         logging.setLoggerClass(logging.Logger)
+         self.assertEqual(logging.getLoggerClass(), logging.Logger)
+ 
++    @unittest.skipIf(hasattr(sys, 'getcounts'),
++                     'types are immortal if COUNT_ALLOCS is used')
+     def test_logging_at_shutdown(self):
+         # Issue #20037
+         code = """if 1:
+--- a/Lib/test/test_threading.py.orig	2014-01-09 15:09:23.902063074 +0100
++++ b/Lib/test/test_threading.py	2014-01-09 15:09:07.622085202 +0100
+@@ -617,6 +617,8 @@
+                 t.join()
+             self.assertRaises(ValueError, bs.release)
+ 
++    @unittest.skipIf(hasattr(sys, 'getcounts'),
++                     'types are immortal if COUNT_ALLOCS is used')
+     def test_locals_at_exit(self):
+         # Issue #19466: thread locals must not be deleted before destructors
+         # are called
+--- a/Lib/test/test_warnings.py.orig	2014-01-09 15:10:12.454997100 +0100
++++ b/Lib/test/test_warnings.py	2014-01-09 15:11:14.028913478 +0100
+@@ -801,6 +801,8 @@
+             self.assertEqual(retcode, 0)
+ 
+ class FinalizationTest(unittest.TestCase):
++    @unittest.skipIf(hasattr(sys, 'getcounts'),
++                     'types are immortal if COUNT_ALLOCS is used')
+     def test_finalization(self):
+         # Issue #19421: warnings.warn() should not crash
+         # during Python finalization

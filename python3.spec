@@ -53,7 +53,7 @@
 %global py_INSTSONAME_optimized libpython%{LDVERSION_optimized}.so.%{py_SOVERSION}
 %global py_INSTSONAME_debug     libpython%{LDVERSION_debug}.so.%{py_SOVERSION}
 
-%global with_debug_build 0
+%global with_debug_build 1
 
 %global with_gdb_hooks 1
 
@@ -345,8 +345,10 @@ Patch140: python3-arm-skip-failing-fragile-test.patch
 # to be relevant for python3
 
 # 00141 #
-# Fix test_gc and test_module tests for case when configured with COUNT_ALLOCS:
-# http://bugs.python.org/issue19527
+# Fix tests for case when  tests for case when configured with
+# COUNT_ALLOCS (debug build): http://bugs.python.org/issue19527
+# Applies to: test_gc, test_module, test_io, test_logging, test_warnings,
+#             test_threading
 Patch141: 00141-fix-tests_with_COUNT_ALLOCS.patch
 
 # 00143 #
