@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1232,9 +1232,9 @@ find %{buildroot} \
     -perm 555 -exec chmod 755 {} \;
 
 # Install macros for rpm:
-mkdir -p %{buildroot}/%{_sysconfdir}/rpm
-install -m 644 %{SOURCE2} %{buildroot}/%{_sysconfdir}/rpm
-install -m 644 %{SOURCE3} %{buildroot}/%{_sysconfdir}/rpm
+mkdir -p %{buildroot}/%{_rpmconfigdir}/macros.d/
+install -m 644 %{SOURCE2} %{buildroot}/%{_rpmconfigdir}/macros.d/
+install -m 644 %{SOURCE3} %{buildroot}/%{_rpmconfigdir}/macros.d/
 
 # Ensure that the curses module was linked against libncursesw.so, rather than
 # libncurses.so (bug 539917)
@@ -1577,8 +1577,8 @@ rm -fr %{buildroot}
 %{_libdir}/pkgconfig/python-%{LDVERSION_optimized}.pc
 %{_libdir}/pkgconfig/python-%{pybasever}.pc
 %{_libdir}/pkgconfig/python3.pc
-%{_sysconfdir}/rpm/macros.python3
-%{_sysconfdir}/rpm/macros.pybytecompile
+%{_rpmconfigdir}/macros.d/macros.python3
+%{_rpmconfigdir}/macros.d/macros.pybytecompile
 
 %files tools
 %defattr(-,root,root,755)
@@ -1738,6 +1738,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Tue Feb 04 2014 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.2-9
+- Install macros in _rpmconfigdir.
+
 * Tue Nov 05 2013 Matej Stuchlik <mstuchli@redhat.com> - 3.3.2-8
 - Changed behavior of ssl.match_hostname() to follow RFC 6125 (rhbz#1023742)
 
