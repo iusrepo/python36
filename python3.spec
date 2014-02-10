@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -629,6 +629,13 @@ Patch186: 00186-dont-raise-from-py_compile.patch
 # See http://bugs.python.org/issue17997#msg194950 for more.
 Patch187: 00187-change-match_hostname-to-follow-RFC-6125.patch
 
+# 00192 #
+#
+# Fixing buffer overflow (upstream patch)
+# rhbz#1062375
+Patch192: 00192-buffer-overflow.patch
+
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -890,6 +897,7 @@ done
 %patch185 -p1
 %patch186 -p1
 %patch187 -p1
+%patch192 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1738,6 +1746,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Feb 10 2014 Tomas Radej <tradej@redhat.com> - 3.3.2-10
+- Fixed buffer overflow (upstream patch)
+Resolves: rhbz#1062374
+
 * Tue Feb 04 2014 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.2-9
 - Install macros in _rpmconfigdir.
 
