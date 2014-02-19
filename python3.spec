@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -978,6 +978,7 @@ BuildPython() {
   --with-dbmliborder=gdbm:ndbm:bdb \
   --with-system-expat \
   --with-system-ffi \
+  --enable-loadable-sqlite-extensions \
 %if 0%{?with_systemtap}
   --with-systemtap \
 %endif
@@ -1746,6 +1747,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed Feb 19 2014 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.2-11
+- Enable loading sqlite extensions.
+Resolves: rhbz#1066938
+
 * Mon Feb 10 2014 Tomas Radej <tradej@redhat.com> - 3.3.2-10
 - Fixed buffer overflow (upstream patch)
 Resolves: rhbz#1062374
