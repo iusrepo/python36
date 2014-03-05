@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -635,6 +635,13 @@ Patch187: 00187-change-match_hostname-to-follow-RFC-6125.patch
 # rhbz#1062375
 Patch192: 00192-buffer-overflow.patch
 
+# 00193
+#
+# Skip correct number of *.pyc file bytes in ModuleFinder.load_module
+# rhbz#1060338
+# http://bugs.python.org/issue20778
+Patch193: 00193-skip-correct-num-of-pycfile-bytes-in-modulefinder.patch
+
 
 # (New patches go here ^^^)
 #
@@ -898,6 +905,7 @@ done
 %patch186 -p1
 %patch187 -p1
 %patch192 -p1
+%patch193 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1747,6 +1755,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed Mar 05 2014 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.2-12
+- Fix loading of pyc files by ModuleFinder.load_module.
+Resolves: rhbz#1060338
+
 * Wed Feb 19 2014 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.2-11
 - Enable loading sqlite extensions.
 Resolves: rhbz#1066938
