@@ -99,21 +99,11 @@ diff -r e245b0d7209b Lib/test/test_module.py
      def test_logging_at_shutdown(self):
          # Issue #20037
          code = """if 1:
---- a/Lib/test/test_threading.py.orig	2014-01-09 15:09:23.902063074 +0100
-+++ b/Lib/test/test_threading.py	2014-01-09 15:09:07.622085202 +0100
-@@ -617,6 +617,8 @@
-                 t.join()
-             self.assertRaises(ValueError, bs.release)
- 
-+    @unittest.skipIf(hasattr(sys, 'getcounts'),
-+                     'types are immortal if COUNT_ALLOCS is used')
-     def test_locals_at_exit(self):
-         # Issue #19466: thread locals must not be deleted before destructors
-         # are called
---- a/Lib/test/test_warnings.py.orig	2014-01-09 15:10:12.454997100 +0100
-+++ b/Lib/test/test_warnings.py	2014-01-09 15:11:14.028913478 +0100
-@@ -801,6 +801,8 @@
-             self.assertEqual(retcode, 0)
+
+--- a/Lib/test/test_warnings.py.orig   2014-01-09 15:10:12.454997100 +0100
++++ b/Lib/test/test_warnings.py    2014-01-09 15:11:14.028913478 +0100
+@@ -780,6 +780,8 @@
+             assert_python_ok('-c', 'pass', '-W', 'always', PYTHONPATH=cwd)
  
  class FinalizationTest(unittest.TestCase):
 +    @unittest.skipIf(hasattr(sys, 'getcounts'),

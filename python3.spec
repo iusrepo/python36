@@ -8,7 +8,7 @@
 %global pyshortver 34
 
 # prereleasetag
-%global prerel b2
+%global prerel rc2
 
 %global pylibdir %{_libdir}/python%{pybasever}
 %global dynload_dir %{pylibdir}/lib-dynload
