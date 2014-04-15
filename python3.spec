@@ -2,13 +2,12 @@
 # Conditionals and other variables controlling the build
 # ======================================================
 
+%global with_rewheel 0
+
 %global pybasever 3.4
 
 # pybasever without the dot:
 %global pyshortver 34
-
-# prereleasetag
-%global prerel rc2
 
 %global pylibdir %{_libdir}/python%{pybasever}
 %global dynload_dir %{pylibdir}/lib-dynload
@@ -129,7 +128,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: %{?prerel:0.}1%{?prerel:.%{prerel}}%{?dist}
+Release: 1%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -187,12 +186,17 @@ BuildRequires: valgrind-devel
 BuildRequires: xz-devel
 BuildRequires: zlib-devel
 
+%if 0%{?with_rewheel}
+BuildRequires: python3-setuptools
+BuildRequires: python3-pip
+%endif
+
 
 # =======================
 # Source code and patches
 # =======================
 
-Source: http://www.python.org/ftp/python/%{version}/Python-%{version}%{?prerel}.tar.xz
+Source: http://www.python.org/ftp/python/%{version}/Python-%{version}.tar.xz
 
 # Avoid having various bogus auto-generated Provides lines for the various
 # python c modules' SONAMEs:
@@ -632,6 +636,28 @@ Patch186: 00186-dont-raise-from-py_compile.patch
 #   relying on this will fail (test_filename_changing_on_output_single_dir)
 Patch188: 00188-fix-lib2to3-tests-when-hashlib-doesnt-compile-properly.patch
 
+# 00189 #
+#
+# Add the rewheel module, allowing to recreate wheels from already installed
+# ones
+# https://github.com/bkabrda/rewheel
+%if 0%{with_rewheel}
+Patch189: 00189-add-rewheel-module.patch
+%endif
+
+# 00190 #
+#
+# Fix tests with SQLite >= 3.8.4
+# http://bugs.python.org/issue20901
+# http://hg.python.org/cpython/rev/4d626a9df062
+Patch190: 00190-fix-tests-with-sqlite-3.8.4.patch
+
+# 00193
+#
+# Skip correct number of *.pyc file bytes in ModuleFinder.load_module
+# rhbz#1060338
+# http://bugs.python.org/issue20778
+Patch193: 00193-skip-correct-num-of-pycfile-bytes-in-modulefinder.patch
 
 # (New patches go here ^^^)
 #
@@ -894,6 +920,13 @@ done
 %patch186 -p1
 # 00187: upstream as of Python 3.4.0b1
 %patch188 -p1
+
+%if 0%{with_rewheel}
+%patch189 -p1
+%endif
+
+%patch190 -p1
+%patch193 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1506,6 +1539,11 @@ rm -fr %{buildroot}
 %{pylibdir}/ensurepip/__pycache__/*%{bytecode_suffixes}
 %exclude %{pylibdir}/ensurepip/_bundled
 
+%dir %{pylibdir}/ensurepip/rewheel/
+%dir %{pylibdir}/ensurepip/rewheel/__pycache__/
+%{pylibdir}/ensurepip/rewheel/*.py
+%{pylibdir}/ensurepip/rewheel/__pycache__/*%{bytecode_suffixes}
+
 %{pylibdir}/html
 %{pylibdir}/http
 %{pylibdir}/idlelib
@@ -1759,6 +1797,11 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Tue Apr 15 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.0-1
+- Update to Python 3.4 final
+- Add patch adding the rewheel module
+- Merge patches from master
+
 * Wed Jan 08 2014 Bohuslav Kabrda <bkabrda@redhat.com> - 3.4.0-0.1.b2
 - Update to Python 3.4 beta 2.
 - Refreshed patches: 55 (systemtap), 146 (hashlib-fips), 154 (test_gdb noise)

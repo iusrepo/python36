@@ -1,0 +1,65 @@
+
+# HG changeset patch
+# User Brett Cannon <brett@python.org>
+# Date 1393602285 18000
+# Node ID 432cb56db05d73f55d211501bf0dfc767768923b
+# Parent  ade5e4922a54cb84c99ec924ab7c700a014893da
+Issue #20778: Fix modulefinder to work with bytecode-only modules.
+
+Bug filed and initial attempt at a patch by Bohuslav Kabrda.
+
+diff --git a/Lib/modulefinder.py b/Lib/modulefinder.py
+--- a/Lib/modulefinder.py
++++ b/Lib/modulefinder.py
+@@ -290,7 +290,7 @@ class ModuleFinder:
+             if fp.read(4) != imp.get_magic():
+                 self.msgout(2, "raise ImportError: Bad magic number", pathname)
+                 raise ImportError("Bad magic number in %s" % pathname)
+-            fp.read(4)
++            fp.read(8)  # Skip mtime and size.
+             co = marshal.load(fp)
+         else:
+             co = None
+diff --git a/Lib/test/test_modulefinder.py b/Lib/test/test_modulefinder.py
+--- a/Lib/test/test_modulefinder.py
++++ b/Lib/test/test_modulefinder.py
+@@ -1,5 +1,7 @@
+ import os
+ import errno
++import importlib.machinery
++import py_compile
+ import shutil
+ import unittest
+ import tempfile
+@@ -208,6 +210,14 @@ a/module.py
+                                 from . import *
+ """]
+ 
++bytecode_test = [
++    "a",
++    ["a"],
++    [],
++    [],
++    ""
++]
++
+ 
+ def open_file(path):
+     dirname = os.path.dirname(path)
+@@ -288,6 +298,16 @@ class ModuleFinderTest(unittest.TestCase
+     def test_relative_imports_4(self):
+         self._do_test(relative_import_test_4)
+ 
++    def test_bytecode(self):
++        base_path = os.path.join(TEST_DIR, 'a')
++        source_path = base_path + importlib.machinery.SOURCE_SUFFIXES[0]
++        bytecode_path = base_path + importlib.machinery.BYTECODE_SUFFIXES[0]
++        with open_file(source_path) as file:
++            file.write('testing_modulefinder = True\n')
++        py_compile.compile(source_path, cfile=bytecode_path)
++        os.remove(source_path)
++        self._do_test(bytecode_test)
++
+ 
+ def test_main():
+     support.run_unittest(ModuleFinderTest)

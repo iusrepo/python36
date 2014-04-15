@@ -1,0 +1,21 @@
+
+# HG changeset patch
+# User Benjamin Peterson <benjamin@python.org>
+# Date 1394679139 18000
+# Node ID 4d626a9df062104b61c44c8a5be8b0fd52fae953
+# Parent  6f93ab911d5dafcde364013e21723259fe2c85a8# Parent  dbc9e3ed5e9f1bd11240eaa971f6c75d6a7013b5
+merge 3.3 (#20901)
+
+diff --git a/Lib/sqlite3/test/hooks.py b/Lib/sqlite3/test/hooks.py
+--- a/Lib/sqlite3/test/hooks.py
++++ b/Lib/sqlite3/test/hooks.py
+@@ -162,7 +162,7 @@ class ProgressTests(unittest.TestCase):
+             create table bar (a, b)
+             """)
+         second_count = len(progress_calls)
+-        self.assertGreater(first_count, second_count)
++        self.assertGreaterEqual(first_count, second_count)
+ 
+     def CheckCancelOperation(self):
+         """
+
