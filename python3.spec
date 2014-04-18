@@ -128,7 +128,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -659,6 +659,10 @@ Patch190: 00190-fix-tests-with-sqlite-3.8.4.patch
 # http://bugs.python.org/issue20778
 Patch193: 00193-skip-correct-num-of-pycfile-bytes-in-modulefinder.patch
 
+# Tests requiring SIGHUP to work don't work in Koji
+# see rhbz#1088233
+Patch194: temporarily-disable-tests-requiring-SIGHUP.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -927,6 +931,7 @@ done
 
 %patch190 -p1
 %patch193 -p1
+%patch194 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1539,10 +1544,12 @@ rm -fr %{buildroot}
 %{pylibdir}/ensurepip/__pycache__/*%{bytecode_suffixes}
 %exclude %{pylibdir}/ensurepip/_bundled
 
+%if 0%{?with_rewheel}
 %dir %{pylibdir}/ensurepip/rewheel/
 %dir %{pylibdir}/ensurepip/rewheel/__pycache__/
 %{pylibdir}/ensurepip/rewheel/*.py
 %{pylibdir}/ensurepip/rewheel/__pycache__/*%{bytecode_suffixes}
+%endif
 
 %{pylibdir}/html
 %{pylibdir}/http
@@ -1797,6 +1804,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Tue Apr 15 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.0-2
+- Temporarily disable tests requiring SIGHUP (rhbz#1088233)
+
 * Tue Apr 15 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.0-1
 - Update to Python 3.4 final
 - Add patch adding the rewheel module
