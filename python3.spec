@@ -84,11 +84,11 @@
 # (/usr/bin/python, rather than the freshly built python), thus leading to
 # numerous syntax errors, and incorrect magic numbers in the .pyc files.  We
 # thus override __os_install_post to avoid invoking this script:
-%global __os_install_post /usr/lib/rpm/redhat/brp-compress \
-  %{!?__debug_package:/usr/lib/rpm/redhat/brp-strip %{__strip}} \
-  /usr/lib/rpm/redhat/brp-strip-static-archive %{__strip} \
-  /usr/lib/rpm/redhat/brp-strip-comment-note %{__strip} %{__objdump} \
-  /usr/lib/rpm/redhat/brp-python-hardlink 
+%global __os_install_post /usr/lib/rpm/brp-compress \
+  %{!?__debug_package:/usr/lib/rpm/brp-strip %{__strip}} \
+  /usr/lib/rpm/brp-strip-static-archive %{__strip} \
+  /usr/lib/rpm/brp-strip-comment-note %{__strip} %{__objdump} \
+  /usr/lib/rpm/brp-python-hardlink 
 # to remove the invocation of brp-python-bytecompile, whilst keeping the
 # invocation of brp-python-hardlink (since this should still work for python3
 # pyc/pyo files)
@@ -128,7 +128,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1804,6 +1804,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Tue Apr 29 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.0-3
+- Point __os_install_post to correct brp-* files
+
 * Tue Apr 15 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.0-2
 - Temporarily disable tests requiring SIGHUP (rhbz#1088233)
 
