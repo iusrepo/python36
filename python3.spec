@@ -2,7 +2,7 @@
 # Conditionals and other variables controlling the build
 # ======================================================
 
-%global with_rewheel 0
+%global with_rewheel 1
 
 %global pybasever 3.4
 
