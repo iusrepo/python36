@@ -128,7 +128,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -700,6 +700,11 @@ URL: http://www.python.org/
 Provides: python(abi) = %{pybasever}
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
+
+%if 0%{with_rewheel}
+Requires: python-setuptools
+Requires: python-pip
+%endif
 
 %description
 Python 3 is a new version of the language that is incompatible with the 2.x
@@ -1804,6 +1809,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon May 12 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.0-4
+- Add setuptools and pip to Requires
+
 * Tue Apr 29 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.0-3
 - Point __os_install_post to correct brp-* files
 
