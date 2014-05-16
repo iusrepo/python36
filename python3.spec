@@ -128,7 +128,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -663,6 +663,13 @@ Patch193: 00193-skip-correct-num-of-pycfile-bytes-in-modulefinder.patch
 # see rhbz#1088233
 Patch194: temporarily-disable-tests-requiring-SIGHUP.patch
 
+# 00195
+#
+# Don't declare Werror=declaration-after-statement for extension
+# modules through setup.py
+# http://bugs.python.org/issue21121
+Patch195: 00195-dont-add-Werror-declaration-after-statement.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -937,6 +944,7 @@ done
 %patch190 -p1
 %patch193 -p1
 %patch194 -p1
+%patch195 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1809,6 +1817,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri May 16 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.0-5
+- Don't add Werror=declaration-after-statement for extension
+  modules through setup.py (PyBT#21121)
+
 * Mon May 12 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.0-4
 - Add setuptools and pip to Requires
 
