@@ -128,7 +128,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1386,7 +1386,10 @@ CheckPython() {
   #   @unittest._expectedFailureInRpmBuild
   WITHIN_PYTHON_RPM_BUILD= \
   LD_LIBRARY_PATH=$ConfDir $ConfDir/python -m test.regrtest \
-    --verbose --findleaks
+    --verbose --findleaks \
+    %ifarch %{arm}
+    -x test_faulthandler test_gdb
+    %endif
 
   echo FINISHED: CHECKING OF PYTHON FOR CONFIGURATION: $ConfName
 
@@ -1817,6 +1820,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Sun May 18 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.0-6
+- Disable test_faulthandler, test_gdb on aarch64
+Resolves: rhbz#1045193
+
 * Fri May 16 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.0-5
 - Don't add Werror=declaration-after-statement for extension
   modules through setup.py (PyBT#21121)
