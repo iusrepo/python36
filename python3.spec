@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1755,6 +1755,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed May 21 2014 Jaroslav Škarvada <jskarvad@redhat.com> - 3.3.2-13
+- Rebuilt for https://fedoraproject.org/wiki/Changes/f21tcl86
+
 * Wed Mar 05 2014 Bohuslav Kabrda <bkabrda@redhat.com> - 3.3.2-12
 - Fix loading of pyc files by ModuleFinder.load_module.
 Resolves: rhbz#1060338
