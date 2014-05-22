@@ -128,7 +128,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1820,6 +1820,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Thu May 22 2014 Miro Hrončok <mhroncok@redhat.com> - 3.4.0-7
+- Add macro %%python3_version_nodots
+
 * Sun May 18 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.0-6
 - Disable test_faulthandler, test_gdb on aarch64
 Resolves: rhbz#1045193
