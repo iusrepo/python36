@@ -126,7 +126,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1755,6 +1755,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Thu May 22 2014 Miro Hrončok <mhroncok@redhat.com> - 3.3.2-14
+- Add macro %%python3_version_nodots
+
 * Wed May 21 2014 Jaroslav Škarvada <jskarvad@redhat.com> - 3.3.2-13
 - Rebuilt for https://fedoraproject.org/wiki/Changes/f21tcl86
 
