@@ -8,8 +8,8 @@ diff -up Python-3.4.0/Lib/test/test_asyncio/test_events.py.orig Python-3.4.0/Lib
 -    @unittest.skipIf(sys.platform == 'win32', "Don't have SIGHUP")
 +    @unittest.skipIf(True, "Temporarily skipped (rhbz#1088233)")
      def test_subprocess_send_signal(self):
-         proto = None
-         transp = None
+         prog = os.path.join(os.path.dirname(__file__), 'echo.py')
+ 
 
 diff -up Python-3.4.0/Lib/test/test_asyncio/test_subprocess.py.orig Python-3.4.0/Lib/test/test_asyncio/test_subprocess.py
 --- Python-3.4.0/Lib/test/test_asyncio/test_subprocess.py.orig	2014-04-17 12:03:32.777827520 +0200
