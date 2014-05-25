@@ -128,7 +128,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -670,6 +670,11 @@ Patch194: temporarily-disable-tests-requiring-SIGHUP.patch
 # http://bugs.python.org/issue21121
 Patch195: 00195-dont-add-Werror-declaration-after-statement.patch
 
+# 00196
+#
+#  Fix test_gdb failure on ppc64le
+Patch196: 00196-test-gdb-match-addr-before-builtin.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -945,6 +950,7 @@ done
 %patch193 -p1
 %patch194 -p1
 %patch195 -p1
+%patch196 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1820,6 +1826,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Sun May 25 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.0-8
+- Fix test_gdb failure on ppc64le
+Resolves: rhbz#1095355
+
 * Thu May 22 2014 Miro Hrončok <mhroncok@redhat.com> - 3.4.0-7
 - Add macro %%python3_version_nodots
 
