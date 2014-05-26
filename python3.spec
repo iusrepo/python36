@@ -128,7 +128,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -743,7 +743,8 @@ This package contains files used to embed Python 3 into applications.
 %package devel
 Summary: Libraries and header files needed for Python 3 development
 Group: Development/Libraries
-Requires: %{name}%{?_isa} = %{version}-%{release}
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Conflicts: %{name} < %{version}-%{release}
 
 %description devel
@@ -1828,6 +1829,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon May 26 2014 Miro Hrončok <mhroncok@redhat.com> - 3.4.1-2
+- Fix multilib dependencies.
+Resolves: rhbz#1091815
+
 * Sun May 25 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.1-1
 - Update to Python 3.4.1
 
