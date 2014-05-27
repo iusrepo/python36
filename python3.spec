@@ -128,7 +128,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1396,8 +1396,8 @@ CheckPython() {
   WITHIN_PYTHON_RPM_BUILD= \
   LD_LIBRARY_PATH=$ConfDir $ConfDir/python -m test.regrtest \
     --verbose --findleaks \
-    %ifarch %{arm}
-    -x test_faulthandler test_gdb
+    %ifarch ppc64le
+    -x test_faulthandler
     %endif
 
   echo FINISHED: CHECKING OF PYTHON FOR CONFIGURATION: $ConfName
@@ -1829,6 +1829,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Tue May 27 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.1-3
+- Update the rewheel module
+
 * Mon May 26 2014 Miro Hrončok <mhroncok@redhat.com> - 3.4.1-2
 - Fix multilib dependencies.
 Resolves: rhbz#1091815

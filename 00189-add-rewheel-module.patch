@@ -75,7 +75,7 @@ unchanged:
 unchanged:
 --- Python-3.4.0rc3/Lib/ensurepip/rewheel/__init__.py	1970-01-01 01:00:00.000000000 +0100
 +++ Python-3.4.0rc3-rewheel/Lib/ensurepip/rewheel/__init__.py	2014-03-12 09:55:30.413152104 +0100
-@@ -0,0 +1,133 @@
+@@ -0,0 +1,136 @@
 +import argparse
 +import csv
 +import email.parser
@@ -126,7 +126,10 @@ unchanged:
 +            # if we have 0 or 2 or more dirs, something is wrong...
 +            if len(filtered) == 1:
 +                path = filtered[0]
-+        records.append(os.path.join(path, 'RECORD'))
++        if path is not None:
++            records.append(os.path.join(path, 'RECORD'))
++        else:
++            records.append(None)
 +    return records
 +
 +def rewheel_from_record(record_path, outdir):
