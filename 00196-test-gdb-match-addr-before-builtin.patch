@@ -1,0 +1,30 @@
+Subject: python3.test gdb match addr before builtin
+From: Michel Normand <normand@linux.vnet.ibm.com>
+
+For ppc64le archi and python3... and gdb... versions
+the test_gdb.py need a change of re.match to handle address before the builtin_id word.
+Of course there is no error if this substring is not present.
+===
+...
+#0  0x00003fffb7dd0898 in builtin_id (self=<module at remote 0x3fffb7901440>, v=<unknown at remote 0x3fffb7f68910>) at /builddir/build/BUILD/Python-3.3.2/Python/bltinmodule.c:966
+....xxxxxxxxxxxxxxxxxxxxxx <= added regexp
+===
+
+Signed-off-by: Michel Normand <normand@linux.vnet.ibm.com>
+---
+ Lib/test/test_gdb.py |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: Python-3.3.2/Lib/test/test_gdb.py
+===================================================================
+--- Python-3.3.2.orig/Lib/test/test_gdb.py
++++ Python-3.3.2/Lib/test/test_gdb.py
+@@ -230,7 +230,7 @@ class DebuggerTests(unittest.TestCase):
+         # gdb can insert additional '\n' and space characters in various places
+         # in its output, depending on the width of the terminal it's connected
+         # to (using its "wrap_here" function)
+-        m = re.match('.*#0\s+builtin_id\s+\(self\=.*,\s+v=\s*(.*?)\)\s+at\s+\S*Python/bltinmodule.c.*',
++        m = re.match('.*#0\s+(?: 0x[0-9a-f]+\s+in\s+)?builtin_id\s+\(self\=.*,\s+v=\s*(.*?)\)\s+at\s+\S*Python/bltinmodule.c.*',
+                      gdb_output, re.DOTALL)
+         if not m:
+             self.fail('Unexpected gdb output: %r\n%s' % (gdb_output, gdb_output))

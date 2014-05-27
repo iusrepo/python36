@@ -1,7 +1,6 @@
-diff -up Python-3.2.2/Lib/hashlib.py.hashlib-fips Python-3.2.2/Lib/hashlib.py
---- Python-3.2.2/Lib/hashlib.py.hashlib-fips	2011-09-03 12:16:41.000000000 -0400
-+++ Python-3.2.2/Lib/hashlib.py	2011-09-14 01:55:48.090252006 -0400
-@@ -23,6 +23,16 @@ the zlib module.
+--- Python-3.4.0b1/Lib/hashlib.py.hashlib-fips	2013-11-24 21:36:54.000000000 +0100
++++ Python-3.4.0b1/Lib/hashlib.py	2013-11-27 11:45:17.073617547 +0100
+@@ -23,6 +23,16 @@
  Choose your hash function wisely.  Some have known collision weaknesses.
  sha384 and sha512 will be slow on 32 bit platforms.
  
@@ -18,7 +17,27 @@ diff -up Python-3.2.2/Lib/hashlib.py.hashlib-fips Python-3.2.2/Lib/hashlib.py
  Hash objects have these methods:
   - update(arg): Update the hash object with the bytes in arg. Repeated calls
                  are equivalent to a single call with the concatenation of all
-@@ -96,33 +106,36 @@ def __get_openssl_constructor(name):
+@@ -63,6 +73,19 @@
+ __all__ = __always_supported + ('new', 'algorithms_guaranteed',
+                                 'algorithms_available', 'pbkdf2_hmac')
+ 
++import functools
++def __ignore_usedforsecurity(func):
++    """Used for sha3_* functions. Until OpenSSL implements them, we want
++    to use them from Python _sha3 module, but we want them to accept
++    usedforsecurity argument too."""
++    # TODO: remove this function when OpenSSL implements sha3
++    @functools.wraps(func)
++    def inner(*args, **kwargs):
++        if 'usedforsecurity' in kwargs:
++            kwargs.pop('usedforsecurity')
++        return func(*args, **kwargs)
++    return inner
++
+ 
+ __builtin_constructor_cache = {}
+ 
+@@ -108,34 +131,41 @@
          f = getattr(_hashlib, 'openssl_' + name)
          # Allow the C module to raise ValueError.  The function will be
          # defined but the hash not actually available thanks to OpenSSL.
@@ -30,16 +49,17 @@ diff -up Python-3.2.2/Lib/hashlib.py.hashlib-fips Python-3.2.2/Lib/hashlib.py
          # Use the C function directly (very fast)
          return f
      except (AttributeError, ValueError):
--        return __get_builtin_constructor(name)
-+        raise
++        # TODO: We want to just raise here when OpenSSL implements sha3
++        # because we want to make sure that Fedora uses everything from OpenSSL
+         return __get_builtin_constructor(name)
  
-+def __py_new(name, data=b'', usedforsecurity=True):
-+    """new(name, data=b'', usedforsecurity=True) - Return a new hashing object using
-+    the named algorithm; optionally initialized with data (which must be bytes).
  
 -def __py_new(name, data=b''):
 -    """new(name, data=b'') - Return a new hashing object using the named algorithm;
 -    optionally initialized with data (which must be bytes).
++def __py_new(name, data=b'', usedforsecurity=True):
++    """new(name, data=b'', usedforsecurity=True) - Return a new hashing object using
++    the named algorithm; optionally initialized with data (which must be bytes).
 +    The 'usedforsecurity' keyword argument does nothing, and is for compatibilty
 +    with the OpenSSL implementation
      """
@@ -64,19 +84,41 @@ diff -up Python-3.2.2/Lib/hashlib.py.hashlib-fips Python-3.2.2/Lib/hashlib.py
 -        # hash, try using our builtin implementations.
 -        # This allows for SHA224/256 and SHA384/512 support even though
 -        # the OpenSSL library prior to 0.9.8 doesn't provide them.
--        return __get_builtin_constructor(name)(data)
--
-+        raise 
++        # TODO: We want to just raise here when OpenSSL implements sha3
++        # because we want to make sure that Fedora uses everything from OpenSSL
+         return __get_builtin_constructor(name)(data)
  
+-
  try:
      import _hashlib
-diff -up Python-3.2.2/Lib/test/test_hashlib.py.hashlib-fips Python-3.2.2/Lib/test/test_hashlib.py
---- Python-3.2.2/Lib/test/test_hashlib.py.hashlib-fips	2011-09-03 12:16:43.000000000 -0400
-+++ Python-3.2.2/Lib/test/test_hashlib.py	2011-09-14 01:45:48.462251974 -0400
-@@ -22,6 +22,19 @@ from test.support import _4G, precisionb
- # Were we compiled --with-pydebug or with #define Py_DEBUG?
+     new = __hash_new
+@@ -215,7 +245,10 @@
+     # try them all, some may not work due to the OpenSSL
+     # version not supporting that algorithm.
+     try:
+-        globals()[__func_name] = __get_hash(__func_name)
++        func = __get_hash(__func_name)
++        if 'sha3_' in __func_name:
++            func = __ignore_usedforsecurity(func)
++        globals()[__func_name] = func
+     except ValueError:
+         import logging
+         logging.exception('code for hash %s was not found.', __func_name)
+@@ -223,3 +256,4 @@
+ # Cleanup locals()
+ del __always_supported, __func_name, __get_hash
+ del __py_new, __hash_new, __get_openssl_constructor
++del __ignore_usedforsecurity
+--- Python-3.4.0b1/Lib/test/test_hashlib.py	2013-11-27 11:55:42.769601363 +0100
++++ Python-3.4.0b1/Lib/test/test_hashlib.py	2013-11-28 09:33:03.929008508 +0100
+@@ -24,7 +24,22 @@
  COMPILED_WITH_PYDEBUG = hasattr(sys, 'gettotalrefcount')
  
+ c_hashlib = import_fresh_module('hashlib', fresh=['_hashlib'])
+-py_hashlib = import_fresh_module('hashlib', blocked=['_hashlib'])
++# skipped on Fedora, since we always use OpenSSL implementation
++# py_hashlib = import_fresh_module('hashlib', blocked=['_hashlib'])
++
 +def openssl_enforces_fips():
 +    # Use the "openssl" command (if present) to try to determine if the local
 +    # OpenSSL is configured to enforce FIPS
@@ -93,7 +135,7 @@ diff -up Python-3.2.2/Lib/test/test_hashlib.py.hashlib-fips Python-3.2.2/Lib/tes
  
  def hexstr(s):
      assert isinstance(s, bytes), repr(s)
-@@ -31,6 +44,16 @@ def hexstr(s):
+@@ -34,6 +49,16 @@
          r += h[(i >> 4) & 0xF] + h[i & 0xF]
      return r
  
@@ -110,7 +152,7 @@ diff -up Python-3.2.2/Lib/test/test_hashlib.py.hashlib-fips Python-3.2.2/Lib/tes
  
  class HashLibTestCase(unittest.TestCase):
      supported_hash_names = ( 'md5', 'MD5', 'sha1', 'SHA1',
-@@ -59,11 +82,11 @@ class HashLibTestCase(unittest.TestCase)
+@@ -66,11 +91,11 @@
          # For each algorithm, test the direct constructor and the use
          # of hashlib.new given the algorithm name.
          for algorithm, constructors in self.constructors_to_test.items():
@@ -125,71 +167,45 @@ diff -up Python-3.2.2/Lib/test/test_hashlib.py.hashlib-fips Python-3.2.2/Lib/tes
              constructors.add(_test_algorithm_via_hashlib_new)
  
          _hashlib = self._conditional_import_module('_hashlib')
-@@ -75,22 +98,7 @@ class HashLibTestCase(unittest.TestCase)
+@@ -82,26 +107,12 @@
              for algorithm, constructors in self.constructors_to_test.items():
                  constructor = getattr(_hashlib, 'openssl_'+algorithm, None)
                  if constructor:
 -                    constructors.add(constructor)
--
++                    constructors.add(suppress_fips(constructor))
+ 
+         def add_builtin_constructor(name):
+             constructor = getattr(hashlib, "__get_builtin_constructor")(name)
+             self.constructors_to_test[name].add(constructor)
+ 
 -        _md5 = self._conditional_import_module('_md5')
 -        if _md5:
--            self.constructors_to_test['md5'].add(_md5.md5)
+-            add_builtin_constructor('md5')
 -        _sha1 = self._conditional_import_module('_sha1')
 -        if _sha1:
--            self.constructors_to_test['sha1'].add(_sha1.sha1)
+-            add_builtin_constructor('sha1')
 -        _sha256 = self._conditional_import_module('_sha256')
 -        if _sha256:
--            self.constructors_to_test['sha224'].add(_sha256.sha224)
--            self.constructors_to_test['sha256'].add(_sha256.sha256)
+-            add_builtin_constructor('sha224')
+-            add_builtin_constructor('sha256')
 -        _sha512 = self._conditional_import_module('_sha512')
 -        if _sha512:
--            self.constructors_to_test['sha384'].add(_sha512.sha384)
--            self.constructors_to_test['sha512'].add(_sha512.sha512)
-+                    constructors.add(suppress_fips(constructor))
+-            add_builtin_constructor('sha384')
+-            add_builtin_constructor('sha512')
  
          super(HashLibTestCase, self).__init__(*args, **kwargs)
  
-@@ -138,7 +146,7 @@ class HashLibTestCase(unittest.TestCase)
+@@ -157,9 +169,6 @@
+             else:
+                 del sys.modules['_md5']
+         self.assertRaises(TypeError, get_builtin_constructor, 3)
+-        constructor = get_builtin_constructor('md5')
+-        self.assertIs(constructor, _md5.md5)
+-        self.assertEqual(sorted(builtin_constructor_cache), ['MD5', 'md5'])
  
      def test_hexdigest(self):
-         for name in self.supported_hash_names:
--            h = hashlib.new(name)
-+            h = hashlib.new(name, usedforsecurity=False)
-             assert isinstance(h.digest(), bytes), name
-             self.assertEqual(hexstr(h.digest()), h.hexdigest())
- 
-@@ -149,12 +157,12 @@ class HashLibTestCase(unittest.TestCase)
-         cees = b'c' * 126
- 
-         for name in self.supported_hash_names:
--            m1 = hashlib.new(name)
-+            m1 = hashlib.new(name, usedforsecurity=False)
-             m1.update(aas)
-             m1.update(bees)
-             m1.update(cees)
- 
--            m2 = hashlib.new(name)
-+            m2 = hashlib.new(name, usedforsecurity=False)
-             m2.update(aas + bees + cees)
-             self.assertEqual(m1.digest(), m2.digest())
- 
-@@ -324,13 +332,13 @@ class HashLibTestCase(unittest.TestCase)
-         # for multithreaded operation (which is hardwired to 2048).
-         gil_minsize = 2048
- 
--        m = hashlib.md5()
-+        m = hashlib.md5(usedforsecurity=False)
-         m.update(b'1')
-         m.update(b'#' * gil_minsize)
-         m.update(b'1')
-         self.assertEqual(m.hexdigest(), 'cb1e1a2cbc80be75e19935d621fb9b21')
- 
--        m = hashlib.md5(b'x' * gil_minsize)
-+        m = hashlib.md5(b'x' * gil_minsize, usedforsecurity=False)
-         self.assertEqual(m.hexdigest(), 'cfb767f225d58469c5de3632a8803958')
- 
-     @unittest.skipUnless(threading, 'Threading required for this test.')
-@@ -370,6 +378,67 @@ class HashLibTestCase(unittest.TestCase)
+         for cons in self.hash_constructors:
+@@ -558,6 +567,65 @@
  
          self.assertEqual(expected_hash, hasher.hexdigest())
  
@@ -245,31 +261,36 @@ diff -up Python-3.2.2/Lib/test/test_hashlib.py.hashlib-fips Python-3.2.2/Lib/tes
 +            m = _hashlib.new('md5', usedforsecurity=False)
 +            m.update(b'abc\n')
 +            self.assertEquals(m.hexdigest(), "0bee89b07a248e27c83fc3d5951213c1")
-+        
++       
 +            m = _hashlib.openssl_md5(b'abc\n', usedforsecurity=False)
 +            self.assertEquals(m.hexdigest(), "0bee89b07a248e27c83fc3d5951213c1")
 +        
 +            m = _hashlib.new('md5', b'abc\n', usedforsecurity=False)
 +            self.assertEquals(m.hexdigest(), "0bee89b07a248e27c83fc3d5951213c1")
-+        
 +
-+
- def test_main():
-     support.run_unittest(HashLibTestCase)
  
-diff -up Python-3.2.2/Modules/_hashopenssl.c.hashlib-fips Python-3.2.2/Modules/_hashopenssl.c
---- Python-3.2.2/Modules/_hashopenssl.c.hashlib-fips	2011-09-03 12:16:46.000000000 -0400
-+++ Python-3.2.2/Modules/_hashopenssl.c	2011-09-14 00:52:41.225252001 -0400
-@@ -37,6 +37,8 @@
- #endif
+ class KDFTests(unittest.TestCase):
+ 
+@@ -639,6 +707,7 @@
+         with self.assertRaisesRegex(ValueError, 'unsupported hash type'):
+             pbkdf2('unknown', b'pass', b'salt', 1)
+ 
++    @unittest.skip('skipped on Fedora, as we always use OpenSSL pbkdf2_hmac')
+     def test_pbkdf2_hmac_py(self):
+         self._test_pbkdf2_hmac(py_hashlib.pbkdf2_hmac)
+ 
+--- Python-3.4.0b1/Modules/_hashopenssl.c.hashlib-fips	2013-11-24 21:36:56.000000000 +0100
++++ Python-3.4.0b1/Modules/_hashopenssl.c	2013-11-27 12:01:57.443537463 +0100
+@@ -19,6 +19,8 @@
+ 
  
  /* EVP is the preferred interface to hashing in OpenSSL */
 +#include <openssl/ssl.h>
 +#include <openssl/err.h>
  #include <openssl/evp.h>
+ #include <openssl/hmac.h>
  /* We use the object interface to discover what hashes OpenSSL supports. */
- #include <openssl/objects.h>
-@@ -68,11 +70,19 @@ typedef struct {
+@@ -48,11 +50,19 @@
  
  static PyTypeObject EVPtype;
  
@@ -293,7 +314,7 @@ diff -up Python-3.2.2/Modules/_hashopenssl.c.hashlib-fips Python-3.2.2/Modules/_
  
  DEFINE_CONSTS_FOR_NEW(md5)
  DEFINE_CONSTS_FOR_NEW(sha1)
-@@ -117,6 +127,48 @@ EVP_hash(EVPobject *self, const void *vp
+@@ -97,6 +107,48 @@
      }
  }
  
@@ -342,7 +363,7 @@ diff -up Python-3.2.2/Modules/_hashopenssl.c.hashlib-fips Python-3.2.2/Modules/_
  /* Internal methods for a hash object */
  
  static void
-@@ -303,15 +355,16 @@ EVP_repr(EVPobject *self)
+@@ -281,15 +333,16 @@
  static int
  EVP_tp_init(EVPobject *self, PyObject *args, PyObject *kwds)
  {
@@ -362,7 +383,7 @@ diff -up Python-3.2.2/Modules/_hashopenssl.c.hashlib-fips Python-3.2.2/Modules/_
          return -1;
      }
  
-@@ -332,7 +385,12 @@ EVP_tp_init(EVPobject *self, PyObject *a
+@@ -310,7 +363,12 @@
              PyBuffer_Release(&view);
          return -1;
      }
@@ -376,7 +397,7 @@ diff -up Python-3.2.2/Modules/_hashopenssl.c.hashlib-fips Python-3.2.2/Modules/_
  
      self->name = name_obj;
      Py_INCREF(self->name);
-@@ -416,7 +474,8 @@ static PyTypeObject EVPtype = {
+@@ -394,7 +452,8 @@
  static PyObject *
  EVPnew(PyObject *name_obj,
         const EVP_MD *digest, const EVP_MD_CTX *initial_ctx,
@@ -386,7 +407,7 @@ diff -up Python-3.2.2/Modules/_hashopenssl.c.hashlib-fips Python-3.2.2/Modules/_
  {
      EVPobject *self;
  
-@@ -431,7 +490,12 @@ EVPnew(PyObject *name_obj,
+@@ -409,7 +468,12 @@
      if (initial_ctx) {
          EVP_MD_CTX_copy(&self->ctx, initial_ctx);
      } else {
@@ -400,7 +421,7 @@ diff -up Python-3.2.2/Modules/_hashopenssl.c.hashlib-fips Python-3.2.2/Modules/_
      }
  
      if (cp && len) {
-@@ -455,21 +519,29 @@ PyDoc_STRVAR(EVP_new__doc__,
+@@ -433,21 +497,29 @@
  An optional string argument may be provided and will be\n\
  automatically hashed.\n\
  \n\
@@ -434,7 +455,7 @@ diff -up Python-3.2.2/Modules/_hashopenssl.c.hashlib-fips Python-3.2.2/Modules/_
          return NULL;
      }
  
-@@ -483,7 +555,8 @@ EVP_new(PyObject *self, PyObject *args,
+@@ -461,7 +533,8 @@
  
      digest = EVP_get_digestbyname(name);
  
@@ -444,7 +465,7 @@ diff -up Python-3.2.2/Modules/_hashopenssl.c.hashlib-fips Python-3.2.2/Modules/_
  
      if (data_obj)
          PyBuffer_Release(&view);
-@@ -547,58 +620,115 @@ generate_hash_name_list(void)
+@@ -742,57 +815,115 @@
  
  
  /*
@@ -461,7 +482,7 @@ diff -up Python-3.2.2/Modules/_hashopenssl.c.hashlib-fips Python-3.2.2/Modules/_
  #define GEN_CONSTRUCTOR(NAME)  \
      static PyObject * \
 -    EVP_new_ ## NAME (PyObject *self, PyObject *args) \
-+    EVP_new_ ## NAME (PyObject *self, PyObject *args, PyObject *kwdict)	\
++    EVP_new_ ## NAME (PyObject *self, PyObject *args, PyObject *kwdict)        \
      { \
 -        PyObject *data_obj = NULL; \
 -        Py_buffer view = { 0 }; \
@@ -487,8 +508,8 @@ diff -up Python-3.2.2/Modules/_hashopenssl.c.hashlib-fips Python-3.2.2/Modules/_
 +       return implement_specific_EVP_new(self, args, kwdict,      \
 +                                         "|Oi:" #NAME,            \
 +                                         &cached_info_ ## NAME ); \
-     }
- 
++    }
++
 +static PyObject *
 +implement_specific_EVP_new(PyObject *self, PyObject *args, PyObject *kwdict,
 +                           const char *format,
@@ -533,8 +554,8 @@ diff -up Python-3.2.2/Modules/_hashopenssl.c.hashlib-fips Python-3.2.2/Modules/_
 +        } else {
 +            PyErr_SetString(PyExc_ValueError, "Error initializing hash");
 +        }
-+    }
-+
+     }
+ 
 +    if (data_obj)
 +        PyBuffer_Release(&view);
 +
@@ -560,10 +581,9 @@ diff -up Python-3.2.2/Modules/_hashopenssl.c.hashlib-fips Python-3.2.2/Modules/_
 -            EVP_DigestInit(CONST_new_ ## NAME ## _ctx_p, EVP_get_digestbyname(#NAME)); \
 -        } \
 -    } \
--} while (0);
 +/*
 +  Macro/function pair to set up the constructors.
- 
++
 +  Try to initialize a context for each hash twice, once with
 +  EVP_MD_CTX_FLAG_NON_FIPS_ALLOW and once without.
 +  
@@ -572,7 +592,7 @@ diff -up Python-3.2.2/Modules/_hashopenssl.c.hashlib-fips Python-3.2.2/Modules/_
 +*/
 +#define INIT_CONSTRUCTOR_CONSTANTS(NAME)  do {    \
 +    init_constructor_constant(&cached_info_ ## NAME, #NAME); \
-+} while (0);
+ } while (0);
 +static void
 +init_constructor_constant(EVPCachedInfo *cached_info, const char *name)
 +{
@@ -594,15 +614,16 @@ diff -up Python-3.2.2/Modules/_hashopenssl.c.hashlib-fips Python-3.2.2/Modules/_
 +        }
 +    }
 +}
-+ 
++
+ 
  GEN_CONSTRUCTOR(md5)
  GEN_CONSTRUCTOR(sha1)
- #ifdef _OPENSSL_SUPPORTS_SHA2
-@@ -641,12 +774,10 @@ PyInit__hashlib(void)
+@@ -843,13 +974,10 @@
  {
      PyObject *m, *openssl_md_meth_names;
  
 -    OpenSSL_add_all_digests();
+-    ERR_load_crypto_strings();
 +    SSL_load_error_strings();
 +    SSL_library_init();
  

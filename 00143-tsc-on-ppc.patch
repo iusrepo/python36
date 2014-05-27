@@ -31,7 +31,7 @@ diff -up Python-2.7.2/Python/ceval.c.tsc-on-ppc Python-2.7.2/Python/ceval.c
 -ppc_getcounter(uint64 *v)
 +ppc32_getcounter(uint64 *v)
  {
--    register unsigned long tbu, tb, tbu2;
+-    unsigned long tbu, tb, tbu2;
 +    union { long long ll; long ii[2]; } u;
 +    long tmp;
  
