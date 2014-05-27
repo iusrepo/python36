@@ -128,7 +128,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -717,8 +717,8 @@ Provides: python(abi) = %{pybasever}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 
 %if 0%{with_rewheel}
-Requires: python-setuptools
-Requires: python-pip
+Requires: python3-setuptools
+Requires: python3-pip
 %endif
 
 %description
@@ -1831,6 +1831,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Tue May 27 2014 Bohuslav Kabrda <bkabrda@redhat.com> - 3.4.1-4
+- Use python3-*, not python-* runtime requires on setuptools and pip
+
 * Tue May 27 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.1-3
 - Update the rewheel module
 
