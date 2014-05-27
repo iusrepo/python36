@@ -1833,6 +1833,7 @@ rm -fr %{buildroot}
 %changelog
 * Tue May 27 2014 Bohuslav Kabrda <bkabrda@redhat.com> - 3.4.1-4
 - Use python3-*, not python-* runtime requires on setuptools and pip
+- rebuild for tcl-8.6
 
 * Tue May 27 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.1-3
 - Update the rewheel module
