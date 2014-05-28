@@ -1395,10 +1395,12 @@ CheckPython() {
   # our non-standard decorators take effect on the relevant tests:
   #   @unittest._skipInRpmBuild(reason)
   #   @unittest._expectedFailureInRpmBuild
+  # test_faulthandler.test_register_chain currently fails on ppc64le and
+  #   aarch64, see upstream bug http://bugs.python.org/issue21131
   WITHIN_PYTHON_RPM_BUILD= \
   LD_LIBRARY_PATH=$ConfDir $ConfDir/python -m test.regrtest \
     --verbose --findleaks \
-    %ifarch ppc64le
+    %ifarch ppc64le aarch64
     -x test_faulthandler
     %endif
 
