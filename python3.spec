@@ -128,7 +128,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1367,6 +1367,11 @@ sed \
 
 %endif # with_systemtap
 
+# Rename the script that differs on different arches to arch specific name
+mv %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-{,%{_arch}-}config
+echo -e '#!/bin/sh\nexec `dirname $0`/python%{LDVERSION_optimized}-`uname -m`-config' > \
+  %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
+  chmod +x %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
 
 # ======================================================
 # Running the upstream test suite
@@ -1666,6 +1671,7 @@ rm -fr %{buildroot}
 %{_bindir}/python3-config
 %{_bindir}/python%{pybasever}-config
 %{_bindir}/python%{LDVERSION_optimized}-config
+%{_bindir}/python%{LDVERSION_optimized}-%{_arch}-config
 %{_libdir}/libpython%{LDVERSION_optimized}.so
 %{_libdir}/pkgconfig/python-%{LDVERSION_optimized}.pc
 %{_libdir}/pkgconfig/python-%{pybasever}.pc
@@ -1833,6 +1839,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed May 28 2014 Miro Hrončok <mhroncok@redhat.com> - 3.4.1-5
+- Rename python3.Xm-config script to arch specific.
+Resolves: rhbz#1091815
+
 * Tue May 27 2014 Bohuslav Kabrda <bkabrda@redhat.com> - 3.4.1-4
 - Use python3-*, not python-* runtime requires on setuptools and pip
 - rebuild for tcl-8.6
