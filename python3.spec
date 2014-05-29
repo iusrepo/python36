@@ -128,7 +128,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1369,7 +1369,7 @@ sed \
 
 # Rename the script that differs on different arches to arch specific name
 mv %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-{,%{_arch}-}config
-echo -e '#!/bin/sh\nexec `dirname $0`/python%{LDVERSION_optimized}-`uname -m`-config' > \
+echo -e '#!/bin/sh\nexec `dirname $0`/python%{LDVERSION_optimized}-`uname -m`-config "$@"' > \
   %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
   chmod +x %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
 
@@ -1839,6 +1839,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Thu May 29 2014 Miro Hrončok <mhroncok@redhat.com> - 3.4.1-6
+- Forward arguments to the arch specific config script
+Resolves: rhbz#1102683
+
 * Wed May 28 2014 Miro Hrončok <mhroncok@redhat.com> - 3.4.1-5
 - Rename python3.Xm-config script to arch specific.
 Resolves: rhbz#1091815
