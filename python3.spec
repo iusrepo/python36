@@ -128,7 +128,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1368,8 +1368,10 @@ sed \
 %endif # with_systemtap
 
 # Rename the script that differs on different arches to arch specific name
-mv %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-{,%{_arch}-}config
+mv %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-{,`uname -m`-}config
 echo -e '#!/bin/sh\nexec `dirname $0`/python%{LDVERSION_optimized}-`uname -m`-config "$@"' > \
+  %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
+echo '[ $? -eq 127 ] && echo "Could not find python%{LDVERSION_optimized}-`uname -m`-config. Look around to see available arches." >&2' >> \
   %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
   chmod +x %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
 
@@ -1671,7 +1673,7 @@ rm -fr %{buildroot}
 %{_bindir}/python3-config
 %{_bindir}/python%{pybasever}-config
 %{_bindir}/python%{LDVERSION_optimized}-config
-%{_bindir}/python%{LDVERSION_optimized}-%{_arch}-config
+%{_bindir}/python%{LDVERSION_optimized}-*-config
 %{_libdir}/libpython%{LDVERSION_optimized}.so
 %{_libdir}/pkgconfig/python-%{LDVERSION_optimized}.pc
 %{_libdir}/pkgconfig/python-%{pybasever}.pc
@@ -1839,6 +1841,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri May 30 2014 Miro Hrončok <mhroncok@redhat.com> - 3.4.1-8
+- In config script, use uname -m to write the arch
+
 * Thu May 29 2014 Dan Horák <dan[at]danny.cz> - 3.4.1-7
 - update the arch list where valgrind exists - %%power64 includes also
     ppc64le which is not supported yet
