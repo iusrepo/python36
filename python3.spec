@@ -2,6 +2,18 @@
 # Conditionals and other variables controlling the build
 # ======================================================
 
+# NOTES ON BOOTSTRAPING PYTHON 3.4:
+#
+# Due to dependency cycle between Python, pip, setuptools and
+# wheel caused by the rewheel patch, one has to build in the
+# following order:
+#
+# 1) python3 with with_rewheel set to 0
+# 2) python3-setuptools and python3-pip with with_rewheel set to 0
+# 3) python3-wheel
+# 4) python3-setuptools and python3-pip with with_rewheel set to 1
+# 5) python3 with with_rewheel set to 1
+
 %global with_rewheel 1
 
 %global pybasever 3.4
