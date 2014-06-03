@@ -21,7 +21,7 @@ unchanged:
      pip.main(args)
  
  
-@@ -87,20 +90,40 @@ def bootstrap(*, root=None, upgrade=Fals
+@@ -87,20 +90,39 @@ def bootstrap(*, root=None, upgrade=Fals
          # omit pip and easy_install
          os.environ["ENSUREPIP_OPTIONS"] = "install"
  
@@ -50,9 +50,9 @@ unchanged:
 -            whl = pkgutil.get_data(
 +            whl = os.path.join(
 +                os.path.dirname(__file__),
-                 "ensurepip",
+-                "ensurepip",
 -                "_bundled/{}".format(wheel_name),
-+                "bundled",
++                "_bundled",
 +                "{}-{}-py2.py3-none-any.whl".format(project, version)
              )
 -            with open(os.path.join(tmpdir, wheel_name), "wb") as fp:
