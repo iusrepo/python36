@@ -140,7 +140,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1853,6 +1853,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed Jun 04 2014 Karsten Hopp <karsten@redhat.com> 3.4.1-10
+- bump release and rebuild to link with the correct tcl/tk libs on ppcle
+
 * Tue Jun 03 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.1-9
 - Change paths to bundled projects in rewheel patch
 
