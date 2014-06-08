@@ -140,7 +140,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1853,6 +1853,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Sun Jun 08 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.4.1-11
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
+
 * Wed Jun 04 2014 Karsten Hopp <karsten@redhat.com> 3.4.1-10
 - bump release and rebuild to link with the correct tcl/tk libs on ppcle
 
