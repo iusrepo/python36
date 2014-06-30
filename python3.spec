@@ -140,7 +140,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -242,6 +242,9 @@ Source7: pyfuntop.stp
 # Run in check section with Python that is currently being built
 # Written by bkabrda
 Source8: check-pyc-and-pyo-timestamps.py
+
+# Python wrapper arounf pythonXXm-config to be able to keep python3-devel multiarch
+Source9: config.py
 
 # Fixup distutils/unixccompiler.py to remove standard library path from rpath:
 # Was Patch0 in ivazquez' python3000 specfile:
@@ -1381,11 +1384,8 @@ sed \
 
 # Rename the script that differs on different arches to arch specific name
 mv %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-{,`uname -m`-}config
-echo -e '#!/bin/sh\nexec `dirname $0`/python%{LDVERSION_optimized}-`uname -m`-config "$@"' > \
-  %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
-echo '[ $? -eq 127 ] && echo "Could not find python%{LDVERSION_optimized}-`uname -m`-config. Look around to see available arches." >&2' >> \
-  %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
-  chmod +x %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
+cp %{SOURCE9} %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
+chmod +x %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
 
 # ======================================================
 # Running the upstream test suite
@@ -1853,6 +1853,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Jun 30 2014 Miro Hrončok <mhroncok@redhat.com> - 3.4.1-13
+- Rewrite the config wrapper from Bash to Python, so it can be interpreted with Python
+
 * Sun Jun  8 2014 Peter Robinson <pbrobinson@fedoraproject.org> 3.4.1-12
 - aarch64 has valgrind, just list those that don't support it
 
