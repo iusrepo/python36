@@ -1,4 +1,6 @@
-#!/bin/python3
+#!/usr/bin/python3.4m
+# -*- python -*-
+
 import sys
 import subprocess
 ver = sys.version[:3]
