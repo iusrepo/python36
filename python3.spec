@@ -140,7 +140,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1853,6 +1853,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Sun Aug 17 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.4.1-13
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
+
 * Sun Jun  8 2014 Peter Robinson <pbrobinson@fedoraproject.org> 3.4.1-12
 - aarch64 has valgrind, just list those that don't support it
 
