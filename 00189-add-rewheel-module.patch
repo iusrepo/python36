@@ -1,6 +1,6 @@
-unchanged:
---- Python-3.4.0rc3/Lib/ensurepip/__init__.py	2014-03-10 07:56:33.000000000 +0100
-+++ Python-3.4.0rc3-rewheel/Lib/ensurepip/__init__.py	2014-03-12 09:57:12.917120853 +0100
+diff -Nur Python-3.4.1/Lib/ensurepip/__init__.py Python-3.4.1-rewheel/Lib/ensurepip/__init__.py
+--- Python-3.4.1/Lib/ensurepip/__init__.py	2014-08-21 10:49:30.792695824 +0200
++++ Python-3.4.1-rewheel/Lib/ensurepip/__init__.py	2014-08-21 10:10:41.958341726 +0200
 @@ -1,8 +1,10 @@
  import os
  import os.path
@@ -12,7 +12,7 @@ unchanged:
  
  
  __all__ = ["version", "bootstrap"]
-@@ -38,6 +40,8 @@ def _run_pip(args, additional_paths=None
+@@ -38,6 +40,8 @@
  
      # Install the bundled software
      import pip
@@ -21,14 +21,10 @@ unchanged:
      pip.main(args)
  
  
-@@ -87,20 +90,39 @@ def bootstrap(*, root=None, upgrade=Fals
+@@ -87,20 +91,39 @@
          # omit pip and easy_install
          os.environ["ENSUREPIP_OPTIONS"] = "install"
  
--    with tempfile.TemporaryDirectory() as tmpdir:
--        # Put our bundled wheels into a temporary directory and construct the
--        # additional paths that need added to sys.path
--        additional_paths = []
 +    whls = []
 +    rewheel_dir = None
 +    # try to see if we have system-wide versions of _PROJECTS
@@ -45,25 +41,28 @@ unchanged:
 +    else:
 +        # if we don't have all the _PROJECTS installed system-wide,
 +        # let's just fall back to bundled wheels
-         for project, version in _PROJECTS:
--            wheel_name = "{}-{}-py2.py3-none-any.whl".format(project, version)
--            whl = pkgutil.get_data(
++        for project, version in _PROJECTS:
 +            whl = os.path.join(
 +                os.path.dirname(__file__),
--                "ensurepip",
--                "_bundled/{}".format(wheel_name),
 +                "_bundled",
 +                "{}-{}-py2.py3-none-any.whl".format(project, version)
-             )
++            )
++            whls.append(whl)
++
+     with tempfile.TemporaryDirectory() as tmpdir:
+         # Put our bundled wheels into a temporary directory and construct the
+         # additional paths that need added to sys.path
+         additional_paths = []
+-        for project, version in _PROJECTS:
+-            wheel_name = "{}-{}-py2.py3-none-any.whl".format(project, version)
+-            whl = pkgutil.get_data(
+-                "ensurepip",
+-                "_bundled/{}".format(wheel_name),
+-            )
 -            with open(os.path.join(tmpdir, wheel_name), "wb") as fp:
 -                fp.write(whl)
-+            whls.append(whl)
- 
+-
 -            additional_paths.append(os.path.join(tmpdir, wheel_name))
-+    with tempfile.TemporaryDirectory() as tmpdir:
-+        # Put our bundled wheels into a temporary directory and construct the
-+        # additional paths that need added to sys.path
-+        additional_paths = []
 +        for whl in whls:
 +            shutil.copy(whl, tmpdir)
 +            additional_paths.append(os.path.join(tmpdir, os.path.basename(whl)))
@@ -72,11 +71,12 @@ unchanged:
  
          # Construct the arguments to be passed to the pip command
          args = ["install", "--no-index", "--find-links", tmpdir]
-unchanged:
---- Python-3.4.0rc3/Lib/ensurepip/rewheel/__init__.py	1970-01-01 01:00:00.000000000 +0100
-+++ Python-3.4.0rc3-rewheel/Lib/ensurepip/rewheel/__init__.py	2014-03-12 09:55:30.413152104 +0100
-@@ -0,0 +1,136 @@
+diff -Nur Python-3.4.1/Lib/ensurepip/rewheel/__init__.py Python-3.4.1-rewheel/Lib/ensurepip/rewheel/__init__.py
+--- Python-3.4.1/Lib/ensurepip/rewheel/__init__.py	1970-01-01 01:00:00.000000000 +0100
++++ Python-3.4.1-rewheel/Lib/ensurepip/rewheel/__init__.py	2014-08-21 10:11:22.560320121 +0200
+@@ -0,0 +1,143 @@
 +import argparse
++import codecs
 +import csv
 +import email.parser
 +import os
@@ -162,10 +162,14 @@ unchanged:
 +
 +def get_wheel_name(record_path):
 +    """Return proper name of the wheel, without .whl."""
++
 +    wheel_info_path = os.path.join(os.path.dirname(record_path), 'WHEEL')
-+    wheel_info = email.parser.Parser().parsestr(open(wheel_info_path).read())
++    with codecs.open(wheel_info_path, encoding='utf-8') as wheel_info_file:
++        wheel_info = email.parser.Parser().parsestr(wheel_info_file.read())
++
 +    metadata_path = os.path.join(os.path.dirname(record_path), 'METADATA')
-+    metadata = email.parser.Parser().parsestr(open(metadata_path).read())
++    with codecs.open(metadata_path, encoding='utf-8') as metadata_file:
++        metadata = email.parser.Parser().parsestr(metadata_file.read())
 +
 +    # construct name parts according to wheel spec
 +    distribution = metadata.get('Name')
@@ -187,7 +191,9 @@ unchanged:
 +    - list of files that shouldn't be written or need some processing
 +      (pyc and pyo files, scripts)
 +    """
-+    record_contents = open(os.path.join(site_dir, record_relpath)).read()
++    record_file_path = os.path.join(site_dir, record_relpath)
++    with codecs.open(record_file_path, encoding='utf-8') as record_file:
++        record_contents = record_file.read()
 +    # temporary fix for https://github.com/pypa/pip/issues/1376
 +    # we need to ignore files under ".data" directory
 +    data_dir = os.path.dirname(record_relpath).strip(os.path.sep)
@@ -212,11 +218,10 @@ unchanged:
 +        else:
 +            pass # bad RECORD or empty line
 +    return to_write, to_omit
-only in patch2:
-unchanged:
---- Python-3.4.0/Makefile.pre.in	2014-04-01 12:02:48.188136172 +0200
-+++ Python-3.4.0-new/Makefile.pre.in	2014-04-01 12:03:23.770394025 +0200
-@@ -1140,7 +1140,7 @@ LIBSUBDIRS=	tkinter tkinter/test tkinter
+diff -Nur Python-3.4.1/Makefile.pre.in Python-3.4.1-rewheel/Makefile.pre.in
+--- Python-3.4.1/Makefile.pre.in	2014-08-21 10:49:31.512695040 +0200
++++ Python-3.4.1-rewheel/Makefile.pre.in	2014-08-21 10:10:41.961341722 +0200
+@@ -1145,7 +1145,7 @@
  		test/test_asyncio \
  		collections concurrent concurrent/futures encodings \
  		email email/mime test/test_email test/test_email/data \
