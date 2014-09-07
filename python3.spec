@@ -140,7 +140,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1420,7 +1420,10 @@ CheckPython() {
   LD_LIBRARY_PATH=$ConfDir $ConfDir/python -m test.regrtest \
     --verbose --findleaks \
     %ifarch ppc64le aarch64
-    -x test_faulthandler
+    -x test_faulthandler \
+    %endif
+    %ifarch %{power64}
+    -x test_gdb
     %endif
 
   echo FINISHED: CHECKING OF PYTHON FOR CONFIGURATION: $ConfName
@@ -1853,6 +1856,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Sun Sep 07 2014 Karsten Hopp <karsten@redhat.com> .1-15
+- exclude test_gdb on ppc* (rhbz#1132488)
+
 * Thu Aug 21 2014 Slavek Kabrda <bkabrda@redhat.com> - 3.4.1-14
 - Update rewheel patch with fix from https://github.com/bkabrda/rewheel/pull/1
 
