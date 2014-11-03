@@ -140,7 +140,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 15%{?dist}
+Release: 16%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -689,6 +689,14 @@ Patch195: 00195-dont-add-Werror-declaration-after-statement.patch
 #  Fix test_gdb failure on ppc64le
 Patch196: 00196-test-gdb-match-addr-before-builtin.patch
 
+# 00197
+#
+# The CGIHTTPServer Python module did not properly handle URL-encoded
+# path separators in URLs. This may have enabled attackers to disclose a CGI
+# script's source code or execute arbitrary scripts in the server's
+# document root.
+Patch197: 00197-fix-CVE-2014-4650.patch
+
 
 # (New patches go here ^^^)
 #
@@ -967,6 +975,7 @@ done
 %patch194 -p1
 %patch195 -p1
 %patch196 -p1
+%patch197 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1856,7 +1865,11 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
-* Sun Sep 07 2014 Karsten Hopp <karsten@redhat.com> .1-15
+* Mon Nov 03 2014 Slavek Kabrda <bkabrda@redhat.com> - 3.4.1-16
+- Fix CVE-2014-4650 - CGIHTTPServer URL handling
+Resolves: rhbz#1113529
+
+* Sun Sep 07 2014 Karsten Hopp <karsten@redhat.com> 3.4.1-15
 - exclude test_gdb on ppc* (rhbz#1132488)
 
 * Thu Aug 21 2014 Slavek Kabrda <bkabrda@redhat.com> - 3.4.1-14
