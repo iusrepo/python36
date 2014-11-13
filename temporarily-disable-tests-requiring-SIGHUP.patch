@@ -21,5 +21,5 @@ diff -up Python-3.4.0/Lib/test/test_asyncio/test_subprocess.py.orig Python-3.4.0
 -    @unittest.skipIf(sys.platform == 'win32', "Don't have SIGHUP")
 +    @unittest.skipIf(True, "Temporarily skipped (rhbz#1088233)")
      def test_send_signal(self):
-         args = PROGRAM_BLOCKED
-         create = asyncio.create_subprocess_exec(*args, loop=self.loop)
+         code = 'import time; print("sleeping", flush=True); time.sleep(3600)'
+         args = [sys.executable, '-c', code]

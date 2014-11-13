@@ -139,8 +139,8 @@
 # ==================
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
-Version: %{pybasever}.1
-Release: 16%{?dist}
+Version: %{pybasever}.2
+Release: 1%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -682,7 +682,8 @@ Patch194: temporarily-disable-tests-requiring-SIGHUP.patch
 # Don't declare Werror=declaration-after-statement for extension
 # modules through setup.py
 # http://bugs.python.org/issue21121
-Patch195: 00195-dont-add-Werror-declaration-after-statement.patch
+# FIXED UPSTREAM
+# Patch195: 00195-dont-add-Werror-declaration-after-statement.patch
 
 # 00196
 #
@@ -695,7 +696,8 @@ Patch196: 00196-test-gdb-match-addr-before-builtin.patch
 # path separators in URLs. This may have enabled attackers to disclose a CGI
 # script's source code or execute arbitrary scripts in the server's
 # document root.
-Patch197: 00197-fix-CVE-2014-4650.patch
+# FIXED UPSTREAM
+# Patch197: 00197-fix-CVE-2014-4650.patch
 
 
 # (New patches go here ^^^)
@@ -973,9 +975,9 @@ done
 # 00190: upstream as of Python 3.4.1
 # 00193: upstream as of Python 3.4.1
 %patch194 -p1
-%patch195 -p1
+# 00195: upstream as of Python 3.4.2
 %patch196 -p1
-%patch197 -p1
+# 00197: upstream as of Python 3.4.2
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1722,7 +1724,6 @@ rm -fr %{buildroot}
 %{pylibdir}/__pycache__/turtle*%{bytecode_suffixes}
 %dir %{pylibdir}/turtledemo
 %{pylibdir}/turtledemo/*.py
-%{pylibdir}/turtledemo/*.txt
 %{pylibdir}/turtledemo/*.cfg
 %dir %{pylibdir}/turtledemo/__pycache__/
 %{pylibdir}/turtledemo/__pycache__/*%{bytecode_suffixes}
@@ -1865,6 +1866,11 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Thu Nov 13 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.2-1
+- Update to 3.4.2
+- Refreshed patches: 156 (gdb autoload)
+- Removed: 195 (Werror declaration), 197 (CVE-2014-4650)
+
 * Mon Nov 03 2014 Slavek Kabrda <bkabrda@redhat.com> - 3.4.1-16
 - Fix CVE-2014-4650 - CGIHTTPServer URL handling
 Resolves: rhbz#1113529
