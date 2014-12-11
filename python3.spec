@@ -140,7 +140,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -699,6 +699,11 @@ Patch196: 00196-test-gdb-match-addr-before-builtin.patch
 # FIXED UPSTREAM
 # Patch197: 00197-fix-CVE-2014-4650.patch
 
+# OpenSSL disabled SSLv3 in SSLv23 method
+# This patch alters python tests to reflect this change
+# Issue: http://bugs.python.org/issue22638 Upstream discussion about SSLv3 in Python
+Patch199: 00199-alter-tests-to-reflect-sslv3-disabled.patch
+
 
 # (New patches go here ^^^)
 #
@@ -978,6 +983,7 @@ done
 # 00195: upstream as of Python 3.4.2
 %patch196 -p1
 # 00197: upstream as of Python 3.4.2
+%patch199 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1866,6 +1872,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Thu Dec 11 2014 Robert Kuska <rkuska@redhat.com> - 3.4.2-2
+- OpenSSL disabled SSLv3 in SSLv23 method
+
 * Thu Nov 13 2014 Matej Stuchlik <mstuchli@redhat.com> - 3.4.2-1
 - Update to 3.4.2
 - Refreshed patches: 156 (gdb autoload)
