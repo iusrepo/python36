@@ -140,7 +140,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -539,10 +539,16 @@ Patch164: 00164-disable-interrupted_write-tests-on-ppc.patch
 # in python.spec
 # TODO: python3 status?
 
-# 00170 #
-#  Patch170: 00170-gc-assertions.patch
-# in python.spec
-# TODO: python3 status?
+# 00170 #                                                                                           
+# In debug builds, try to print repr() when a C-level assert fails in the                           
+# garbage collector (typically indicating a reference-counting error                                
+# somewhere else e.g in an extension module)                                                        
+# Backported to 2.7 from a patch I sent upstream for py3k                                           
+#   http://bugs.python.org/issue9263  (rhbz#614680)                                                 
+# hiding the proposed new macros/functions within gcmodule.c to avoid exposing                      
+# them within the extension API.                                                                    
+# (rhbz#850013
+Patch170: 00170-gc-assertions.patch
 
 # 00171 #
 # python.spec had:
@@ -703,6 +709,18 @@ Patch196: 00196-test-gdb-match-addr-before-builtin.patch
 # This patch alters python tests to reflect this change
 # Issue: http://bugs.python.org/issue22638 Upstream discussion about SSLv3 in Python
 Patch199: 00199-alter-tests-to-reflect-sslv3-disabled.patch
+
+# 00200 #                                                                                           
+# Fix for gettext plural form headers (lines that begin with "#")                                   
+# Note: Backported from scl
+Patch200: 00200-gettext-plural-fix.patch
+
+# 00201 #                                                                                           
+# Fixes memory leak in gdbm module (rhbz#977308)                                                    
+# This was upstreamed as a part of bigger patch, but for our purposes                               
+# this is ok: http://bugs.python.org/issue18404                                                     
+# Note: Backported from scl
+Patch201: 00201-fix-memory-leak-in-gdbm.patch 
 
 
 # (New patches go here ^^^)
@@ -1872,6 +1890,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Tue Dec 16 2014 Robert Kuska <rkuska@redhat.com> - 3.4.2-3
+- New patches: 170 (gc asserts), 200 (gettext headers),
+  201 (gdbm memory leak)
+
 * Thu Dec 11 2014 Robert Kuska <rkuska@redhat.com> - 3.4.2-2
 - OpenSSL disabled SSLv3 in SSLv23 method
 
