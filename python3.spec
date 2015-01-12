@@ -71,7 +71,7 @@
 %global with_systemtap 1
 
 # some arches don't have valgrind so we need to disable its support on them
-%ifnarch s390 ppc64le
+%ifnarch s390
 %global with_valgrind 1
 %else
 %global with_valgrind 0
@@ -140,7 +140,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1457,7 +1457,7 @@ CheckPython() {
     %ifarch ppc64le aarch64
     -x test_faulthandler \
     %endif
-    %ifarch %{power64}
+    %ifarch %{power64} s390 s390x
     -x test_gdb
     %endif
 
@@ -1890,6 +1890,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Jan 12 2015 Dan Horák <dan[at]danny.cz> - 3.4.2-4
+- build with valgrind on ppc64le
+- disable test_gdb on s390(x) until rhbz#1181034 is resolved
+
 * Tue Dec 16 2014 Robert Kuska <rkuska@redhat.com> - 3.4.2-3
 - New patches: 170 (gc asserts), 200 (gettext headers),
   201 (gdbm memory leak)

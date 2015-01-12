@@ -1,7 +1,7 @@
-diff -up Python-3.3.0b1/Lib/test/test_exceptions.py.846849 Python-3.3.0b1/Lib/test/test_exceptions.py
---- Python-3.3.0b1/Lib/test/test_exceptions.py.846849	2012-06-26 22:19:47.000000000 +0200
-+++ Python-3.3.0b1/Lib/test/test_exceptions.py	2012-08-13 17:41:28.845403486 +0200
-@@ -401,6 +401,7 @@ class ExceptionTests(unittest.TestCase):
+diff -up Python-3.4.2/Lib/test/test_exceptions.py.ppc Python-3.4.2/Lib/test/test_exceptions.py
+--- Python-3.4.2/Lib/test/test_exceptions.py.ppc	2014-10-08 04:18:13.000000000 -0400
++++ Python-3.4.2/Lib/test/test_exceptions.py	2015-01-12 05:56:15.922833055 -0500
+@@ -429,6 +429,7 @@ class ExceptionTests(unittest.TestCase):
          self.assertIsNone(e.__context__)
          self.assertIsNone(e.__cause__)
  
@@ -9,10 +9,10 @@ diff -up Python-3.3.0b1/Lib/test/test_exceptions.py.846849 Python-3.3.0b1/Lib/te
      def testChainingDescriptors(self):
          try:
              raise Exception()
-diff -up Python-3.3.0b1/Lib/test/test_io.py.846849 Python-3.3.0b1/Lib/test/test_io.py
---- Python-3.3.0b1/Lib/test/test_io.py.846849	2012-06-26 22:19:48.000000000 +0200
-+++ Python-3.3.0b1/Lib/test/test_io.py	2012-08-13 17:41:28.846403451 +0200
-@@ -2938,12 +2938,15 @@ class SignalsTest(unittest.TestCase):
+diff -up Python-3.4.2/Lib/test/test_io.py.ppc Python-3.4.2/Lib/test/test_io.py
+--- Python-3.4.2/Lib/test/test_io.py.ppc	2015-01-12 05:56:15.922833055 -0500
++++ Python-3.4.2/Lib/test/test_io.py	2015-01-12 05:58:23.482833055 -0500
+@@ -3296,12 +3296,15 @@ class SignalsTest(unittest.TestCase):
                  if e.errno != errno.EBADF:
                      raise
  
@@ -25,12 +25,12 @@ diff -up Python-3.3.0b1/Lib/test/test_io.py.846849 Python-3.3.0b1/Lib/test/test_
          self.check_interrupted_write(b"xy", b"xy", mode="wb")
  
 +    @unittest.skip('rhbz#846849')
+     # Issue #22331: The test hangs on FreeBSD 7.2
+     @support.requires_freebsd_version(8)
      def test_interrupted_write_text(self):
-         self.check_interrupted_write("xy", b"xy", mode="w", encoding="ascii")
- 
-diff -up Python-3.3.0b1/Lib/test/test_raise.py.846849 Python-3.3.0b1/Lib/test/test_raise.py
---- Python-3.3.0b1/Lib/test/test_raise.py.846849	2012-08-13 17:42:16.719714213 +0200
-+++ Python-3.3.0b1/Lib/test/test_raise.py	2012-08-13 17:43:02.544097272 +0200
+diff -up Python-3.4.2/Lib/test/test_raise.py.ppc Python-3.4.2/Lib/test/test_raise.py
+--- Python-3.4.2/Lib/test/test_raise.py.ppc	2014-10-08 04:18:14.000000000 -0400
++++ Python-3.4.2/Lib/test/test_raise.py	2015-01-12 05:56:15.922833055 -0500
 @@ -151,6 +151,7 @@ class TestRaise(unittest.TestCase):
  
  class TestCause(unittest.TestCase):
@@ -39,10 +39,10 @@ diff -up Python-3.3.0b1/Lib/test/test_raise.py.846849 Python-3.3.0b1/Lib/test/te
      def testCauseSyntax(self):
          try:
              try:
-diff -up Python-3.3.0b1/Lib/test/test_traceback.py.846849 Python-3.3.0b1/Lib/test/test_traceback.py
---- Python-3.3.0b1/Lib/test/test_traceback.py.846849	2012-08-13 17:44:19.714374275 +0200
-+++ Python-3.3.0b1/Lib/test/test_traceback.py	2012-08-13 17:44:43.515534435 +0200
-@@ -246,6 +246,7 @@ class BaseExceptionReportingTests:
+diff -up Python-3.4.2/Lib/test/test_traceback.py.ppc Python-3.4.2/Lib/test/test_traceback.py
+--- Python-3.4.2/Lib/test/test_traceback.py.ppc	2014-10-08 04:18:14.000000000 -0400
++++ Python-3.4.2/Lib/test/test_traceback.py	2015-01-12 05:56:15.922833055 -0500
+@@ -314,6 +314,7 @@ class BaseExceptionReportingTests:
          self.check_zero_div(blocks[0])
          self.assertIn('inner_raise() # Marker', blocks[2])
  
