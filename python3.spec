@@ -140,7 +140,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1709,6 +1709,8 @@ rm -fr %{buildroot}
 %{_libdir}/%{py_INSTSONAME_optimized}
 %{_libdir}/libpython3.so
 %if 0%{?with_systemtap}
+%dir %(dirname %{tapsetdir})
+%dir %{tapsetdir}
 %{tapsetdir}/%{libpython_stp_optimized}
 %doc systemtap-example.stp pyfuntop.stp
 %endif
@@ -1846,6 +1848,8 @@ rm -fr %{buildroot}
 
 %{_libdir}/%{py_INSTSONAME_debug}
 %if 0%{?with_systemtap}
+%dir %(dirname %{tapsetdir})
+%dir %{tapsetdir}
 %{tapsetdir}/%{libpython_stp_debug}
 %endif
 
@@ -1890,6 +1894,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Tue Feb 17 2015 Ville Skyttä <ville.skytta@iki.fi> - 3.4.2-5
+- Own systemtap dirs (#710733)
+
 * Mon Jan 12 2015 Dan Horák <dan[at]danny.cz> - 3.4.2-4
 - build with valgrind on ppc64le
 - disable test_gdb on s390(x) until rhbz#1181034 is resolved
