@@ -140,7 +140,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1894,6 +1894,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Sat Feb 21 2015 Till Maas <opensource@till.name> - 3.4.2-6
+- Rebuilt for Fedora 23 Change
+  https://fedoraproject.org/wiki/Changes/Harden_all_packages_with_position-independent_code
+
 * Tue Feb 17 2015 Ville Skyttä <ville.skytta@iki.fi> - 3.4.2-5
 - Own systemtap dirs (#710733)
 
