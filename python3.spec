@@ -140,7 +140,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -722,6 +722,8 @@ Patch200: 00200-gettext-plural-fix.patch
 # Note: Backported from scl
 Patch201: 00201-fix-memory-leak-in-gdbm.patch 
 
+Patch202: 00202-fix-undefined-behaviour-in-faulthandler.patch
+
 
 # (New patches go here ^^^)
 #
@@ -1002,6 +1004,7 @@ done
 %patch196 -p1
 # 00197: upstream as of Python 3.4.2
 %patch199 -p1
+%patch202 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1894,6 +1897,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed Feb 25 2015 Matej Stuchlik <mstuchli@redhat.com> - 3.4.2-7
+- Fixed undefined behaviour in faulthandler which caused test to hang on x86_64
+  (http://bugs.python.org/issue23433)
+
 * Sat Feb 21 2015 Till Maas <opensource@till.name> - 3.4.2-6
 - Rebuilt for Fedora 23 Change
   https://fedoraproject.org/wiki/Changes/Harden_all_packages_with_position-independent_code
