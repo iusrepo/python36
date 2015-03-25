@@ -139,8 +139,8 @@
 # ==================
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
-Version: %{pybasever}.2
-Release: 7%{?dist}
+Version: %{pybasever}.3
+Release: 1%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -218,12 +218,12 @@ Source1: find-provides-without-python-sonames.sh
 
 # Supply various useful macros for building python 3 modules:
 #  __python3, python3_sitelib, python3_sitearch
-Source2: macros.python3
+Source2: macros.python%{pybasever}
 
 # Supply an RPM macro "py_byte_compile" for the python3-devel subpackage
 # to enable specfiles to selectively byte-compile individual files and paths
 # with different Python runtimes as necessary:
-Source3: macros.pybytecompile
+Source3: macros.pybytecompile%{pybasever}
 
 # Systemtap tapset to make it easier to use the systemtap static probes
 # (actually a template; LIBRARY_PATH will get fixed up during install)
@@ -445,7 +445,8 @@ Patch150: 00150-disable-rAssertAlmostEqual-cmath-on-ppc.patch
 # when running test_gdb.py; also cope with change to gdb in F17 onwards in
 # which values are printed as "v@entry" rather than just "v":
 # Not yet sent upstream
-Patch153: 00153-fix-test_gdb-noise.patch
+# Upstream as of 3.4.3
+#  Patch153: 00153-fix-test_gdb-noise.patch
 
 # 00154 #
 # python3.spec on f15 has:
@@ -461,8 +462,8 @@ Patch155: 00155-avoid-ctypes-thunks.patch
 # Recent builds of gdb will only auto-load scripts from certain safe
 # locations.  Turn off this protection when running test_gdb in the selftest
 # suite to ensure that it can load our -gdb.py script (rhbz#817072):
-# Not yet sent upstream
-Patch156: 00156-gdb-autoload-safepath.patch
+# Upsream as of 3.4.3
+#  Patch156: 00156-gdb-autoload-safepath.patch
 
 # 00157 #
 # Update uid/gid handling throughout the standard library: uid_t and gid_t are
@@ -722,7 +723,13 @@ Patch200: 00200-gettext-plural-fix.patch
 # Note: Backported from scl
 Patch201: 00201-fix-memory-leak-in-gdbm.patch 
 
+# 00202 #
+# Fixes undefined behaviour in faulthandler which caused test to hang on x86_64
+# http://bugs.python.org/issue23433
 Patch202: 00202-fix-undefined-behaviour-in-faulthandler.patch
+
+# test_threading fails in koji dues to it's handling of signals
+Patch203: 00203-disable-threading-test-koji.patch
 
 
 # (New patches go here ^^^)
@@ -954,10 +961,10 @@ done
 %endif
 # 00151: not for python3
 # 00152: upstream as of Python 3.3.0b2
-%patch153 -p0
+# 00153: upstream as of Python 3.4.3
 # 00154: not for this branch
 %patch155 -p1
-%patch156 -p1
+# 00156: upstream as of 3.4.3
 %patch157 -p1
 #00158: FIXME
 #00159: FIXME
@@ -1005,6 +1012,7 @@ done
 # 00197: upstream as of Python 3.4.2
 %patch199 -p1
 %patch202 -p1
+%patch203 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1067,6 +1075,7 @@ BuildPython() {
   SymlinkName=$3
   ExtraConfigArgs=$4
   PathFixWithThisBinary=$5
+  MoreCFlags=$6
 
   ConfDir=build/$ConfName
 
@@ -1104,8 +1113,7 @@ BuildPython() {
   #    missing symbol AnnotateRWLockDestroy
   #
   # Invoke the build:
-  # TODO: it seems that 3.4.0a4 fails with %{?_smp_flags}, have to figure out why
-  make EXTRA_CFLAGS="$CFLAGS"
+  make EXTRA_CFLAGS="$CFLAGS $MoreCFlags" %{?_smp_mflags}
 
   popd
   echo FINISHED: BUILD OF PYTHON FOR CONFIGURATION: $ConfDir
@@ -1122,7 +1130,8 @@ BuildPython debug \
 %else
   "--with-pydebug --with-count-allocs --with-call-profile --without-ensurepip" \
 %endif
-  false
+  false \
+  -O1
 %endif # with_debug_build
 
 BuildPython optimized \
@@ -1144,6 +1153,7 @@ InstallPython() {
 
   ConfName=$1	      
   PyInstSoName=$2
+  MoreCFlags=$3
 
   ConfDir=build/$ConfName
 
@@ -1152,7 +1162,7 @@ InstallPython() {
 
   pushd $ConfDir
 
-make install DESTDIR=%{buildroot} INSTALL="install -p"
+make install DESTDIR=%{buildroot} INSTALL="install -p" EXTRA_CFLAGS="$MoreCFlags"
 
   popd
 
@@ -1195,7 +1205,8 @@ make install DESTDIR=%{buildroot} INSTALL="install -p"
 # Install the "debug" build first, so that we can move some files aside
 %if 0%{?with_debug_build}
 InstallPython debug \
-  %{py_INSTSONAME_debug}
+  %{py_INSTSONAME_debug} \
+  -O1
 %endif # with_debug_build
 
 # Now the optimized build:
@@ -1457,10 +1468,11 @@ CheckPython() {
   WITHIN_PYTHON_RPM_BUILD= \
   LD_LIBRARY_PATH=$ConfDir $ConfDir/python -m test.regrtest \
     --verbose --findleaks \
+    -x test_distutils \
     %ifarch ppc64le aarch64
     -x test_faulthandler \
     %endif
-    %ifarch %{power64} s390 s390x
+    %ifarch %{power64} s390 s390x armv7hl
     -x test_gdb
     %endif
 
@@ -1733,8 +1745,8 @@ rm -fr %{buildroot}
 %{_libdir}/pkgconfig/python-%{LDVERSION_optimized}.pc
 %{_libdir}/pkgconfig/python-%{pybasever}.pc
 %{_libdir}/pkgconfig/python3.pc
-%{_rpmconfigdir}/macros.d/macros.python3
-%{_rpmconfigdir}/macros.d/macros.pybytecompile
+%{_rpmconfigdir}/macros.d/macros.python%{pybasever}
+%{_rpmconfigdir}/macros.d/macros.pybytecompile%{pybasever}
 
 %files tools
 %defattr(-,root,root,755)
@@ -1897,6 +1909,11 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Thu Mar 12 2015 Matej Stuchlik <mstuchli@redhat.com> - 3.4.3-1
+- Updated to 3.4.3
+- BuildPython now accepts additional build options
+- Temporarily disabled test_gdb on arm (rhbz#1196181)
+
 * Wed Feb 25 2015 Matej Stuchlik <mstuchli@redhat.com> - 3.4.2-7
 - Fixed undefined behaviour in faulthandler which caused test to hang on x86_64
   (http://bugs.python.org/issue23433)

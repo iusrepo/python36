@@ -7,6 +7,6 @@ diff -up Python-3.2.2/Lib/distutils/tests/test_bdist_rpm.py.skip-distutils-tests
  
 +@unittest._skipInRpmBuild("don't try to nest one rpm build inside another rpm build")
  class BuildRpmTestCase(support.TempdirManager,
+                        support.EnvironGuard,
                         support.LoggingSilencer,
-                        unittest.TestCase):
 diff -up Python-3.2.2/Lib/distutils/tests/test_build_ext.py.skip-distutils-tests-that-fail-in-rpmbuild Python-3.2.2/Lib/distutils/tests/test_build_ext.py
