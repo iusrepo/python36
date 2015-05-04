@@ -140,7 +140,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.3
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1472,7 +1472,7 @@ CheckPython() {
     %ifarch ppc64le aarch64
     -x test_faulthandler \
     %endif
-    %ifarch %{power64} s390 s390x armv7hl
+    %ifarch %{power64} s390 s390x armv7hl aarch64
     -x test_gdb
     %endif
 
@@ -1909,6 +1909,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon May  4 2015 Peter Robinson <pbrobinson@fedoraproject.org> 3.4.3-2
+- Disable test_gdb on aarch64 (rhbz#1196181), it joins all other non x86 arches
+
 * Thu Mar 12 2015 Matej Stuchlik <mstuchli@redhat.com> - 3.4.3-1
 - Updated to 3.4.3
 - BuildPython now accepts additional build options
