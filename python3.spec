@@ -140,7 +140,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.3
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -731,6 +731,9 @@ Patch202: 00202-fix-undefined-behaviour-in-faulthandler.patch
 # test_threading fails in koji dues to it's handling of signals
 Patch203: 00203-disable-threading-test-koji.patch
 
+# openssl requires DH keys to be > 768bits
+Patch204: 00204-increase-dh-keys-size.patch
+
 
 # (New patches go here ^^^)
 #
@@ -909,6 +912,11 @@ for f in md5module.c sha1module.c sha256module.c sha512module.c; do
     rm Modules/$f
 done
 
+%if 0%{with_rewheel}
+%global pip_version 7.0.3
+sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/ensurepip/__init__.py
+%endif
+
 #
 # Apply patches:
 #
@@ -1013,6 +1021,7 @@ done
 %patch199 -p1
 %patch202 -p1
 %patch203 -p1
+%patch204 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1131,7 +1140,7 @@ BuildPython debug \
   "--with-pydebug --with-count-allocs --with-call-profile --without-ensurepip" \
 %endif
   false \
-  -O1
+  -O0
 %endif # with_debug_build
 
 BuildPython optimized \
@@ -1206,7 +1215,7 @@ make install DESTDIR=%{buildroot} INSTALL="install -p" EXTRA_CFLAGS="$MoreCFlags
 %if 0%{?with_debug_build}
 InstallPython debug \
   %{py_INSTSONAME_debug} \
-  -O1
+  -O0
 %endif # with_debug_build
 
 # Now the optimized build:
@@ -1911,6 +1920,11 @@ rm -fr %{buildroot}
 %changelog
 * Thu Jun 18 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.4.3-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_23_Mass_Rebuild
+
+* Wed Jun 17 2015 Matej Stuchlik <mstuchli@redhat.com> - 3.4.3-4
+- Use 1024bit DH key in test_ssl
+- Use -O0 when compiling -debug build
+- Update pip version variable to the version we actually ship
 
 * Wed Jun 17 2015 Matej Stuchlik <mstuchli@redhat.com> - 3.4.3-3
 - Make relocating Python by changing _prefix actually work
