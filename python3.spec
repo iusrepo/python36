@@ -1236,7 +1236,7 @@ cp -ar Tools/demo %{buildroot}%{pylibdir}/Tools/
 rm -f %{buildroot}%{pylibdir}/email/test/data/audiotest.au %{buildroot}%{pylibdir}/test/audiotest.au
 
 %if "%{_lib}" == "lib64"
-install -d -m 0755 %{buildroot}/usr/lib/python%{pybasever}/site-packages/__pycache__
+install -d -m 0755 %{buildroot}/%{_prefix}/lib/python%{pybasever}/site-packages/__pycache__
 %endif
 
 # Make python3-devel multilib-ready (bug #192747, #139911)
@@ -1911,6 +1911,10 @@ rm -fr %{buildroot}
 %changelog
 * Thu Jun 18 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.4.3-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_23_Mass_Rebuild
+
+* Wed Jun 17 2015 Matej Stuchlik <mstuchli@redhat.com> - 3.4.3-3
+- Make relocating Python by changing _prefix actually work
+Resolves: rhbz#1231801
 
 * Mon May  4 2015 Peter Robinson <pbrobinson@fedoraproject.org> 3.4.3-2
 - Disable test_gdb on aarch64 (rhbz#1196181), it joins all other non x86 arches
