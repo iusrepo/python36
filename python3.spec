@@ -140,7 +140,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.3
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -803,10 +803,12 @@ Summary: Libraries and header files needed for Python 3 development
 Group: Development/Libraries
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
+BuildRequires: python-macros
+Requires: python-macros
 Conflicts: %{name} < %{version}-%{release}
 
 %description devel
-This package contains libraries and header files used to build applications 
+This package contains libraries and header files used to build applications
 with and native libraries for Python 3
 
 %package tools
@@ -1918,6 +1920,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Jun 29 2015 Thomas Spura <tomspur@fedoraproject.org> - 3.4.3-4
+- python3-devel: Require python-macros for version independant macros such as
+  python_provide. See fpc#281 and fpc#534.
+
 * Thu Jun 18 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.4.3-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_23_Mass_Rebuild
 

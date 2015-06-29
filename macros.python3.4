@@ -4,3 +4,13 @@
 %python3_version %(%{__python3} -c "import sys; sys.stdout.write(sys.version[:3])")
 %python3_version_nodots %(%{__python3} -c "import sys; sys.stdout.write(sys.version[:3].replace('.',''))")
 %py3dir %{_builddir}/python3-%{name}-%{version}-%{release}
+
+%py3_shbang_opts -s
+
+%py3_build() %{expand:\
+CFLAGS="%{optflags}" %{__python3} %{py_setup} %{?py_setup_args} build --executable="%{__python3} %{py3_shbang_opts}" %{?1}\
+}
+
+%py3_install() %{expand:\
+CFLAGS="%{optflags}" %{__python3} %{py_setup} %{?py_setup_args} install -O1 --skip-build --root %{buildroot} %{?1}\
+}
