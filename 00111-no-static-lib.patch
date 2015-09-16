@@ -1,13 +1,13 @@
 diff -up cpython-59223da36dec/Makefile.pre.in.no-static-lib cpython-59223da36dec/Makefile.pre.in
 --- cpython-59223da36dec/Makefile.pre.in.no-static-lib	2012-08-07 16:43:43.296466422 -0400
 +++ cpython-59223da36dec/Makefile.pre.in	2012-08-07 16:44:13.299464371 -0400
-@@ -464,7 +464,7 @@ coverage:
+@@ -550,7 +550,7 @@ clinic: $(BUILDPYTHON)
  	$(RUNSHARED) $(PYTHON_FOR_BUILD) ./Tools/clinic/clinic.py --make
  
  # Build the interpreter
--$(BUILDPYTHON):	Modules/python.o $(LIBRARY) $(LDLIBRARY) $(PY3LIBRARY)
-+$(BUILDPYTHON):	Modules/python.o $(LDLIBRARY) $(PY3LIBRARY)
- 	$(LINKCC) $(PY_LDFLAGS) $(LINKFORSHARED) -o $@ Modules/python.o $(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
+-$(BUILDPYTHON):	Programs/python.o $(LIBRARY) $(LDLIBRARY) $(PY3LIBRARY)
++$(BUILDPYTHON): Programs/python.o $(LIBRARY) $(LDLIBRARY) $(PY3LIBRARY)
+ 	$(LINKCC) $(PY_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/python.o $(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
  
  platform: $(BUILDPYTHON) pybuilddir.txt
 @@ -480,18 +480,6 @@ sharedmods: $(BUILDPYTHON) $(SYSCONFIGDA
@@ -29,16 +29,16 @@ diff -up cpython-59223da36dec/Makefile.pre.in.no-static-lib cpython-59223da36dec
  libpython$(LDVERSION).so: $(LIBRARY_OBJS)
  	if test $(INSTSONAME) != $(LDLIBRARY); then \
  		$(BLDSHARED) -Wl,-h$(INSTSONAME) -o $(INSTSONAME) $(LIBRARY_OBJS) $(MODLIBS) $(SHLIBS) $(LIBC) $(LIBM) $(LDLAST); \
-@@ -581,7 +569,7 @@ Modules/Setup: $(srcdir)/Modules/Setup.d
+@@ -674,7 +674,7 @@ Modules/Setup: $(srcdir)/Modules/Setup.d
  		echo "-----------------------------------------------"; \
  	fi
  
--Modules/_testembed: Modules/_testembed.o $(LIBRARY) $(LDLIBRARY) $(PY3LIBRARY)
-+Modules/_testembed: Modules/_testembed.o $(LDLIBRARY) $(PY3LIBRARY)
- 	$(LINKCC) $(PY_LDFLAGS) $(LINKFORSHARED) -o $@ Modules/_testembed.o $(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
+-Programs/_testembed: Programs/_testembed.o $(LIBRARY) $(LDLIBRARY) $(PY3LIBRARY)
++Programs/_testembed: Programs/_testembed.o $(LDLIBRARY) $(PY3LIBRARY)
+ 	$(LINKCC) $(PY_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/_testembed.o $(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
  
  ############################################################################
-@@ -1155,18 +1143,6 @@ libainstall:	all python-config
+@@ -1354,18 +1354,6 @@ libainstall:	all python-config
  		else	true; \
  		fi; \
  	done
@@ -55,5 +55,5 @@ diff -up cpython-59223da36dec/Makefile.pre.in.no-static-lib cpython-59223da36dec
 -		fi; \
 -	fi
  	$(INSTALL_DATA) Modules/config.c $(DESTDIR)$(LIBPL)/config.c
- 	$(INSTALL_DATA) Modules/python.o $(DESTDIR)$(LIBPL)/python.o
+ 	$(INSTALL_DATA) Programs/python.o $(DESTDIR)$(LIBPL)/python.o
  	$(INSTALL_DATA) $(srcdir)/Modules/config.c.in $(DESTDIR)$(LIBPL)/config.c.in

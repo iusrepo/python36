@@ -9,9 +9,9 @@ diff -up Python-3.3.0b2/Lib/test/test_sys.py.fix-COUNT_ALLOCS-failure-in-test_sy
 +        if hasattr(sys, 'getcounts'):
 +            s += struct.calcsize('3P2P')
          check(int, s)
-         # (PyTypeObject + PyNumberMethods + PyMappingMethods +
+         # (PyTypeObject + PyAsyncMethods + PyNumberMethods + PyMappingMethods +
          #  PySequenceMethods + PyBufferProcs + 4P)
-         s = vsize('P2n15Pl4Pn9Pn11PIP') + struct.calcsize('34P 3P 10P 2P 4P')
+         s = vsize('P2n17Pl4Pn9Pn11PIP') + struct.calcsize('34P 3P 3P 10P 2P 4P')
          # Separate block for PyDictKeysObject with 4 entries
          s += struct.calcsize("2nPn") + 4*struct.calcsize("n2P")
 +        if hasattr(sys, 'getcounts'):

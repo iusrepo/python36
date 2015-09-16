@@ -100,8 +100,8 @@ diff -r e245b0d7209b Lib/test/test_module.py
          # Issue #20037
          code = """if 1:
 
---- a/Lib/test/test_warnings.py.orig   2014-01-09 15:10:12.454997100 +0100
-+++ b/Lib/test/test_warnings.py    2014-01-09 15:11:14.028913478 +0100
+--- a/Lib/test/test_warnings/__init__.py.orig   2014-01-09 15:10:12.454997100 +0100
++++ b/Lib/test/test_warnings/__init__.py    2014-01-09 15:11:14.028913478 +0100
 @@ -780,6 +780,8 @@
              assert_python_ok('-c', 'pass', '-W', 'always', PYTHONPATH=cwd)
  

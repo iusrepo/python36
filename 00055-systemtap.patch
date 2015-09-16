@@ -650,7 +650,7 @@ diff -up Python-3.3.0rc2/Makefile.pre.in.systemtap Python-3.3.0rc2/Makefile.pre.
 +Python/ceval.o: $(OPCODETARGETS_H) $(srcdir)/Python/ceval_gil.h \
 +			$(srcdir)/Python/ceval_systemtap.h @SYSTEMTAPDEPS@
  
- Python/frozen.o: Python/importlib.h
+ Python/frozen.o: Python/importlib.h Python/importlib_external.h
  
 @@ -724,6 +726,13 @@ Objects/typeobject.o: $(srcdir)/Objects/
  Objects/typeslots.inc: $(srcdir)/Include/typeslots.h $(srcdir)/Objects/typeslots.py
@@ -669,26 +669,11 @@ diff -up Python-3.3.0rc2/Makefile.pre.in.systemtap Python-3.3.0rc2/Makefile.pre.
 @@ -1345,6 +1354,7 @@ clean: pycremoval
  	-rm -f pybuilddir.txt
  	-rm -f Lib/lib2to3/*Grammar*.pickle
- 	-rm -f Modules/_testembed Modules/_freeze_importlib
+ 	-rm -f Programs/_testembed Programs/_freeze_importlib
 +	-rm -f $(srcdir)/Python/pysystemtap.h
  
  profile-removal:
  	find . -name '*.gc??' -exec rm -f {} ';'
-diff -up Python-3.3.0rc2/Misc/NEWS.systemtap Python-3.3.0rc2/Misc/NEWS
---- Python-3.3.0rc2/Misc/NEWS.systemtap	2012-09-09 05:11:05.000000000 -0400
-+++ Python-3.3.0rc2/Misc/NEWS	2012-09-10 09:17:21.120511781 -0400
-@@ -619,6 +619,11 @@ Core and Builtins
- 
- - Issue #15038: Optimize python Locks on Windows.
- 
-+- Issue #14776: Added a new --with-systemtap configure-time option, which adds
-+  static markers for SystemTap so that SystemTap scripts can observe bytecode
-+  frames being entered and exited and so generate reports on what Python code
-+  is being exectuted.
-+
- Library
- -------
- 
 diff -up Python-3.3.0rc2/pyconfig.h.in.systemtap Python-3.3.0rc2/pyconfig.h.in
 --- Python-3.3.0rc2/pyconfig.h.in.systemtap	2012-09-09 05:11:14.000000000 -0400
 +++ Python-3.3.0rc2/pyconfig.h.in	2012-09-10 09:17:21.120511781 -0400

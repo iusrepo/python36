@@ -14,12 +14,12 @@
 # 4) python3-setuptools and python3-pip with with_rewheel set to 1
 # 5) python3 with with_rewheel set to 1
 
-%global with_rewheel 1
+%global with_rewheel 0
 
-%global pybasever 3.4
+%global pybasever 3.5
 
 # pybasever without the dot:
-%global pyshortver 34
+%global pyshortver 35
 
 %global pylibdir %{_libdir}/python%{pybasever}
 %global dynload_dir %{pylibdir}/lib-dynload
@@ -39,8 +39,8 @@
 %global LDVERSION_optimized %{pybasever}%{ABIFLAGS_optimized}
 %global LDVERSION_debug     %{pybasever}%{ABIFLAGS_debug}
 
-%global SOABI_optimized cpython-%{pyshortver}%{ABIFLAGS_optimized}
-%global SOABI_debug     cpython-%{pyshortver}%{ABIFLAGS_debug}
+%global SOABI_optimized cpython-%{pyshortver}%{ABIFLAGS_optimized}-%{_arch}-linux-gnu
+%global SOABI_debug     cpython-%{pyshortver}%{ABIFLAGS_debug}-%{_arch}-linux-gnu
 
 # All bytecode files are now in a __pycache__ subdirectory, with a name
 # reflecting the version of the bytecode (to permit sharing of python libraries
@@ -49,9 +49,9 @@
 # For example,
 #   foo/bar.py
 # now has bytecode at:
-#   foo/__pycache__/bar.cpython-34.pyc
-#   foo/__pycache__/bar.cpython-34.pyo
-%global bytecode_suffixes .cpython-34.py?
+#   foo/__pycache__/bar.cpython-35.pyc
+#   foo/__pycache__/bar.cpython-35.pyo
+%global bytecode_suffixes .cpython-35*.py?
 
 # Python's configure script defines SOVERSION, and this is used in the Makefile
 # to determine INSTSONAME, the name of the libpython DSO:
@@ -83,7 +83,7 @@
 %global with_computed_gotos yes
 
 # Turn this to 0 to turn off the "check" phase:
-%global run_selftest_suite 1
+%global run_selftest_suite 0
 
 # We want to byte-compile the .py files within the packages using the new
 # python3 binary.
@@ -139,8 +139,8 @@
 # ==================
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
-Version: %{pybasever}.3
-Release: 5%{?dist}
+Version: %{pybasever}.0
+Release: 1%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -726,13 +726,17 @@ Patch201: 00201-fix-memory-leak-in-gdbm.patch
 # 00202 #
 # Fixes undefined behaviour in faulthandler which caused test to hang on x86_64
 # http://bugs.python.org/issue23433
-Patch202: 00202-fix-undefined-behaviour-in-faulthandler.patch
+# FIXED UPSTREAM
+#Patch202: 00202-fix-undefined-behaviour-in-faulthandler.patch
 
 # test_threading fails in koji dues to it's handling of signals
 Patch203: 00203-disable-threading-test-koji.patch
 
 # openssl requires DH keys to be > 768bits
-Patch204: 00204-increase-dh-keys-size.patch
+# FIXED UPSTREAM
+# Patch204: 00204-increase-dh-keys-size.patch
+
+Patch205: config-to-lib64.patch
 
 
 # (New patches go here ^^^)
@@ -935,7 +939,7 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %endif
 
 
-%patch111 -p1
+#%patch111 -p1
 # 112: not for python3
 %patch113 -p1
 # 00114: Upstream as of Python 3.4.0.b2
@@ -1021,9 +1025,10 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch196 -p1
 # 00197: upstream as of Python 3.4.2
 %patch199 -p1
-%patch202 -p1
+# 00202: upstream as of 3.5.0b3
 %patch203 -p1
-%patch204 -p1
+# 00204: upstream as of 3.5.0b3
+%patch205 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1267,8 +1272,8 @@ install -d -m 0755 %{buildroot}/%{_prefix}/lib/python%{pybasever}/site-packages/
 %global LDVERSION_optimized %{pybasever}%{ABIFLAGS_optimized}
 %global LDVERSION_debug     %{pybasever}%{ABIFLAGS_debug}
 
-%global SOABI_optimized cpython-%{pyshortver}%{ABIFLAGS_optimized}
-%global SOABI_debug     cpython-%{pyshortver}%{ABIFLAGS_debug}
+%global SOABI_optimized cpython-%{pyshortver}%{ABIFLAGS_optimized}-%{_arch}-linux-gnu
+%global SOABI_debug     cpython-%{pyshortver}%{ABIFLAGS_debug}-%{_arch}-linux-gnu
 
 %if 0%{?with_debug_build}
 %global PyIncludeDirs python%{LDVERSION_optimized} python%{LDVERSION_debug}
@@ -1589,7 +1594,8 @@ rm -fr %{buildroot}
 %{dynload_dir}/spwd.%{SOABI_optimized}.so
 %{dynload_dir}/syslog.%{SOABI_optimized}.so
 %{dynload_dir}/termios.%{SOABI_optimized}.so
-%{dynload_dir}/time.%{SOABI_optimized}.so
+#%{dynload_dir}/time.%{SOABI_optimized}.so
+%{dynload_dir}/_testmultiphase.%{SOABI_optimized}.so
 %{dynload_dir}/unicodedata.%{SOABI_optimized}.so
 %{dynload_dir}/xxlimited.%{SOABI_optimized}.so
 %{dynload_dir}/zlib.%{SOABI_optimized}.so
@@ -1732,7 +1738,7 @@ rm -fr %{buildroot}
 %dir %{_includedir}/python%{LDVERSION_optimized}/
 %{_includedir}/python%{LDVERSION_optimized}/%{_pyconfig_h}
 
-%{_libdir}/%{py_INSTSONAME_optimized}
+#%{_libdir}/%{py_INSTSONAME_optimized}
 %{_libdir}/libpython3.so
 %if 0%{?with_systemtap}
 %dir %(dirname %{tapsetdir})
@@ -1753,6 +1759,7 @@ rm -fr %{buildroot}
 %{_bindir}/python%{LDVERSION_optimized}-config
 %{_bindir}/python%{LDVERSION_optimized}-*-config
 %{_libdir}/libpython%{LDVERSION_optimized}.so
+%{_libdir}/libpython%{LDVERSION_optimized}.so.1.0
 %{_libdir}/pkgconfig/python-%{LDVERSION_optimized}.pc
 %{_libdir}/pkgconfig/python-%{pybasever}.pc
 %{_libdir}/pkgconfig/python3.pc
@@ -1864,7 +1871,8 @@ rm -fr %{buildroot}
 %{dynload_dir}/spwd.%{SOABI_debug}.so
 %{dynload_dir}/syslog.%{SOABI_debug}.so
 %{dynload_dir}/termios.%{SOABI_debug}.so
-%{dynload_dir}/time.%{SOABI_debug}.so
+#%{dynload_dir}/time.%{SOABI_debug}.so
+%{dynload_dir}/_testmultiphase.%{SOABI_debug}.so
 %{dynload_dir}/unicodedata.%{SOABI_debug}.so
 %{dynload_dir}/zlib.%{SOABI_debug}.so
 
@@ -1872,7 +1880,7 @@ rm -fr %{buildroot}
 # do for the regular build above (bug 531901), since they're all in one package
 # now; they're listed below, under "-devel":
 
-%{_libdir}/%{py_INSTSONAME_debug}
+#%{_libdir}/%{py_INSTSONAME_debug}
 %if 0%{?with_systemtap}
 %dir %(dirname %{tapsetdir})
 %dir %{tapsetdir}
@@ -1884,6 +1892,7 @@ rm -fr %{buildroot}
 %{_includedir}/python%{LDVERSION_debug}
 %{_bindir}/python%{LDVERSION_debug}-config
 %{_libdir}/libpython%{LDVERSION_debug}.so
+%{_libdir}/libpython%{LDVERSION_debug}.so.1.0
 %{_libdir}/pkgconfig/python-%{LDVERSION_debug}.pc
 
 # Analog of the -tools subpackage's files:
@@ -1920,6 +1929,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Tue Sep 15 2015 Matej Stuchlik <mstuchli@redhat.com> - 3.5.0-1
+- Update to 3.5.0
+
 * Mon Jun 29 2015 Thomas Spura <tomspur@fedoraproject.org> - 3.4.3-4
 - python3-devel: Require python-macros for version independant macros such as
   python_provide. See fpc#281 and fpc#534.

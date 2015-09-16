@@ -35,7 +35,7 @@
          else:
 --- Python-3.4.0b1/Lib/site.py.lib64	2013-11-24 21:36:54.000000000 +0100
 +++ Python-3.4.0b1/Lib/site.py	2013-11-27 11:10:43.822150773 +0100
-@@ -304,12 +304,16 @@
+@@ -304,11 +304,15 @@
          seen.add(prefix)
  
          if os.sep == '/':
@@ -45,7 +45,6 @@
              sitepackages.append(os.path.join(prefix, "lib",
                                          "python" + sys.version[:3],
                                          "site-packages"))
-             sitepackages.append(os.path.join(prefix, "lib", "site-python"))
          else:
              sitepackages.append(prefix)
 +            sitepackages.append(os.path.join(prefix, "lib64", "site-packages"))
@@ -84,25 +83,17 @@
          'data': '{userbase}',
 --- Python-3.4.0b1/Lib/test/test_site.py.lib64	2013-11-24 21:36:55.000000000 +0100
 +++ Python-3.4.0b1/Lib/test/test_site.py	2013-11-27 11:10:43.822150773 +0100
-@@ -244,12 +244,15 @@
-             self.assertEqual(dirs[2], wanted)
+@@ -244,8 +244,8 @@
+             self.assertEqual(dirs[1], wanted)
          elif os.sep == '/':
              # OS X non-framwework builds, Linux, FreeBSD, etc
--            self.assertEqual(len(dirs), 2)
+-            self.assertEqual(len(dirs), 1)
 -            wanted = os.path.join('xoxo', 'lib', 'python' + sys.version[:3],
-+            self.assertEqual(len(dirs), 3)
++            self.assertEqual(len(dirs), 2)
 +            wanted = os.path.join('xoxo', 'lib64', 'python' + sys.version[:3],
                                    'site-packages')
              self.assertEqual(dirs[0], wanted)
--            wanted = os.path.join('xoxo', 'lib', 'site-python')
-+            wanted = os.path.join('xoxo', 'lib', 'python' + sys.version[:3],
-+                                  'site-packages')
-             self.assertEqual(dirs[1], wanted)
-+            wanted = os.path.join('xoxo', 'lib', 'site-python')
-+            self.assertEqual(dirs[2], wanted)
          else:
-             # other platforms
-             self.assertEqual(len(dirs), 2)
 --- Python-3.4.0b1/Makefile.pre.in.lib64	2013-11-27 11:10:43.814150786 +0100
 +++ Python-3.4.0b1/Makefile.pre.in	2013-11-27 11:10:43.823150771 +0100
 @@ -115,7 +115,7 @@
@@ -128,11 +119,11 @@
  
  #ifndef LANDMARK
 @@ -498,7 +498,7 @@
-     _pythonpath = _Py_char2wchar(PYTHONPATH, NULL);
-     _prefix = _Py_char2wchar(PREFIX, NULL);
-     _exec_prefix = _Py_char2wchar(EXEC_PREFIX, NULL);
--    lib_python = _Py_char2wchar("lib/python" VERSION, NULL);
-+    lib_python = _Py_char2wchar("lib64/python" VERSION, NULL);
+     _pythonpath = Py_DecodeLocale(PYTHONPATH, NULL);
+     _prefix = Py_DecodeLocale(PREFIX, NULL);
+     _exec_prefix = Py_DecodeLocale(EXEC_PREFIX, NULL);
+-    lib_python = Py_DecodeLocale("lib/python" VERSION, NULL);
++    lib_python = Py_DecodeLocale("lib64/python" VERSION, NULL);
  
      if (!_pythonpath || !_prefix || !_exec_prefix || !lib_python) {
          Py_FatalError(
