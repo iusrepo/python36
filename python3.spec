@@ -736,6 +736,10 @@ Patch203: 00203-disable-threading-test-koji.patch
 # FIXED UPSTREAM
 # Patch204: 00204-increase-dh-keys-size.patch
 
+# LIBPL variable in makefile takes LIBPL from configure.ac
+# but the LIBPL variable defined there doesn't respect libdir macro
+Patch205: 00205-make-libpl-respect-lib64.patch
+
 
 
 # (New patches go here ^^^)
@@ -1027,6 +1031,7 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 # 00202: upstream as of 3.5.0b3
 %patch203 -p1
 # 00204: upstream as of 3.5.0b3
+%patch205 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
