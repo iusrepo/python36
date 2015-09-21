@@ -6,7 +6,7 @@ diff -up cpython-59223da36dec/Makefile.pre.in.no-static-lib cpython-59223da36dec
  
  # Build the interpreter
 -$(BUILDPYTHON):	Programs/python.o $(LIBRARY) $(LDLIBRARY) $(PY3LIBRARY)
-+$(BUILDPYTHON): Programs/python.o $(LIBRARY) $(LDLIBRARY) $(PY3LIBRARY)
++$(BUILDPYTHON): Programs/python.o $(LDLIBRARY) $(PY3LIBRARY)
  	$(LINKCC) $(PY_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/python.o $(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
  
  platform: $(BUILDPYTHON) pybuilddir.txt

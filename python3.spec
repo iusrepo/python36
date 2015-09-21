@@ -736,7 +736,6 @@ Patch203: 00203-disable-threading-test-koji.patch
 # FIXED UPSTREAM
 # Patch204: 00204-increase-dh-keys-size.patch
 
-Patch205: config-to-lib64.patch
 
 
 # (New patches go here ^^^)
@@ -939,7 +938,7 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %endif
 
 
-#%patch111 -p1
+%patch111 -p1
 # 112: not for python3
 %patch113 -p1
 # 00114: Upstream as of Python 3.4.0.b2
@@ -1028,7 +1027,6 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 # 00202: upstream as of 3.5.0b3
 %patch203 -p1
 # 00204: upstream as of 3.5.0b3
-%patch205 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
