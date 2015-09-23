@@ -39,8 +39,8 @@
 %global LDVERSION_optimized %{pybasever}%{ABIFLAGS_optimized}
 %global LDVERSION_debug     %{pybasever}%{ABIFLAGS_debug}
 
-%global SOABI_optimized cpython-%{pyshortver}%{ABIFLAGS_optimized}-%{_arch}-linux-gnu
-%global SOABI_debug     cpython-%{pyshortver}%{ABIFLAGS_debug}-%{_arch}-linux-gnu
+%global SOABI_optimized cpython-%{pyshortver}%{ABIFLAGS_optimized}-%{_arch}-linux%{_gnu}
+%global SOABI_debug     cpython-%{pyshortver}%{ABIFLAGS_debug}-%{_arch}-linux%{_gnu}
 
 # All bytecode files are now in a __pycache__ subdirectory, with a name
 # reflecting the version of the bytecode (to permit sharing of python libraries
@@ -740,6 +740,10 @@ Patch203: 00203-disable-threading-test-koji.patch
 # but the LIBPL variable defined there doesn't respect libdir macro
 Patch205: 00205-make-libpl-respect-lib64.patch
 
+# Remove hf flag from arm triplet which is used
+# by debian but fedora infra uses only eabi without hf
+Patch206: 00206-remove-hf-from-arm-triplet.patch
+
 
 
 # (New patches go here ^^^)
@@ -1032,6 +1036,7 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch203 -p1
 # 00204: upstream as of 3.5.0b3
 %patch205 -p1
+%patch206 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1275,8 +1280,8 @@ install -d -m 0755 %{buildroot}/%{_prefix}/lib/python%{pybasever}/site-packages/
 %global LDVERSION_optimized %{pybasever}%{ABIFLAGS_optimized}
 %global LDVERSION_debug     %{pybasever}%{ABIFLAGS_debug}
 
-%global SOABI_optimized cpython-%{pyshortver}%{ABIFLAGS_optimized}-%{_arch}-linux-gnu
-%global SOABI_debug     cpython-%{pyshortver}%{ABIFLAGS_debug}-%{_arch}-linux-gnu
+%global SOABI_optimized cpython-%{pyshortver}%{ABIFLAGS_optimized}-%{_arch}-linux%{_gnu}
+%global SOABI_debug     cpython-%{pyshortver}%{ABIFLAGS_debug}-%{_arch}-linux%{_gnu}
 
 %if 0%{?with_debug_build}
 %global PyIncludeDirs python%{LDVERSION_optimized} python%{LDVERSION_debug}
