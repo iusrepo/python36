@@ -14,7 +14,7 @@
 # 4) python3-setuptools and python3-pip with with_rewheel set to 1
 # 5) python3 with with_rewheel set to 1
 
-%global with_rewheel 0
+%global with_rewheel 1
 
 %global pybasever 3.5
 
@@ -140,7 +140,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1937,6 +1937,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed Oct 14 2015 Robert Kuska <rkuska@redhat.com> - 3.5.0-2
+- Rebuild with wheel set to 1
+
 * Tue Sep 15 2015 Matej Stuchlik <mstuchli@redhat.com> - 3.5.0-1
 - Update to 3.5.0
 
