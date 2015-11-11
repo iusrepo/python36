@@ -140,7 +140,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -744,6 +744,11 @@ Patch205: 00205-make-libpl-respect-lib64.patch
 # by debian but fedora infra uses only eabi without hf
 Patch206: 00206-remove-hf-from-arm-triplet.patch
 
+# https://bugs.python.org/issue25150
+# Hide the private _Py_atomic_xxx symbols from the public
+# Python.h header to fix a compilation error with OpenMP.
+Patch207: 00207-hide-atomic-symbols.patch
+
 
 
 # (New patches go here ^^^)
@@ -1037,6 +1042,7 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 # 00204: upstream as of 3.5.0b3
 %patch205 -p1
 %patch206 -p1
+%patch207 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1746,7 +1752,7 @@ rm -fr %{buildroot}
 %dir %{_includedir}/python%{LDVERSION_optimized}/
 %{_includedir}/python%{LDVERSION_optimized}/%{_pyconfig_h}
 
-#%{_libdir}/%{py_INSTSONAME_optimized}
+%{_libdir}/%{py_INSTSONAME_optimized}
 %{_libdir}/libpython3.so
 %if 0%{?with_systemtap}
 %dir %(dirname %{tapsetdir})
@@ -1888,7 +1894,7 @@ rm -fr %{buildroot}
 # do for the regular build above (bug 531901), since they're all in one package
 # now; they're listed below, under "-devel":
 
-#%{_libdir}/%{py_INSTSONAME_debug}
+%{_libdir}/%{py_INSTSONAME_debug}
 %if 0%{?with_systemtap}
 %dir %(dirname %{tapsetdir})
 %dir %{tapsetdir}
@@ -1937,6 +1943,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed Nov 11 2015 Robert Kuska <rkuska@redhat.com> - 3.5.0-3
+- Hide the private _Py_atomic_xxx symbols from public header
+
 * Wed Oct 14 2015 Robert Kuska <rkuska@redhat.com> - 3.5.0-2
 - Rebuild with wheel set to 1
 
