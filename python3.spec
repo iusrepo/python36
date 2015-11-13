@@ -140,7 +140,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -776,6 +776,10 @@ Patch207: 00207-hide-atomic-symbols.patch
 # above:
 Patch5000: 05000-autotool-intermediates.patch
 
+# add correct arch for ppc64/ppc64le
+# it should be ppc64le-linux-gnu/ppc64-linux-gnu instead powerpc64le-linux-gnu/powerpc64-linux-gnu
+Patch5001: python3-powerppc-arch.patch
+
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 
 # ======================================================
@@ -1059,6 +1063,8 @@ sed --in-place \
 # We don't apply the patch if we're working towards regenerating it
 %patch5000 -p0 -b .autotool-intermediates
 %endif
+
+%patch5001 -p1
 
 # ======================================================
 # Configuring and building the code:
@@ -1943,6 +1949,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Nov 13 2015 Than Ngo <than@redhat.com> 3.5.0-4
+- add correct arch for ppc64/ppc64le to fix build failure
+
 * Wed Nov 11 2015 Robert Kuska <rkuska@redhat.com> - 3.5.0-3
 - Hide the private _Py_atomic_xxx symbols from public header
 
