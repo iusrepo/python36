@@ -140,7 +140,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1779,7 +1779,6 @@ rm -fr %{buildroot}
 %{_bindir}/python%{LDVERSION_optimized}-config
 %{_bindir}/python%{LDVERSION_optimized}-*-config
 %{_libdir}/libpython%{LDVERSION_optimized}.so
-%{_libdir}/libpython%{LDVERSION_optimized}.so.1.0
 %{_libdir}/pkgconfig/python-%{LDVERSION_optimized}.pc
 %{_libdir}/pkgconfig/python-%{pybasever}.pc
 %{_libdir}/pkgconfig/python3.pc
@@ -1949,6 +1948,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Sun Nov 15 2015 Robert Kuska <rkuska@redhat.com> - 3.5.0-5
+- Remove versioned libpython from devel package
+
 * Fri Nov 13 2015 Than Ngo <than@redhat.com> 3.5.0-4
 - add correct arch for ppc64/ppc64le to fix build failure
 
