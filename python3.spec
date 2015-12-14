@@ -267,22 +267,6 @@ Patch104: 00104-lib64-fix-for-test_install.patch
 # Downstream only: not appropriate for upstream
 Patch111: 00111-no-static-lib.patch
 
-# 00113 #
-# Add configure-time support for the COUNT_ALLOCS and CALL_PROFILE options
-# described at http://svn.python.org/projects/python/trunk/Misc/SpecialBuilds.txt
-# so that if they are enabled, they will be in that build's pyconfig.h, so that
-# extension modules will reliably use them
-# Not yet sent upstream
-Patch113: 00113-more-configuration-flags.patch
-
-# 00125 #
-# COUNT_ALLOCS is useful for debugging, but the upstream behaviour of always
-# emitting debug info to stdout on exit is too verbose and makes it harder to
-# use the debug build.  Add a "PYTHONDUMPCOUNTS" environment variable which
-# must be set to enable the output on exit
-# Not yet sent upstream
-Patch125: 00125-less-verbose-COUNT_ALLOCS.patch
-
 # 00131 #
 # The four tests in test_io built on top of check_interrupted_write_retry
 # fail when built in Koji, for ppc and ppc64; for some reason, the SIGALRM
@@ -308,18 +292,6 @@ Patch132: 00132-add-rpmbuild-hooks-to-unittest.patch
 # 00133-skip-test_dl.patch is not relevant for python3: the "dl" module no
 # longer exists
 
-# 00134 #
-# Fix a failure in test_sys.py when configured with COUNT_ALLOCS enabled
-# Not yet sent upstream
-Patch134: 00134-fix-COUNT_ALLOCS-failure-in-test_sys.patch
-
-# 00135 #
-# test_weakref's test_callback_in_cycle_resurrection doesn't work with
-# COUNT_ALLOCS, as the metrics keep "C" alive.  Work around this for our
-# debug build:
-# Not yet sent upstream
-Patch135: 00135-fix-test-within-test_weakref-in-debug-build.patch
-
 # 00137 #
 # Some tests within distutils fail when run in an rpmbuild:
 Patch137: 00137-skip-distutils-tests-that-fail-in-rpmbuild.patch
@@ -331,13 +303,6 @@ Patch139: 00139-skip-test_float-known-failure-on-arm.patch
 
 # ideally short lived patch disabling a test thats fragile on different arches
 Patch140: python3-arm-skip-failing-fragile-test.patch
-
-# 00141 #
-# Fix tests for case when  tests for case when configured with
-# COUNT_ALLOCS (debug build): http://bugs.python.org/issue19527
-# Applies to: test_gc, test_module, test_io, test_logging, test_warnings,
-#             test_threading
-Patch141: 00141-fix-tests_with_COUNT_ALLOCS.patch
 
 # 00143 #
 # Fix the --with-tsc option on ppc64, and rework it on 32-bit ppc to avoid
@@ -740,26 +705,16 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch102 -p1
 %patch104 -p1
 %endif
-
-
 %patch111 -p1
-%patch113 -p1
-
-%patch125 -p1 -b .less-verbose-COUNT_ALLOCS
-
 %ifarch ppc %{power64}
 %patch131 -p1
 %endif
-
 %patch132 -p1
-%patch134 -p1
-%patch135 -p1
 %patch137 -p1
 %ifarch %{arm}
 %patch139 -p1
 %patch140 -p1
 %endif
-%patch141 -p1
 %patch143 -p1 -b .tsc-on-ppc
 %patch146 -p1
 %ifarch ppc %{power64}
