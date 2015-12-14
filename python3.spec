@@ -247,10 +247,6 @@ Source8: check-pyc-and-pyo-timestamps.py
 # Was Patch0 in ivazquez' python3000 specfile:
 Patch1:         Python-3.1.1-rpath.patch
 
-# Some tests were removed due to audiotest.au not being packaged. This was
-# however added to the archive in 3.3.1, so we no longer delete the tests.
-#  Patch3: 00003-remove-mimeaudio-tests.patch
-
 # 00055 #
 # Systemtap support: add statically-defined probe points
 # Patch sent upstream as http://bugs.python.org/issue14776
@@ -271,10 +267,6 @@ Patch104: 00104-lib64-fix-for-test_install.patch
 # Downstream only: not appropriate for upstream
 Patch111: 00111-no-static-lib.patch
 
-# 00112 #
-# Patch112: python-2.7rc1-debug-build.patch: this is not relevant to Python 3,
-# for 3.2 onwards
-
 # 00113 #
 # Add configure-time support for the COUNT_ALLOCS and CALL_PROFILE options
 # described at http://svn.python.org/projects/python/trunk/Misc/SpecialBuilds.txt
@@ -283,10 +275,6 @@ Patch111: 00111-no-static-lib.patch
 # Not yet sent upstream
 Patch113: 00113-more-configuration-flags.patch
 
-# 00114 #
-# Upstream as of Python 3.4.0.b2
-#  Patch114: 00114-statvfs-f_flag-constants.patch
-
 # 00125 #
 # COUNT_ALLOCS is useful for debugging, but the upstream behaviour of always
 # emitting debug info to stdout on exit is too verbose and makes it harder to
@@ -294,11 +282,6 @@ Patch113: 00113-more-configuration-flags.patch
 # must be set to enable the output on exit
 # Not yet sent upstream
 Patch125: 00125-less-verbose-COUNT_ALLOCS.patch
-
-# 00130 #
-# Python 2's:
-#   Patch130: python-2.7.2-add-extension-suffix-to-python-config.patch
-# is not relevant to Python 3 (for 3.2 onwards)
 
 # 00131 #
 # The four tests in test_io built on top of check_interrupted_write_retry
@@ -337,17 +320,9 @@ Patch134: 00134-fix-COUNT_ALLOCS-failure-in-test_sys.patch
 # Not yet sent upstream
 Patch135: 00135-fix-test-within-test_weakref-in-debug-build.patch
 
-# 00136 #
-# Patch136: 00136-skip-tests-of-seeking-stdin-in-rpmbuild.patch does not seem
-# to be needed by python3
-
 # 00137 #
 # Some tests within distutils fail when run in an rpmbuild:
 Patch137: 00137-skip-distutils-tests-that-fail-in-rpmbuild.patch
-
-# 00138 #
-# Patch138: 00138-fix-distutils-tests-in-debug-build.patch is not relevant for
-# python3
 
 # 00139 #
 # ARM-specific: skip known failure in test_float:
@@ -356,9 +331,6 @@ Patch139: 00139-skip-test_float-known-failure-on-arm.patch
 
 # ideally short lived patch disabling a test thats fragile on different arches
 Patch140: python3-arm-skip-failing-fragile-test.patch
-
-# Patch140: 00140-skip-test_ctypes-known-failure-on-sparc.patch does not appear
-# to be relevant for python3
 
 # 00141 #
 # Fix tests for case when  tests for case when configured with
@@ -372,17 +344,6 @@ Patch141: 00141-fix-tests_with_COUNT_ALLOCS.patch
 # aliasing violations (rhbz#698726)
 # Sent upstream as http://bugs.python.org/issue12872
 Patch143: 00143-tsc-on-ppc.patch
-
-# 00144 #
-# (Optionally) disable the gdbm module:
-# python.spec's
-#   Patch144: 00144-no-gdbm.patch
-# is not needed in python3.spec
-
-# 00145 #
-# python.spec's
-#   Patch145: 00145-force-sys-platform-to-be-linux2.patch
-# is upstream for Python 3 as of 3.2.2
 
 # 00146 #
 # Support OpenSSL FIPS mode (e.g. when OPENSSL_FORCE_FIPS_MODE=1 is set)
@@ -408,20 +369,6 @@ Patch143: 00143-tsc-on-ppc.patch
 # implementation and OpenSSL still doesn't support it. For now, they're harmless.
 Patch146: 00146-hashlib-fips.patch
 
-# 00147 #
-# Add a sys._debugmallocstats() function
-# Sent upstream as http://bugs.python.org/issue14785
-# Upstream as of Python 3.3.0
-#  Patch147: 00147-add-debug-malloc-stats.patch
-
-# 00148 #
-# Upstream as of Python 3.2.3:
-#  Patch148: 00148-gdbm-1.9-magic-values.patch
-
-# 00149 #
-# Upstream as of Python 3.2.3:
-#  Patch149: 00149-backport-issue11254-pycache-bytecompilation-fix.patch
-
 # 00150 #
 # temporarily disable rAssertAlmostEqual in test_cmath on PPC (bz #750811)
 # caused by a glibc bug. This patch can be removed when we have a glibc with
@@ -429,41 +376,11 @@ Patch146: 00146-hashlib-fips.patch
 #   http://sourceware.org/bugzilla/show_bug.cgi?id=13472
 Patch150: 00150-disable-rAssertAlmostEqual-cmath-on-ppc.patch
 
-# 00151 #
-# python.spec had:
-#  Patch151: 00151-fork-deadlock.patch
-
-# 00152 #
-# Fix a regex in test_gdb so that it doesn't choke when gdb provides a full
-# path to Python/bltinmodule.c:
-# Committed upstream as 77824:abcd29c9a791 as part of fix for
-# http://bugs.python.org/issue12605
-#  Patch152: 00152-fix-test-gdb-regex.patch
-
-# 00153 #
-# Strip out lines of the form "warning: Unable to open ..." from gdb's stderr
-# when running test_gdb.py; also cope with change to gdb in F17 onwards in
-# which values are printed as "v@entry" rather than just "v":
-# Not yet sent upstream
-# Upstream as of 3.4.3
-#  Patch153: 00153-fix-test_gdb-noise.patch
-
-# 00154 #
-# python3.spec on f15 has:
-#  Patch154: 00154-skip-urllib-test-requiring-working-DNS.patch
-
 # 00155 #
 # Avoid allocating thunks in ctypes unless absolutely necessary, to avoid
 # generating SELinux denials on "import ctypes" and "import uuid" when
 # embedding Python within httpd (rhbz#814391)
 Patch155: 00155-avoid-ctypes-thunks.patch
-
-# 00156 #
-# Recent builds of gdb will only auto-load scripts from certain safe
-# locations.  Turn off this protection when running test_gdb in the selftest
-# suite to ensure that it can load our -gdb.py script (rhbz#817072):
-# Upsream as of 3.4.3
-#  Patch156: 00156-gdb-autoload-safepath.patch
 
 # 00157 #
 # Update uid/gid handling throughout the standard library: uid_t and gid_t are
@@ -481,14 +398,6 @@ Patch155: 00155-avoid-ctypes-thunks.patch
 # (rhbz#697470)
 Patch157: 00157-uid-gid-overflows.patch
 
-# 00158 #
-# Upstream as of Python 3.3.1
-
-# 00159 #
-#  Patch159: 00159-correct-libdb-include-path.patch
-# in python.spec
-# TODO: python3 status?
-
 # 00160 #
 # Python 3.3 added os.SEEK_DATA and os.SEEK_HOLE, which may be present in the
 # header files in the build chroot, but may not be supported in the running
@@ -496,12 +405,6 @@ Patch157: 00157-uid-gid-overflows.patch
 # Adding these was upstream issue http://bugs.python.org/issue10142
 # Not yet sent upstream
 Patch160: 00160-disable-test_fs_holes-in-rpm-build.patch
-
-# 00161 #
-# (Was only needed for Python 3.3.0b1)
-
-# 00162 #
-# (Was only needed for Python 3.3.0b1)
 
 # 00163 #
 # Some tests within test_socket fail intermittently when run inside Koji;
@@ -515,31 +418,6 @@ Patch163: 00163-disable-parts-of-test_socket-in-rpm-build.patch
 # disable those tests so that rebuilds on PPC can continue
 Patch164: 00164-disable-interrupted_write-tests-on-ppc.patch
 
-# 00165 #
-# python.spec has:
-#   Patch165: 00165-crypt-module-salt-backport.patch
-# which is a backport from 3.3 and thus not relevant to "python3"
-
-# 00166 #
-#  Patch166: 00166-fix-fake-repr-in-gdb-hooks.patch
-# in python.spec
-# TODO: python3 status?
-
-# 00167 #
-#  Patch167: 00167-disable-stack-navigation-tests-when-optimized-in-test_gdb.patch
-# in python.spec
-# TODO: python3 status?
-
-# 00168 #
-#  Patch168: 00168-distutils-cflags.patch
-# in python.spec
-# TODO: python3 status?
-
-# 00169 #
-#  Patch169: 00169-avoid-implicit-usage-of-md5-in-multiprocessing.patch
-# in python.spec
-# TODO: python3 status?
-
 # 00170 #                                                                                           
 # In debug builds, try to print repr() when a C-level assert fails in the                           
 # garbage collector (typically indicating a reference-counting error                                
@@ -551,36 +429,10 @@ Patch164: 00164-disable-interrupted_write-tests-on-ppc.patch
 # (rhbz#850013
 Patch170: 00170-gc-assertions.patch
 
-# 00171 #
-# python.spec had:
-#  Patch171: 00171-raise-correct-exception-when-dev-urandom-is-missing.patch
-# TODO: python3 status?
-
-# 00172 #
-# python.spec had:
-#  Patch172: 00172-use-poll-for-multiprocessing-socket-connection.patch
-# TODO: python3 status?
-
 # 00173 #
 # Workaround for ENOPROTOOPT seen in Koji withi test.support.bind_port()
 # (rhbz#913732)
 Patch173: 00173-workaround-ENOPROTOOPT-in-bind_port.patch
-
-# 00174 #
-#  Patch174: 00174-fix-for-usr-move.patch
-# TODO: python3 status?
-
-# 00175 #
-# Upstream as of Python 3.3.2
-#  Patch175: 00175-fix-configure-Wformat.patch
-
-# 00176 #
-# Fixed upstream as of Python 3.3.1
-#  Patch176: 00176-upstream-issue16754-so-extension.patch
-
-# 00177 #
-# Fixed upstream as of Python 3.4.0.b2
-#  Patch177: 00177-platform-unicode.patch
 
 # 00178 #
 # Don't duplicate various FLAGS in sysconfig values
@@ -602,19 +454,6 @@ Patch179: 00179-dont-raise-error-on-gdb-corrupted-frames-in-backtrace.patch
 # Not appropriate for upstream, Fedora-specific naming
 Patch180: 00180-python-add-support-for-ppc64p7.patch
 
-# 00181 #
-# python.spec has
-#  Patch181: 00181-allow-arbitrary-timeout-in-condition-wait.patch
-# Does not affect python3
-
-# 00182 #
-# Fixed upstream as of Python 3.3.2
-#  Patch182: 00182-fix-test_gdb-test_threads.patch
-
-# 00183 #
-# Fixed upstream as of Python 3.4.0a4
-#  Patch183: 00183-cve-2013-2099-fix-ssl-match_hostname-dos.patch
-
 # 00184 #
 # Fix for https://bugzilla.redhat.com/show_bug.cgi?id=979696
 # Fixes build of ctypes against libffi with multilib wrapper
@@ -622,10 +461,6 @@ Patch180: 00180-python-add-support-for-ppc64p7.patch
 # but the wrapper doesn't contain that, which makes the build fail
 # We patch this by also accepting "#define ffi_wrapper_h"
 Patch184: 00184-ctypes-should-build-with-libffi-multilib-wrapper.patch
-
-# 00185 #
-# Fixed upstream as of Python 3.4.0a4
-#  Patch185: 00185-CVE-2013-4238-hostname-check-bypass-in-SSL-module.patch
 
 # 00186 #
 # Fix for https://bugzilla.redhat.com/show_bug.cgi?id=1023607
@@ -635,10 +470,6 @@ Patch184: 00184-ctypes-should-build-with-libffi-multilib-wrapper.patch
 # thus not continuing bytecompilation for other files.
 # This was fixed upstream, but the test hasn't been merged yet, so we keep it
 Patch186: 00186-dont-raise-from-py_compile.patch
-
-# 00187 #
-# Fixed upstream as of Python 3.4.0b1
-#  Patch187: 00187-remove-pthread-atfork.patch
 
 # 00188 #
 # Downstream only patch that should be removed when we compile all guaranteed
@@ -664,47 +495,14 @@ Patch188: 00188-fix-lib2to3-tests-when-hashlib-doesnt-compile-properly.patch
 Patch189: 00189-add-rewheel-module.patch
 %endif
 
-# 00190 #
-#
-# Fix tests with SQLite >= 3.8.4
-# http://bugs.python.org/issue20901
-# http://hg.python.org/cpython/rev/4d626a9df062
-# FIXED UPSTREAM
-# Patch190: 00190-fix-tests-with-sqlite-3.8.4.patch
-
-# 00193
-#
-# Skip correct number of *.pyc file bytes in ModuleFinder.load_module
-# rhbz#1060338
-# http://bugs.python.org/issue20778
-# FIXED UPSTREAM
-# Patch193: 00193-skip-correct-num-of-pycfile-bytes-in-modulefinder.patch
-
 # Tests requiring SIGHUP to work don't work in Koji
 # see rhbz#1088233
 Patch194: temporarily-disable-tests-requiring-SIGHUP.patch
-
-# 00195
-#
-# Don't declare Werror=declaration-after-statement for extension
-# modules through setup.py
-# http://bugs.python.org/issue21121
-# FIXED UPSTREAM
-# Patch195: 00195-dont-add-Werror-declaration-after-statement.patch
 
 # 00196
 #
 #  Fix test_gdb failure on ppc64le
 Patch196: 00196-test-gdb-match-addr-before-builtin.patch
-
-# 00197
-#
-# The CGIHTTPServer Python module did not properly handle URL-encoded
-# path separators in URLs. This may have enabled attackers to disclose a CGI
-# script's source code or execute arbitrary scripts in the server's
-# document root.
-# FIXED UPSTREAM
-# Patch197: 00197-fix-CVE-2014-4650.patch
 
 # OpenSSL disabled SSLv3 in SSLv23 method
 # This patch alters python tests to reflect this change
@@ -723,18 +521,8 @@ Patch200: 00200-gettext-plural-fix.patch
 # Note: Backported from scl
 Patch201: 00201-fix-memory-leak-in-gdbm.patch 
 
-# 00202 #
-# Fixes undefined behaviour in faulthandler which caused test to hang on x86_64
-# http://bugs.python.org/issue23433
-# FIXED UPSTREAM
-#Patch202: 00202-fix-undefined-behaviour-in-faulthandler.patch
-
 # test_threading fails in koji dues to it's handling of signals
 Patch203: 00203-disable-threading-test-koji.patch
-
-# openssl requires DH keys to be > 768bits
-# FIXED UPSTREAM
-# Patch204: 00204-increase-dh-keys-size.patch
 
 # LIBPL variable in makefile takes LIBPL from configure.ac
 # but the LIBPL variable defined there doesn't respect libdir macro
@@ -943,7 +731,6 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 # Apply patches:
 #
 %patch1 -p1
-# 3: upstream as of Python 3.3.1
 
 %if 0%{?with_systemtap}
 %patch55 -p1 -b .systemtap
@@ -956,9 +743,7 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 
 
 %patch111 -p1
-# 112: not for python3
 %patch113 -p1
-# 00114: Upstream as of Python 3.4.0.b2
 
 %patch125 -p1 -b .less-verbose-COUNT_ALLOCS
 
@@ -967,83 +752,42 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %endif
 
 %patch132 -p1
-# 00133: not for python3
 %patch134 -p1
 %patch135 -p1
-# 00136: not for python3
 %patch137 -p1
-# 00138: not for python3
 %ifarch %{arm}
 %patch139 -p1
 %patch140 -p1
 %endif
-# 00140: not for python3
 %patch141 -p1
 %patch143 -p1 -b .tsc-on-ppc
-# 00144: not for python3
-# 00145: not for python3
 %patch146 -p1
-# 00147: upstream as of Python 3.3.0
-# 00148: upstream as of Python 3.2.3
-# 00149: upstream as of Python 3.2.3
 %ifarch ppc %{power64}
 %patch150 -p1
 %endif
-# 00151: not for python3
-# 00152: upstream as of Python 3.3.0b2
-# 00153: upstream as of Python 3.4.3
-# 00154: not for this branch
 %patch155 -p1
-# 00156: upstream as of 3.4.3
 %patch157 -p1
-#00158: FIXME
-#00159: FIXME
 %patch160 -p1
-# 00161: was only needed for Python 3.3.0b1
-# 00162: was only needed for Python 3.3.0b1
 %patch163 -p1
 %ifarch ppc %{power64}
 %patch164 -p1
 %endif
-#00165: TODO
-#00166: TODO
-#00167: TODO
-#00168: TODO
-#00169: TODO
-#00170: TODO
-#00171: TODO
-#00172: TODO
 %patch173 -p1
-#00174: TODO
-# 00175: upstream as of Python 3.3.2
-# 00176: upstream as of Python 3.3.1
-# 00177: upstream as of Python 3.4.0.b2
 %patch178 -p1
 %patch179 -p1
 %patch180 -p1
-# 00181: not for python3
-# 00182: upstream as of Python 3.3.2
-# 00183  upstream as of Python 3.4.0a4
 %patch184  -p1
-# 00185  upstream as of Python 3.4.0a4
 %patch186 -p1
-# 00187: upstream as of Python 3.4.0b1
 %patch188 -p1
 
 %if 0%{with_rewheel}
 %patch189 -p1
 %endif
 
-# 00190: upstream as of Python 3.4.1
-# 00193: upstream as of Python 3.4.1
 %patch194 -p1
-# 00195: upstream as of Python 3.4.2
 %patch196 -p1
-# 00197: upstream as of Python 3.4.2
 %patch199 -p1
-# 00202: upstream as of 3.5.0b3
 %patch203 -p1
-# 00204: upstream as of 3.5.0b3
 %patch205 -p1
 %patch206 -p1
 %patch207 -p1
