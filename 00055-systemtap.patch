@@ -667,9 +667,9 @@ diff -up Python-3.3.0rc2/Makefile.pre.in.systemtap Python-3.3.0rc2/Makefile.pre.
  # Header files
  
 @@ -1345,6 +1354,7 @@ clean: pycremoval
- 	-rm -f pybuilddir.txt
  	-rm -f Lib/lib2to3/*Grammar*.pickle
  	-rm -f Programs/_testembed Programs/_freeze_importlib
+	-rm -rf build
 +	-rm -f $(srcdir)/Python/pysystemtap.h
  
  profile-removal:

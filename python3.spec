@@ -111,8 +111,8 @@
 # ==================
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
-Version: %{pybasever}.0
-Release: 5%{?dist}
+Version: %{pybasever}.1
+Release: 1%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -441,11 +441,6 @@ Patch194: temporarily-disable-tests-requiring-SIGHUP.patch
 #  Fix test_gdb failure on ppc64le
 Patch196: 00196-test-gdb-match-addr-before-builtin.patch
 
-# OpenSSL disabled SSLv3 in SSLv23 method
-# This patch alters python tests to reflect this change
-# Issue: http://bugs.python.org/issue22638 Upstream discussion about SSLv3 in Python
-Patch199: 00199-alter-tests-to-reflect-sslv3-disabled.patch
-
 # 00200 #                                                                                           
 # Fix for gettext plural form headers (lines that begin with "#")                                   
 # Note: Backported from scl
@@ -468,11 +463,6 @@ Patch205: 00205-make-libpl-respect-lib64.patch
 # Remove hf flag from arm triplet which is used
 # by debian but fedora infra uses only eabi without hf
 Patch206: 00206-remove-hf-from-arm-triplet.patch
-
-# https://bugs.python.org/issue25150
-# Hide the private _Py_atomic_xxx symbols from the public
-# Python.h header to fix a compilation error with OpenMP.
-Patch207: 00207-hide-atomic-symbols.patch
 
 # add correct arch for ppc64/ppc64le
 # it should be ppc64le-linux-gnu/ppc64-linux-gnu instead powerpc64le-linux-gnu/powerpc64-linux-gnu
@@ -686,11 +676,9 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 
 %patch194 -p1
 %patch196 -p1
-%patch199 -p1
 %patch203 -p1
 %patch205 -p1
 %patch206 -p1
-%patch207 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1563,6 +1551,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Dec 14 2015 Robert Kuska <rkuska@redhat.com> - 3.5.1-1
+- Update to 3.5.1
+- Removed patch 199 and 207 (upstream)
+
 * Sun Nov 15 2015 Robert Kuska <rkuska@redhat.com> - 3.5.0-5
 - Remove versioned libpython from devel package
 
