@@ -1,0 +1,56 @@
+--- Python-3.5.1/Makefile.pre.in.kh	2015-12-17 05:51:08.466546157 -0500
++++ Python-3.5.1/Makefile.pre.in	2015-12-17 05:52:26.207761635 -0500
+@@ -587,11 +587,15 @@ pybuilddir.txt: $(BUILDPYTHON)
+ 		exit 1 ; \
+ 	fi
+ 
++# This is shared by the math and cmath modules
++Modules/_math.o: Modules/_math.c Modules/_math.h
++	$(CC) -c $(CCSHARED) $(PY_CORE_CFLAGS) -o $@ $<
++
+ # Build the shared modules
+ # Under GNU make, MAKEFLAGS are sorted and normalized; the 's' for
+ # -s, --silent or --quiet is always the first char.
+ # Under BSD make, MAKEFLAGS might be " -s -v x=y".
+-sharedmods: $(BUILDPYTHON) pybuilddir.txt
++sharedmods: $(BUILDPYTHON) pybuilddir.txt Modules/_math.o
+ 	@case "$$MAKEFLAGS" in \
+ 	    *\ -s*|s*) quiet="-q";; \
+ 	    *) quiet="";; \
+--- Python-3.5.1/Misc/NEWS.kh	2015-12-17 05:53:40.898929946 -0500
++++ Python-3.5.1/Misc/NEWS	2015-12-17 05:54:28.599676136 -0500
+@@ -464,6 +464,10 @@ Build
+ - Issue #24986: It is now possible to build Python on Windows without errors
+   when external libraries are not available.
+ 
++- Issue #24421: Compile Modules/_math.c once, before building extensions.
++  Previously it could fail to compile properly if the math and cmath builds
++  were concurrent.
++
+ Windows
+ -------
+ 
+--- Python-3.5.1/setup.py.kh	2015-12-17 06:38:30.950955607 -0500
++++ Python-3.5.1/setup.py	2015-12-17 06:42:32.074722493 -0500
+@@ -582,13 +582,17 @@ class PyBuildExt(build_ext):
+ 
+         # array objects
+         exts.append( Extension('array', ['arraymodule.c']) )
++
++        shared_math = 'Modules/_math.o'
+         # complex math library functions
+-        exts.append( Extension('cmath', ['cmathmodule.c', '_math.c'],
+-                               depends=['_math.h'],
++        exts.append( Extension('cmath', ['cmathmodule.c'],
++                               extra_objects=[shared_math],
++                               depends=['_math.h', shared_math],
+                                libraries=math_libs) )
+         # math library functions, e.g. sin()
+-        exts.append( Extension('math',  ['mathmodule.c', '_math.c'],
+-                               depends=['_math.h'],
++        exts.append( Extension('math',  ['mathmodule.c'],
++                               extra_objects=[shared_math],
++                               depends=['_math.h', shared_math],
+                                libraries=math_libs) )
+ 
+         # time libraries: librt may be needed for clock_gettime()

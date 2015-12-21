@@ -464,6 +464,15 @@ Patch205: 00205-make-libpl-respect-lib64.patch
 # by debian but fedora infra uses only eabi without hf
 Patch206: 00206-remove-hf-from-arm-triplet.patch
 
+# Avoid truncated _math.o files caused by parallel builds
+# modified version of https://bugs.python.org/issue24421
+# rhbz#1292461
+Patch207: 00207-math-once.patch
+
+# test_with_pip (test.test_venv.EnsurePipTest) fails on ppc64*
+# rhbz#1292467
+Patch208: 00208-disable-test_with_pip-on-ppc.patch
+
 # add correct arch for ppc64/ppc64le
 # it should be ppc64le-linux-gnu/ppc64-linux-gnu instead powerpc64le-linux-gnu/powerpc64-linux-gnu
 Patch5001: python3-powerppc-arch.patch
@@ -679,6 +688,8 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch203 -p1
 %patch205 -p1
 %patch206 -p1
+%patch207 -p1
+%patch208 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -705,6 +716,7 @@ export OPT="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC -fwrapv"
 export LINKCC="gcc"
 export CFLAGS="$CFLAGS `pkg-config --cflags openssl`"
 export LDFLAGS="$RPM_LD_FLAGS `pkg-config --libs-only-L openssl`"
+
 
 # Define a function, for how to perform a "build" of python for a given
 # configuration:
@@ -1087,6 +1099,11 @@ find %{buildroot} -type f -a -name "*.py" -print0 | \
     PYTHONPATH="%{buildroot}%{_libdir}/python%{pybasever} %{buildroot}%{_libdir}/python%{pybasever}/site-packages" \
     xargs -0 %{buildroot}%{_bindir}/python%{pybasever} %{SOURCE8}
 
+# For ppc64 we need a larger stack than default (rhbz#1292462)
+%ifarch %{power64}
+  ulimit -a
+  ulimit -s 16384
+%endif
 
 topdir=$(pwd)
 CheckPython() {

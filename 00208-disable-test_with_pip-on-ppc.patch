@@ -1,0 +1,11 @@
+diff -up Python-3.5.1/Lib/test/test_venv.py.1292467 Python-3.5.1/Lib/test/test_venv.py
+--- Python-3.5.1/Lib/test/test_venv.py.1292467	2015-12-21 13:37:44.740190595 +0100
++++ Python-3.5.1/Lib/test/test_venv.py	2015-12-21 13:40:25.707911828 +0100
+@@ -319,6 +319,7 @@ class EnsurePipTest(BaseTest):
+ 
+     # Requesting pip fails without SSL (http://bugs.python.org/issue19744)
+     @unittest.skipIf(ssl is None, ensurepip._MISSING_SSL_MESSAGE)
++    @unittest.skip('rhbz#1292467')
+     def test_with_pip(self):
+         rmtree(self.env_dir)
+         with EnvironmentVarGuard() as envvars:
