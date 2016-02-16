@@ -112,7 +112,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -182,12 +182,6 @@ BuildRequires: python3-pip
 
 Source: http://www.python.org/ftp/python/%{version}/Python-%{version}.tar.xz
 
-# Avoid having various bogus auto-generated Provides lines for the various
-# python c modules' SONAMEs:
-Source1: find-provides-without-python-sonames.sh
-%global _use_internal_dependency_generator 0
-%global __find_provides %{SOURCE1}
-
 # Supply an RPM macro "py_byte_compile" for the python3-devel subpackage
 # to enable specfiles to selectively byte-compile individual files and paths
 # with different Python runtimes as necessary:
@@ -210,6 +204,9 @@ Source7: pyfuntop.stp
 # Run in check section with Python that is currently being built
 # Written by bkabrda
 Source8: check-pyc-and-pyo-timestamps.py
+
+# A simple macro that enables packages to require system-python(abi) instead of python(abi)
+Source9: macros.systempython
 
 # Fixup distutils/unixccompiler.py to remove standard library path from rpath:
 # Was Patch0 in ivazquez' python3000 specfile:
@@ -500,7 +497,7 @@ considerably, and a lot of deprecated features have finally been removed.
 %package libs
 Summary:        Python 3 runtime libraries
 Group:          Development/Libraries
-#Requires:       %{name} = %{version}-%{release}
+Requires:       system-python-libs%{?_isa} = %{version}-%{release}
 
 # expat 2.1.0 added the symbol XML_SetHashSalt without bumping SONAME.  We use
 # this symbol (in pyexpat), so we must explicitly state this dependency to
@@ -512,6 +509,29 @@ Obsoletes: python3-enum34 < 1.0.4-5%{?dist}
 
 %description libs
 This package contains files used to embed Python 3 into applications.
+
+%package -n system-python
+Summary:        System Python executable
+Group:          Development/Libraries
+Requires:       system-python-libs%{?_isa} = %{version}-%{release}
+Provides:       system-python(abi) = %{pybasever}
+
+%description -n system-python
+System Python TODO description
+
+%package -n system-python-libs
+Summary:        System Python runtime libraries
+Group:          Development/Libraries
+
+# Remove some requires so this does not pull python3 back
+# TODO this does not work, whyyyyyyy?
+#%%global __provides_exclude_from ^/usr/(lib|lib64)/python.*$
+%define __requires_exclude ^(/usr/bin/python3.*|python\\(abi\\) = 3\\..*)$
+
+Requires: expat >= 2.1.0
+
+%description -n system-python-libs
+This package contains files used to embed System Python into applications.
 
 %package devel
 Summary: Libraries and header files needed for Python 3 development
@@ -598,7 +618,6 @@ can load its own extensions.
 
 %prep
 %setup -q -n Python-%{version}%{?prerel}
-chmod +x %{SOURCE1}
 
 %if 0%{?with_systemtap}
 # Provide an example of usage of the tapset:
@@ -1012,6 +1031,7 @@ find %{buildroot} \
 # Install macros for rpm:
 mkdir -p %{buildroot}/%{_rpmconfigdir}/macros.d/
 install -m 644 %{SOURCE3} %{buildroot}/%{_rpmconfigdir}/macros.d/
+install -m 644 %{SOURCE9} %{buildroot}/%{_rpmconfigdir}/macros.d/
 
 # Ensure that the curses module was linked against libncursesw.so, rather than
 # libncurses.so (bug 539917)
@@ -1084,6 +1104,10 @@ echo -e '#!/bin/sh\nexec `dirname $0`/python%{LDVERSION_optimized}-`uname -m`-co
 echo '[ $? -eq 127 ] && echo "Could not find python%{LDVERSION_optimized}-`uname -m`-config. Look around to see available arches." >&2' >> \
   %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
   chmod +x %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
+
+# System Python: Copy the executable to libexec
+mkdir -p %{buildroot}%{_libexecdir}
+cp %{buildroot}%{_bindir}/python%{pybasever} %{buildroot}%{_libexecdir}/system-python
 
 # ======================================================
 # Running the upstream test suite
@@ -1161,6 +1185,10 @@ rm -fr %{buildroot}
 
 %postun libs -p /sbin/ldconfig
 
+%post -n system-python-libs -p /sbin/ldconfig
+
+%postun -n system-python-libs -p /sbin/ldconfig
+
 
 
 %files
@@ -1175,6 +1203,83 @@ rm -fr %{buildroot}
 %{_mandir}/*/*
 
 %files libs
+%defattr(-,root,root,-)
+%doc LICENSE README
+
+%{pylibdir}/lib2to3
+%exclude %{pylibdir}/lib2to3/tests
+
+%dir %{pylibdir}/unittest/
+%dir %{pylibdir}/unittest/__pycache__/
+%{pylibdir}/unittest/*.py
+%{pylibdir}/unittest/__pycache__/*%{bytecode_suffixes}
+
+%dir %{pylibdir}/distutils/
+%dir %{pylibdir}/distutils/__pycache__/
+%{pylibdir}/distutils/*.py
+%{pylibdir}/distutils/__pycache__/*%{bytecode_suffixes}
+%{pylibdir}/distutils/README
+%{pylibdir}/distutils/command
+
+%dir %{pylibdir}/asyncio/
+%dir %{pylibdir}/asyncio/__pycache__/
+%{pylibdir}/asyncio/*.py
+%{pylibdir}/asyncio/__pycache__/*%{bytecode_suffixes}
+
+%dir %{pylibdir}/venv/
+%dir %{pylibdir}/venv/__pycache__/
+%{pylibdir}/venv/*.py
+%{pylibdir}/venv/__pycache__/*%{bytecode_suffixes}
+%{pylibdir}/venv/scripts
+
+%{pylibdir}/wsgiref
+%{pylibdir}/xml
+%{pylibdir}/xmlrpc
+
+%dir %{pylibdir}/ensurepip/
+%dir %{pylibdir}/ensurepip/__pycache__/
+%{pylibdir}/ensurepip/*.py
+%{pylibdir}/ensurepip/__pycache__/*%{bytecode_suffixes}
+%exclude %{pylibdir}/ensurepip/_bundled
+
+%if 0%{?with_rewheel}
+%dir %{pylibdir}/ensurepip/rewheel/
+%dir %{pylibdir}/ensurepip/rewheel/__pycache__/
+%{pylibdir}/ensurepip/rewheel/*.py
+%{pylibdir}/ensurepip/rewheel/__pycache__/*%{bytecode_suffixes}
+%endif
+
+%{pylibdir}/idlelib
+
+%dir %{pylibdir}/test/
+%dir %{pylibdir}/test/__pycache__/
+%dir %{pylibdir}/test/support/
+%dir %{pylibdir}/test/support/__pycache__/
+%{pylibdir}/test/__init__.py
+%{pylibdir}/test/__pycache__/__init__%{bytecode_suffixes}
+%{pylibdir}/test/support/__init__.py
+%{pylibdir}/test/support/__pycache__/__init__%{bytecode_suffixes}
+
+%dir %{pylibdir}/concurrent/
+%dir %{pylibdir}/concurrent/__pycache__/
+%{pylibdir}/concurrent/*.py
+%{pylibdir}/concurrent/__pycache__/*%{bytecode_suffixes}
+
+%dir %{pylibdir}/concurrent/futures/
+%dir %{pylibdir}/concurrent/futures/__pycache__/
+%{pylibdir}/concurrent/futures/*.py
+%{pylibdir}/concurrent/futures/__pycache__/*%{bytecode_suffixes}
+
+%{pylibdir}/pydoc_data
+
+##################################################################################
+
+%files -n system-python
+%defattr(-,root,root,-)
+%doc LICENSE README
+%{_libexecdir}/system-python
+
+%files -n system-python-libs
 %defattr(-,root,root,-)
 %doc LICENSE README
 %dir %{pylibdir}
@@ -1245,25 +1350,10 @@ rm -fr %{buildroot}
 %dir %{pylibdir}/__pycache__/
 %{pylibdir}/__pycache__/*%{bytecode_suffixes}
 
-%dir %{pylibdir}/asyncio/
-%dir %{pylibdir}/asyncio/__pycache__/
-%{pylibdir}/asyncio/*.py
-%{pylibdir}/asyncio/__pycache__/*%{bytecode_suffixes}
-
 %dir %{pylibdir}/collections/
 %dir %{pylibdir}/collections/__pycache__/
 %{pylibdir}/collections/*.py
 %{pylibdir}/collections/__pycache__/*%{bytecode_suffixes}
-
-%dir %{pylibdir}/concurrent/
-%dir %{pylibdir}/concurrent/__pycache__/
-%{pylibdir}/concurrent/*.py
-%{pylibdir}/concurrent/__pycache__/*%{bytecode_suffixes}
-
-%dir %{pylibdir}/concurrent/futures/
-%dir %{pylibdir}/concurrent/futures/__pycache__/
-%{pylibdir}/concurrent/futures/*.py
-%{pylibdir}/concurrent/futures/__pycache__/*%{bytecode_suffixes}
 
 %dir %{pylibdir}/ctypes/
 %dir %{pylibdir}/ctypes/__pycache__/
@@ -1278,13 +1368,6 @@ rm -fr %{buildroot}
 %{pylibdir}/dbm/*.py
 %{pylibdir}/dbm/__pycache__/*%{bytecode_suffixes}
 
-%dir %{pylibdir}/distutils/
-%dir %{pylibdir}/distutils/__pycache__/
-%{pylibdir}/distutils/*.py
-%{pylibdir}/distutils/__pycache__/*%{bytecode_suffixes}
-%{pylibdir}/distutils/README
-%{pylibdir}/distutils/command
-
 %dir %{pylibdir}/email/
 %dir %{pylibdir}/email/__pycache__/
 %{pylibdir}/email/*.py
@@ -1294,22 +1377,8 @@ rm -fr %{buildroot}
 
 %{pylibdir}/encodings
 
-%dir %{pylibdir}/ensurepip/
-%dir %{pylibdir}/ensurepip/__pycache__/
-%{pylibdir}/ensurepip/*.py
-%{pylibdir}/ensurepip/__pycache__/*%{bytecode_suffixes}
-%exclude %{pylibdir}/ensurepip/_bundled
-
-%if 0%{?with_rewheel}
-%dir %{pylibdir}/ensurepip/rewheel/
-%dir %{pylibdir}/ensurepip/rewheel/__pycache__/
-%{pylibdir}/ensurepip/rewheel/*.py
-%{pylibdir}/ensurepip/rewheel/__pycache__/*%{bytecode_suffixes}
-%endif
-
 %{pylibdir}/html
 %{pylibdir}/http
-%{pylibdir}/idlelib
 
 %dir %{pylibdir}/importlib/
 %dir %{pylibdir}/importlib/__pycache__/
@@ -1321,46 +1390,19 @@ rm -fr %{buildroot}
 %{pylibdir}/json/*.py
 %{pylibdir}/json/__pycache__/*%{bytecode_suffixes}
 
-%{pylibdir}/lib2to3
-%exclude %{pylibdir}/lib2to3/tests
 %{pylibdir}/logging
 %{pylibdir}/multiprocessing
 %{pylibdir}/plat-linux
-%{pylibdir}/pydoc_data
 
 %dir %{pylibdir}/sqlite3/
 %dir %{pylibdir}/sqlite3/__pycache__/
 %{pylibdir}/sqlite3/*.py
 %{pylibdir}/sqlite3/__pycache__/*%{bytecode_suffixes}
 
-%dir %{pylibdir}/test/
-%dir %{pylibdir}/test/__pycache__/
-%dir %{pylibdir}/test/support/
-%dir %{pylibdir}/test/support/__pycache__/
-%{pylibdir}/test/__init__.py
-%{pylibdir}/test/__pycache__/__init__%{bytecode_suffixes}
-%{pylibdir}/test/support/__init__.py
-%{pylibdir}/test/support/__pycache__/__init__%{bytecode_suffixes}
-
 %exclude %{pylibdir}/turtle.py
 %exclude %{pylibdir}/__pycache__/turtle*%{bytecode_suffixes}
 
-%dir %{pylibdir}/unittest/
-%dir %{pylibdir}/unittest/__pycache__/
-%{pylibdir}/unittest/*.py
-%{pylibdir}/unittest/__pycache__/*%{bytecode_suffixes}
-
 %{pylibdir}/urllib
-
-%dir %{pylibdir}/venv/
-%dir %{pylibdir}/venv/__pycache__/
-%{pylibdir}/venv/*.py
-%{pylibdir}/venv/__pycache__/*%{bytecode_suffixes}
-%{pylibdir}/venv/scripts
-
-%{pylibdir}/wsgiref
-%{pylibdir}/xml
-%{pylibdir}/xmlrpc
 
 %if "%{_lib}" == "lib64"
 %attr(0755,root,root) %dir %{_prefix}/lib/python%{pybasever}
@@ -1401,6 +1443,7 @@ rm -fr %{buildroot}
 %{_libdir}/pkgconfig/python-%{pybasever}.pc
 %{_libdir}/pkgconfig/python3.pc
 %{_rpmconfigdir}/macros.d/macros.pybytecompile%{pybasever}
+%{_rpmconfigdir}/macros.d/macros.systempython
 
 %files tools
 %defattr(-,root,root,755)
@@ -1565,8 +1608,11 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
-* Wed Feb 24 2016 Robert Kuska <rkuska@redhat.com> - 3.5.1-5
+* Wed Feb 24 2016 Robert Kuska <rkuska@redhat.com> - 3.5.1-6
 - Provide python3-enum34
+
+* Fri Feb 19 2016 Miro Hrončok <mhroncok@redhat.com> - 3.5.1-5
+- Provide System Python packages and macros
 
 * Thu Feb 04 2016 Fedora Release Engineering <releng@fedoraproject.org> - 3.5.1-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
