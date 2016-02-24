@@ -112,7 +112,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -507,6 +507,8 @@ Group:          Development/Libraries
 # prevent "import pyexpat" from failing with a linker error if someone hasn't
 # yet upgraded expat:
 Requires: expat >= 2.1.0
+Provides: python3-enum34 = 1.0.4-5%{?dist}
+Obsoletes: python3-enum34 < 1.0.4-5%{?dist}
 
 %description libs
 This package contains files used to embed Python 3 into applications.
@@ -1563,6 +1565,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed Feb 24 2016 Robert Kuska <rkuska@redhat.com> - 3.5.1-5
+- Provide python3-enum34
+
 * Thu Feb 04 2016 Fedora Release Engineering <releng@fedoraproject.org> - 3.5.1-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
 
