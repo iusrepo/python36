@@ -517,15 +517,14 @@ Requires:       system-python-libs%{?_isa} = %{version}-%{release}
 Provides:       system-python(abi) = %{pybasever}
 
 %description -n system-python
-System Python TODO description
+System Python provides a binary interpreter which uses system-python-libs,
+a subset of standard Python library considered essential to run various tools,
+requiring Python, that consider themselves "system tools". 
 
 %package -n system-python-libs
 Summary:        System Python runtime libraries
 Group:          Development/Libraries
 
-# Remove some requires so this does not pull python3 back
-# TODO this does not work, whyyyyyyy?
-#%%global __provides_exclude_from ^/usr/(lib|lib64)/python.*$
 %define __requires_exclude ^(/usr/bin/python3.*|python\\(abi\\) = 3\\..*)$
 
 Requires: expat >= 2.1.0
