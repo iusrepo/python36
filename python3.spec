@@ -519,7 +519,7 @@ Provides:       system-python(abi) = %{pybasever}
 %description -n system-python
 System Python provides a binary interpreter which uses system-python-libs,
 a subset of standard Python library considered essential to run various tools,
-requiring Python, that consider themselves "system tools". 
+requiring Python, that consider themselves "system tools".
 
 %package -n system-python-libs
 Summary:        System Python runtime libraries
