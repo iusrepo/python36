@@ -112,7 +112,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1213,13 +1213,6 @@ rm -fr %{buildroot}
 %{pylibdir}/unittest/*.py
 %{pylibdir}/unittest/__pycache__/*%{bytecode_suffixes}
 
-%dir %{pylibdir}/distutils/
-%dir %{pylibdir}/distutils/__pycache__/
-%{pylibdir}/distutils/*.py
-%{pylibdir}/distutils/__pycache__/*%{bytecode_suffixes}
-%{pylibdir}/distutils/README
-%{pylibdir}/distutils/command
-
 %dir %{pylibdir}/asyncio/
 %dir %{pylibdir}/asyncio/__pycache__/
 %{pylibdir}/asyncio/*.py
@@ -1366,6 +1359,14 @@ rm -fr %{buildroot}
 %dir %{pylibdir}/dbm/__pycache__/
 %{pylibdir}/dbm/*.py
 %{pylibdir}/dbm/__pycache__/*%{bytecode_suffixes}
+
+%dir %{pylibdir}/distutils/
+%dir %{pylibdir}/distutils/__pycache__/
+%{pylibdir}/distutils/*.py
+%{pylibdir}/distutils/__pycache__/*%{bytecode_suffixes}
+%{pylibdir}/distutils/README
+%{pylibdir}/distutils/command
+
 
 %dir %{pylibdir}/email/
 %dir %{pylibdir}/email/__pycache__/
@@ -1607,6 +1608,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Mar 04 2016 Miro Hrončok <mhroncok@redhat.com> - 3.5.1-7
+- Move distutils to system-python-libs
+
 * Wed Feb 24 2016 Robert Kuska <rkuska@redhat.com> - 3.5.1-6
 - Provide python3-enum34
 
