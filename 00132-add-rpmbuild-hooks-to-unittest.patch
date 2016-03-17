@@ -40,7 +40,7 @@ diff -up Python-3.2.2/Lib/unittest/__init__.py.add-rpmbuild-hooks-to-unittest Py
  from .case import (TestCase, FunctionTestCase, SkipTest, skip, skipIf,
 -                   skipUnless, expectedFailure)
 +                   skipUnless, expectedFailure,
-+                   _skipInRpmBuild, _expectedFailureInRpmBuild)
++                   _skipInRpmBuild)
  from .suite import BaseTestSuite, TestSuite
  from .loader import (TestLoader, defaultTestLoader, makeSuite, getTestCaseNames,
                       findTestCases)
