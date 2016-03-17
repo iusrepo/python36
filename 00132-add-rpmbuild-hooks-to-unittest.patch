@@ -9,7 +9,7 @@ diff -up Python-3.2.2/Lib/unittest/case.py.add-rpmbuild-hooks-to-unittest Python
  import logging
  import pprint
  import re
-@@ -101,5 +102,42 @@ def expectedFailure(func):
+@@ -101,5 +102,21 @@ def expectedFailure(func):
          raise self.test_case.failureException(msg)
  
 +# Non-standard/downstream-only hooks for handling issues with specific test
@@ -27,27 +27,6 @@ diff -up Python-3.2.2/Lib/unittest/case.py.add-rpmbuild-hooks-to-unittest Python
 +        return skip(reason)
 +    else:
 +        return _id
-+
-+def _expectedFailureInRpmBuild(func):
-+    """
-+    Non-standard/downstream-only decorator for marking a specific unit test
-+    as expected to fail within the %check of an rpmbuild.
-+
-+    Specifically, this takes effect when WITHIN_PYTHON_RPM_BUILD is set within
-+    the environment, and has no effect otherwise.
-+    """
-+    @functools.wraps(func)
-+    def wrapper(*args, **kwargs):
-+        if 'WITHIN_PYTHON_RPM_BUILD' in os.environ:
-+            try:
-+                func(*args, **kwargs)
-+            except Exception:
-+                raise _ExpectedFailure(sys.exc_info())
-+            raise _UnexpectedSuccess
-+        else:
-+            # Call directly:
-+            func(*args, **kwargs)
-+    return wrapper
 +
  class _AssertRaisesBaseContext(_BaseTestCaseContext):
  
