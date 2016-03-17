@@ -292,13 +292,6 @@ Patch143: 00143-tsc-on-ppc.patch
 # implementation and OpenSSL still doesn't support it. For now, they're harmless.
 Patch146: 00146-hashlib-fips.patch
 
-# 00150 #
-# temporarily disable rAssertAlmostEqual in test_cmath on PPC (bz #750811)
-# caused by a glibc bug. This patch can be removed when we have a glibc with
-# the patch mentioned here:
-#   http://sourceware.org/bugzilla/show_bug.cgi?id=13472
-Patch150: 00150-disable-rAssertAlmostEqual-cmath-on-ppc.patch
-
 # 00155 #
 # Avoid allocating thunks in ctypes unless absolutely necessary, to avoid
 # generating SELinux denials on "import ctypes" and "import uuid" when
@@ -668,9 +661,6 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %endif
 %patch143 -p1 -b .tsc-on-ppc
 %patch146 -p1
-%ifarch ppc %{power64}
-%patch150 -p1
-%endif
 %patch155 -p1
 %patch157 -p1
 %patch160 -p1
