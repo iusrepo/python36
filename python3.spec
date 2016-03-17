@@ -232,13 +232,6 @@ Patch104: 00104-lib64-fix-for-test_install.patch
 # Downstream only: not appropriate for upstream
 Patch111: 00111-no-static-lib.patch
 
-# 00131 #
-# The four tests in test_io built on top of check_interrupted_write_retry
-# fail when built in Koji, for ppc and ppc64; for some reason, the SIGALRM
-# handlers are never called, and the call to write runs to completion
-# (rhbz#732998)
-Patch131: 00131-disable-tests-in-test_io.patch
-
 # 00132 #
 # Add non-standard hooks to unittest for use in the "check" phase below, when
 # running selftests within the build:
@@ -466,6 +459,8 @@ Patch207: 00207-math-once.patch
 # rhbz#1292467
 Patch208: 00208-disable-test_with_pip-on-ppc.patch
 
+Patch209:0001-Expected-failure-hook.patch 
+
 # add correct arch for ppc64/ppc64le
 # it should be ppc64le-linux-gnu/ppc64-linux-gnu instead powerpc64le-linux-gnu/powerpc64-linux-gnu
 Patch5001: python3-powerppc-arch.patch
@@ -667,9 +662,6 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch104 -p1
 %endif
 %patch111 -p1
-%ifarch ppc %{power64}
-%patch131 -p1
-%endif
 %patch132 -p1
 %patch137 -p1
 %ifarch %{arm}
@@ -707,6 +699,7 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch206 -p1
 %patch207 -p1
 %patch208 -p1
+%patch209 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
