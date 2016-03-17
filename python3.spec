@@ -254,14 +254,6 @@ Patch132: 00132-add-rpmbuild-hooks-to-unittest.patch
 # Some tests within distutils fail when run in an rpmbuild:
 Patch137: 00137-skip-distutils-tests-that-fail-in-rpmbuild.patch
 
-# 00139 #
-# ARM-specific: skip known failure in test_float:
-#  http://bugs.python.org/issue8265 (rhbz#706253)
-Patch139: 00139-skip-test_float-known-failure-on-arm.patch
-
-# ideally short lived patch disabling a test thats fragile on different arches
-Patch140: python3-arm-skip-failing-fragile-test.patch
-
 # 00143 #
 # Fix the --with-tsc option on ppc64, and rework it on 32-bit ppc to avoid
 # aliasing violations (rhbz#698726)
@@ -655,10 +647,6 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch111 -p1
 %patch132 -p1
 %patch137 -p1
-%ifarch %{arm}
-%patch139 -p1
-%patch140 -p1
-%endif
 %patch143 -p1 -b .tsc-on-ppc
 %patch146 -p1
 %patch155 -p1
