@@ -320,12 +320,6 @@ Patch160: 00160-disable-test_fs_holes-in-rpm-build.patch
 # Not yet sent upstream
 Patch163: 00163-disable-parts-of-test_socket-in-rpm-build.patch
 
-# 0164 #
-# some tests in test._io interrupted_write-* fail on PPC (rhbz#846849)
-# testChainingDescriptors  test in test_exceptions fails on PPc, too (rhbz#846849)
-# disable those tests so that rebuilds on PPC can continue
-Patch164: 00164-disable-interrupted_write-tests-on-ppc.patch
-
 # 00170 #                                                                                           
 # In debug builds, try to print repr() when a C-level assert fails in the                           
 # garbage collector (typically indicating a reference-counting error                                
@@ -653,9 +647,6 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch157 -p1
 %patch160 -p1
 %patch163 -p1
-%ifarch ppc %{power64}
-%patch164 -p1
-%endif
 %patch173 -p1
 %patch178 -p1
 %patch179 -p1
