@@ -96,13 +96,14 @@ Index: Lib/test/test_gc.py
 ===================================================================
 --- Lib/test/test_gc.py	(revision 87911)
 +++ Lib/test/test_gc.py	(working copy)
-@@ -1,6 +1,6 @@
+@@ -1,7 +1,7 @@
  import unittest
  from test.support import (verbose, refcount_test, run_unittest,
--                            strip_python_stderr, cpython_only)
-+                            strip_python_stderr, cpython_only, import_module)
- from test.script_helper import assert_python_ok, make_script, temp_dir
-
+                             strip_python_stderr, cpython_only, start_threads,
+-                            temp_dir)
++                            temp_dir, import_module)
+ from test.support.script_helper import assert_python_ok, make_script
+ 
  import sys
 @@ -512,6 +512,48 @@
          self.assertEqual(len(gc.garbage), 0)
@@ -316,7 +317,7 @@ diff -up Lib/test/test_gc.py.old Lib/test/test_gc.py
 --- Lib/test/test_gc.py.old	2014-12-10 12:50:58.252121318 +0100
 +++ Lib/test/test_gc.py	2014-12-10 12:51:08.594266653 +0100
 @@ -4,6 +4,7 @@ from test.support import (verbose, refco
- from test.script_helper import assert_python_ok, make_script, temp_dir
+ from test.support.script_helper import assert_python_ok, make_script
  
  import sys
 +import sysconfig

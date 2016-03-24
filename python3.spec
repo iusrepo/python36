@@ -647,6 +647,7 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch157 -p1
 %patch160 -p1
 %patch163 -p1
+%patch170 -p0
 %patch173 -p1
 %patch178 -p1
 %patch179 -p1
