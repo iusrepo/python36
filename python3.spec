@@ -87,7 +87,7 @@
 
 # We want to byte-compile the .py files within the packages using the new
 # python3 binary.
-# 
+#
 # Unfortunately, rpmbuild's infrastructure requires us to jump through some
 # hoops to avoid byte-compiling with the system python 2 version:
 #   /usr/lib/rpm/redhat/macros sets up build policy that (amongst other things)
@@ -100,7 +100,7 @@
   %{!?__debug_package:/usr/lib/rpm/brp-strip %{__strip}} \
   /usr/lib/rpm/brp-strip-static-archive %{__strip} \
   /usr/lib/rpm/brp-strip-comment-note %{__strip} %{__objdump} \
-  /usr/lib/rpm/brp-python-hardlink 
+  /usr/lib/rpm/brp-python-hardlink
 # to remove the invocation of brp-python-bytecompile, whilst keeping the
 # invocation of brp-python-hardlink (since this should still work for python3
 # pyc/pyo files)
@@ -320,14 +320,14 @@ Patch160: 00160-disable-test_fs_holes-in-rpm-build.patch
 # Not yet sent upstream
 Patch163: 00163-disable-parts-of-test_socket-in-rpm-build.patch
 
-# 00170 #                                                                                           
-# In debug builds, try to print repr() when a C-level assert fails in the                           
-# garbage collector (typically indicating a reference-counting error                                
-# somewhere else e.g in an extension module)                                                        
-# Backported to 2.7 from a patch I sent upstream for py3k                                           
-#   http://bugs.python.org/issue9263  (rhbz#614680)                                                 
-# hiding the proposed new macros/functions within gcmodule.c to avoid exposing                      
-# them within the extension API.                                                                    
+# 00170 #
+# In debug builds, try to print repr() when a C-level assert fails in the
+# garbage collector (typically indicating a reference-counting error
+# somewhere else e.g in an extension module)
+# Backported to 2.7 from a patch I sent upstream for py3k
+#   http://bugs.python.org/issue9263  (rhbz#614680)
+# hiding the proposed new macros/functions within gcmodule.c to avoid exposing
+# them within the extension API.
 # (rhbz#850013
 Patch170: 00170-gc-assertions.patch
 
@@ -406,17 +406,17 @@ Patch194: temporarily-disable-tests-requiring-SIGHUP.patch
 #  Fix test_gdb failure on ppc64le
 Patch196: 00196-test-gdb-match-addr-before-builtin.patch
 
-# 00200 #                                                                                           
-# Fix for gettext plural form headers (lines that begin with "#")                                   
+# 00200 #
+# Fix for gettext plural form headers (lines that begin with "#")
 # Note: Backported from scl
 Patch200: 00200-gettext-plural-fix.patch
 
-# 00201 #                                                                                           
-# Fixes memory leak in gdbm module (rhbz#977308)                                                    
-# This was upstreamed as a part of bigger patch, but for our purposes                               
-# this is ok: http://bugs.python.org/issue18404                                                     
+# 00201 #
+# Fixes memory leak in gdbm module (rhbz#977308)
+# This was upstreamed as a part of bigger patch, but for our purposes
+# this is ok: http://bugs.python.org/issue18404
 # Note: Backported from scl
-Patch201: 00201-fix-memory-leak-in-gdbm.patch 
+Patch201: 00201-fix-memory-leak-in-gdbm.patch
 
 # test_threading fails in koji dues to it's handling of signals
 Patch203: 00203-disable-threading-test-koji.patch
@@ -698,7 +698,7 @@ export LDFLAGS="$RPM_LD_FLAGS `pkg-config --libs-only-L openssl`"
 # Define a function, for how to perform a "build" of python for a given
 # configuration:
 BuildPython() {
-  ConfName=$1	      
+  ConfName=$1
   BinaryName=$2
   SymlinkName=$3
   ExtraConfigArgs=$4
@@ -779,7 +779,7 @@ mkdir -p %{buildroot}%{_prefix} %{buildroot}%{_mandir}
 
 InstallPython() {
 
-  ConfName=$1	      
+  ConfName=$1
   PyInstSoName=$2
   MoreCFlags=$3
 
@@ -964,7 +964,7 @@ find %{buildroot}/ -name \*.py -exec sed -i 's/\r//' {} \;
 # Fix an encoding:
 iconv -f iso8859-1 -t utf-8 %{buildroot}/%{pylibdir}/Demo/rpc/README > README.conv && mv -f README.conv %{buildroot}/%{pylibdir}/Demo/rpc/README
 
-# Note that 
+# Note that
 #  %{pylibdir}/Demo/distutils/test2to3/setup.py
 # is in iso-8859-1 encoding, and that this is deliberate; this is test data
 # for the 2to3 tool, and one of the functions of the 2to3 tool is to fixup
@@ -1005,7 +1005,7 @@ for Module in %{buildroot}/%{dynload_dir}/*.so ; do
     *.%{SOABI_debug})
         ldd $Module | grep %{py_INSTSONAME_optimized} &&
             (echo Debug module $Module linked against optimized %{py_INSTSONAME_optimized} ; exit 1)
-            
+
         ;;
     *.%{SOABI_optimized})
         ldd $Module | grep %{py_INSTSONAME_debug} &&
@@ -1088,7 +1088,7 @@ find %{buildroot} -type f -a -name "*.py" -print0 | \
 
 topdir=$(pwd)
 CheckPython() {
-  ConfName=$1	      
+  ConfName=$1
   ConfDir=$(pwd)/build/$ConfName
 
   echo STARTING: CHECKING OF PYTHON FOR CONFIGURATION: $ConfName
@@ -1551,15 +1551,15 @@ rm -fr %{buildroot}
 
 # We put the debug-gdb.py file inside /usr/lib/debug to avoid noise from
 # ldconfig (rhbz:562980).
-# 
+#
 # The /usr/lib/rpm/redhat/macros defines %__debug_package to use
 # debugfiles.list, and it appears that everything below /usr/lib/debug and
 # (/usr/src/debug) gets added to this file (via LISTFILES) in
 # /usr/lib/rpm/find-debuginfo.sh
-# 
+#
 # Hence by installing it below /usr/lib/debug we ensure it is added to the
 # -debuginfo subpackage
-# (if it doesn't, then the rpmbuild ought to fail since the debug-gdb.py 
+# (if it doesn't, then the rpmbuild ought to fail since the debug-gdb.py
 # payload file would be unpackaged)
 
 
@@ -1977,7 +1977,7 @@ ppc to avoid aliasing violations (patch 130; rhbz#698726)
 - add %%python3_version to the rpm macros (rhbz#719082)
 
 * Mon Jul 11 2011 Dennis Gilmore <dennis@ausil.us> - 3.2.1-2
-- disable some tests on sparc arches 
+- disable some tests on sparc arches
 
 * Mon Jul 11 2011 David Malcolm <dmalcolm@redhat.com> - 3.2.1-1
 - 3.2.1; refresh lib64 patch (102), subprocess unit test patch (129), disabling
