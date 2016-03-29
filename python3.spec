@@ -331,11 +331,6 @@ Patch163: 00163-disable-parts-of-test_socket-in-rpm-build.patch
 # (rhbz#850013
 Patch170: 00170-gc-assertions.patch
 
-# 00173 #
-# Workaround for ENOPROTOOPT seen in Koji withi test.support.bind_port()
-# (rhbz#913732)
-Patch173: 00173-workaround-ENOPROTOOPT-in-bind_port.patch
-
 # 00178 #
 # Don't duplicate various FLAGS in sysconfig values
 # http://bugs.python.org/issue17679
@@ -648,11 +643,10 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch160 -p1
 %patch163 -p1
 %patch170 -p0
-%patch173 -p1
 %patch178 -p1
 %patch179 -p1
 %patch180 -p1
-%patch184  -p1
+%patch184 -p1
 %patch186 -p1
 %patch188 -p1
 
