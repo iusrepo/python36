@@ -337,15 +337,6 @@ Patch170: 00170-gc-assertions.patch
 # Does not affect python2 AFAICS (different sysconfig values initialization)
 Patch178: 00178-dont-duplicate-flags-in-sysconfig.patch
 
-# 00179 #
-# Workaround for https://bugzilla.redhat.com/show_bug.cgi?id=951802
-# Reported upstream in http://bugs.python.org/issue17737
-# This patch basically looks at every frame and if it is somehow corrupted,
-# it just stops printing the traceback - it doesn't fix the actual bug.
-# This bug seems to only affect ARM.
-# Doesn't seem to affect Python 2 AFAICS.
-Patch179: 00179-dont-raise-error-on-gdb-corrupted-frames-in-backtrace.patch
-
 # 00180 #
 # Enable building on ppc64p7
 # Not appropriate for upstream, Fedora-specific naming
@@ -644,7 +635,6 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch163 -p1
 %patch170 -p0
 %patch178 -p1
-%patch179 -p1
 %patch180 -p1
 %patch184 -p1
 %patch186 -p1
