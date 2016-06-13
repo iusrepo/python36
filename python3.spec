@@ -112,7 +112,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -424,6 +424,12 @@ Patch207: 00207-math-once.patch
 # rhbz#1292467
 Patch208: 00208-disable-test_with_pip-on-ppc.patch
 
+# https://bugs.python.org/issue26171
+# https://hg.python.org/cpython/rev/10dad6da1b28/
+# Fix possible integer overflow and heap corruption in zipimporter.get_data()
+# FIXED UPSTREAM
+Patch209: 00209-prevent-buffer-overflow-in-zipimport-module.patch
+
 # add correct arch for ppc64/ppc64le
 # it should be ppc64le-linux-gnu/ppc64-linux-gnu instead powerpc64le-linux-gnu/powerpc64-linux-gnu
 Patch5001: python3-powerppc-arch.patch
@@ -651,6 +657,7 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch206 -p1
 %patch207 -p1
 %patch208 -p1
+%patch209 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1552,6 +1559,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Jun 13 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.5.1-8
+- Added patch for fixing possible integer overflow and heap corruption in zipimporter.get_data()
+
 * Fri Mar 04 2016 Miro Hrončok <mhroncok@redhat.com> - 3.5.1-7
 - Move distutils to system-python-libs
 
