@@ -112,7 +112,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -430,6 +430,14 @@ Patch208: 00208-disable-test_with_pip-on-ppc.patch
 # FIXED UPSTREAM
 Patch209: 00209-prevent-buffer-overflow-in-zipimport-module.patch
 
+# 00210 #
+# CVE-2016-0772 python: smtplib StartTLS stripping attack
+# rhbz#1303647: https://bugzilla.redhat.com/show_bug.cgi?id=1303647
+# rhbz#1346345: https://bugzilla.redhat.com/show_bug.cgi?id=1346345
+# FIXED UPSTREAM: https://hg.python.org/cpython/rev/d590114c2394
+# Raise an error when STARTTLS fails
+Patch210: 00210-Raise-an-error-when-STARTTLS-fails.patch
+
 # add correct arch for ppc64/ppc64le
 # it should be ppc64le-linux-gnu/ppc64-linux-gnu instead powerpc64le-linux-gnu/powerpc64-linux-gnu
 Patch5001: python3-powerppc-arch.patch
@@ -658,6 +666,7 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch207 -p1
 %patch208 -p1
 %patch209 -p1
+%patch210 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1559,6 +1568,13 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Thu Jun 16 2016 Tomas Orsava <torsava@redhat.com> - 3.5.1-9
+- Fix for: CVE-2016-0772 python: smtplib StartTLS stripping attack
+- Raise an error when STARTTLS fails
+- rhbz#1303647: https://bugzilla.redhat.com/show_bug.cgi?id=1303647
+- rhbz#1346345: https://bugzilla.redhat.com/show_bug.cgi?id=1346345
+- Fixed upstream: https://hg.python.org/cpython/rev/d590114c2394
+
 * Mon Jun 13 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.5.1-8
 - Added patch for fixing possible integer overflow and heap corruption in zipimporter.get_data()
 
