@@ -438,6 +438,26 @@ Patch209: 00209-prevent-buffer-overflow-in-zipimport-module.patch
 # Raise an error when STARTTLS fails
 Patch210: 00210-Raise-an-error-when-STARTTLS-fails.patch
 
+# (New patches go here ^^^)
+#
+# When adding new patches to "python" and "python3" in Fedora 17 onwards,
+# please try to keep the patch numbers in-sync between the two specfiles:
+#
+#   - use the same patch number across both specfiles for conceptually-equivalent
+#     fixes, ideally with the same name
+#
+#   - when a patch is relevant to both specfiles, use the same introductory
+#     comment in both specfiles where possible (to improve "diff" output when
+#     comparing them)
+#
+#   - when a patch is only relevant for one of the two specfiles, leave a gap
+#     in the patch numbering in the other specfile, adding a comment when
+#     omitting a patch, both in the manifest section here, and in the "prep"
+#     phase below
+#
+# Hopefully this will make it easier to ensure that all relevant fixes are
+# applied to both versions.
+
 # add correct arch for ppc64/ppc64le
 # it should be ppc64le-linux-gnu/ppc64-linux-gnu instead powerpc64le-linux-gnu/powerpc64-linux-gnu
 Patch5001: python3-powerppc-arch.patch
