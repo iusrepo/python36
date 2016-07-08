@@ -112,7 +112,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1205,7 +1205,6 @@ rm -fr %{buildroot}
 %{pylibdir}/venv/scripts
 
 %{pylibdir}/wsgiref
-%{pylibdir}/xml
 %{pylibdir}/xmlrpc
 
 %dir %{pylibdir}/ensurepip/
@@ -1383,6 +1382,7 @@ rm -fr %{buildroot}
 %exclude %{pylibdir}/__pycache__/turtle*%{bytecode_suffixes}
 
 %{pylibdir}/urllib
+%{pylibdir}/xml
 
 %if "%{_lib}" == "lib64"
 %attr(0755,root,root) %dir %{_prefix}/lib/python%{pybasever}
@@ -1588,6 +1588,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Jul 08 2016 Miro Hrončok <mhroncok@redhat.com> - 3.5.1-10
+- Move xml module to system-python-libs
+
 * Thu Jun 16 2016 Tomas Orsava <torsava@redhat.com> - 3.5.1-9
 - Fix for: CVE-2016-0772 python: smtplib StartTLS stripping attack
 - Raise an error when STARTTLS fails
