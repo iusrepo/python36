@@ -112,7 +112,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -375,7 +375,6 @@ Patch186: 00186-dont-raise-from-py_compile.patch
 Patch188: 00188-fix-lib2to3-tests-when-hashlib-doesnt-compile-properly.patch
 
 # 00189 #
-#
 # Add the rewheel module, allowing to recreate wheels from already installed
 # ones
 # https://github.com/bkabrda/rewheel
@@ -383,12 +382,12 @@ Patch188: 00188-fix-lib2to3-tests-when-hashlib-doesnt-compile-properly.patch
 Patch189: 00189-add-rewheel-module.patch
 %endif
 
+# 00194 #
 # Tests requiring SIGHUP to work don't work in Koji
 # see rhbz#1088233
 Patch194: temporarily-disable-tests-requiring-SIGHUP.patch
 
-# 00196
-#
+# 00196 #
 #  Fix test_gdb failure on ppc64le
 Patch196: 00196-test-gdb-match-addr-before-builtin.patch
 
@@ -404,31 +403,39 @@ Patch200: 00200-gettext-plural-fix.patch
 # Note: Backported from scl
 Patch201: 00201-fix-memory-leak-in-gdbm.patch
 
+# 00203 #
 # test_threading fails in koji dues to it's handling of signals
 Patch203: 00203-disable-threading-test-koji.patch
 
+# 00205 #
 # LIBPL variable in makefile takes LIBPL from configure.ac
 # but the LIBPL variable defined there doesn't respect libdir macro
 Patch205: 00205-make-libpl-respect-lib64.patch
 
+# 00206 #
 # Remove hf flag from arm triplet which is used
 # by debian but fedora infra uses only eabi without hf
 Patch206: 00206-remove-hf-from-arm-triplet.patch
 
+# 00207 #
 # Avoid truncated _math.o files caused by parallel builds
 # modified version of https://bugs.python.org/issue24421
 # rhbz#1292461
 Patch207: 00207-math-once.patch
 
+# 00208 #
 # test_with_pip (test.test_venv.EnsurePipTest) fails on ppc64*
 # rhbz#1292467
 Patch208: 00208-disable-test_with_pip-on-ppc.patch
 
-# https://bugs.python.org/issue26171
+# 00209 #
+# CVE-2016-5636: http://seclists.org/oss-sec/2016/q2/560
+# rhbz#1345859: https://bugzilla.redhat.com/show_bug.cgi?id=1345859
 # https://hg.python.org/cpython/rev/10dad6da1b28/
+# https://hg.python.org/cpython/rev/5533a9e02b21
 # Fix possible integer overflow and heap corruption in zipimporter.get_data()
-# FIXED UPSTREAM
-Patch209: 00209-prevent-buffer-overflow-in-zipimport-module.patch
+# FIXED UPSTREAM: https://bugs.python.org/issue26171
+Patch209: 00209-CVE-2016-5636-buffer-overflow-in-zipimport-module-fix.patch
 
 # 00210 #
 # CVE-2016-0772 python: smtplib StartTLS stripping attack
@@ -1595,6 +1602,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Jul 08 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.5.1-12
+- Refactor patch for properly fixing CVE-2016-5636
+
 * Fri Jul 08 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.5.1-11
 - Fix test_pyexpat failure with Expat version of 2.2.0
 
