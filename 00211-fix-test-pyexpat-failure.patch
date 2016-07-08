@@ -1,0 +1,17 @@
+diff -r 682a8e36dd18 Lib/test/test_pyexpat.py
+--- a/Lib/test/test_pyexpat.py	Tue Jul 05 17:08:52 2016 +0300
++++ b/Lib/test/test_pyexpat.py	Thu Jul 07 17:04:35 2016 +0800
+@@ -656,11 +656,9 @@
+         # \xc2\x85 is UTF-8 encoded U+0085 (NEXT LINE)
+         xml = b"<?xml version\xc2\x85='1.0'?>\r\n"
+         parser = expat.ParserCreate()
+-        try:
++        err_pattern = r'XML declaration not well-formed: line 1, column \d+'
++        with self.assertRaisesRegex(expat.ExpatError, err_pattern):
+             parser.Parse(xml, True)
+-            self.fail()
+-        except expat.ExpatError as e:
+-            self.assertEqual(str(e), 'XML declaration not well-formed: line 1, column 14')
+ 
+ class ErrorMessageTest(unittest.TestCase):
+     def test_codes(self):

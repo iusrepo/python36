@@ -112,7 +112,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -438,6 +438,12 @@ Patch209: 00209-prevent-buffer-overflow-in-zipimport-module.patch
 # Raise an error when STARTTLS fails
 Patch210: 00210-Raise-an-error-when-STARTTLS-fails.patch
 
+# 00211 #
+# Fix test breakage with version 2.2.0 of Expat
+# rhbz#1353918: https://bugzilla.redhat.com/show_bug.cgi?id=1353918
+# NOT YET FIXED UPSTREAM: http://bugs.python.org/issue27369
+Patch211: 00211-fix-test-pyexpat-failure.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -687,6 +693,7 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch208 -p1
 %patch209 -p1
 %patch210 -p1
+%patch211 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1588,6 +1595,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Jul 08 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.5.1-11
+- Fix test_pyexpat failure with Expat version of 2.2.0
+
 * Fri Jul 08 2016 Miro Hrončok <mhroncok@redhat.com> - 3.5.1-10
 - Move xml module to system-python-libs
 
