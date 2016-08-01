@@ -71,7 +71,7 @@
 %global with_systemtap 1
 
 # some arches don't have valgrind so we need to disable its support on them
-%ifnarch s390
+%ifnarch s390 %{mips}
 %global with_valgrind 1
 %else
 %global with_valgrind 0
@@ -112,7 +112,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -451,6 +451,13 @@ Patch210: 00210-Raise-an-error-when-STARTTLS-fails.patch
 # NOT YET FIXED UPSTREAM: http://bugs.python.org/issue27369
 Patch211: 00211-fix-test-pyexpat-failure.patch
 
+# 00242 #
+# Fix the triplet used on 64-bit MIPS
+# rhbz#1322526: https://bugzilla.redhat.com/show_bug.cgi?id=1322526
+# Upstream uses Debian-like style mips64-linux-gnuabi64
+# Fedora needs the default mips64-linux-gnu
+Patch242: 00242-fix-mips64-triplet.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -701,6 +708,7 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch209 -p1
 %patch210 -p1
 %patch211 -p1
+%patch242 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -905,7 +913,7 @@ install -d -m 0755 %{buildroot}/%{_prefix}/lib/python%{pybasever}/site-packages/
 %global _pyconfig32_h pyconfig-32.h
 %global _pyconfig64_h pyconfig-64.h
 
-%ifarch %{power64} s390x x86_64 ia64 alpha sparc64 aarch64
+%ifarch %{power64} s390x x86_64 ia64 alpha sparc64 aarch64 %{mips64}
 %global _pyconfig_h %{_pyconfig64_h}
 %else
 %global _pyconfig_h %{_pyconfig32_h}
@@ -1064,7 +1072,7 @@ ln -s \
 # Install a tapset for this libpython into tapsetdir, fixing up the path to the
 # library:
 mkdir -p %{buildroot}%{tapsetdir}
-%ifarch %{power64} s390x x86_64 ia64 alpha sparc64 aarch64
+%ifarch %{power64} s390x x86_64 ia64 alpha sparc64 aarch64 %{mips64}
 %global libpython_stp_optimized libpython%{pybasever}-64.stp
 %global libpython_stp_debug     libpython%{pybasever}-debug-64.stp
 %else
@@ -1143,7 +1151,10 @@ CheckPython() {
     %ifarch ppc64le aarch64
     -x test_faulthandler \
     %endif
-    %ifarch %{power64} s390 s390x armv7hl aarch64
+    %ifarch %{mips64}
+    -x test_ctypes \
+    %endif
+    %ifarch %{power64} s390 s390x armv7hl aarch64 %{mips}
     -x test_gdb
     %endif
 
@@ -1602,6 +1613,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Aug 01 2016 Michal Toman <mtoman@fedoraproject.org> - 3.5.1-14
+- Build properly on MIPS
+
 * Tue Jul 19 2016 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.5.1-13
 - https://fedoraproject.org/wiki/Changes/Automatic_Provides_for_Python_RPM_Packages
 
