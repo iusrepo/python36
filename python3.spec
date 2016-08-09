@@ -2,7 +2,7 @@
 # Conditionals and other variables controlling the build
 # ======================================================
 
-# NOTES ON BOOTSTRAPING PYTHON 3.4:
+# NOTES ON BOOTSTRAPING PYTHON 3.5:
 #
 # Due to dependency cycle between Python, pip, setuptools and
 # wheel caused by the rewheel patch, one has to build in the
@@ -112,7 +112,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.1
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -429,54 +429,52 @@ Patch207: 00207-math-once.patch
 Patch208: 00208-disable-test_with_pip-on-ppc.patch
 
 # 00209 #
+# Fix test breakage with version 2.2.0 of Expat
+# rhbz#1353918: https://bugzilla.redhat.com/show_bug.cgi?id=1353918
+# FIXED UPSTREAM: http://bugs.python.org/issue27369
+Patch209: 00209-fix-test-pyexpat-failure.patch
+
+# 00237 #
+# CVE-2016-0772 python: smtplib StartTLS stripping attack
+# rhbz#1303647: https://bugzilla.redhat.com/show_bug.cgi?id=1303647
+# rhbz#1346345: https://bugzilla.redhat.com/show_bug.cgi?id=1346345
+# FIXED UPSTREAM: https://hg.python.org/cpython/rev/d590114c2394
+# Raise an error when STARTTLS fails
+Patch237: 00237-Raise-an-error-when-STARTTLS-fails.patch
+
+# 00241 #
 # CVE-2016-5636: http://seclists.org/oss-sec/2016/q2/560
 # rhbz#1345859: https://bugzilla.redhat.com/show_bug.cgi?id=1345859
 # https://hg.python.org/cpython/rev/10dad6da1b28/
 # https://hg.python.org/cpython/rev/5533a9e02b21
 # Fix possible integer overflow and heap corruption in zipimporter.get_data()
 # FIXED UPSTREAM: https://bugs.python.org/issue26171
-Patch209: 00209-CVE-2016-5636-buffer-overflow-in-zipimport-module-fix.patch
-
-# 00210 #
-# CVE-2016-0772 python: smtplib StartTLS stripping attack
-# rhbz#1303647: https://bugzilla.redhat.com/show_bug.cgi?id=1303647
-# rhbz#1346345: https://bugzilla.redhat.com/show_bug.cgi?id=1346345
-# FIXED UPSTREAM: https://hg.python.org/cpython/rev/d590114c2394
-# Raise an error when STARTTLS fails
-Patch210: 00210-Raise-an-error-when-STARTTLS-fails.patch
-
-# 00211 #
-# Fix test breakage with version 2.2.0 of Expat
-# rhbz#1353918: https://bugzilla.redhat.com/show_bug.cgi?id=1353918
-# NOT YET FIXED UPSTREAM: http://bugs.python.org/issue27369
-Patch211: 00211-fix-test-pyexpat-failure.patch
+Patch241: 00241-CVE-2016-5636-buffer-overflow-in-zipimport-module-fix.patch
 
 # 00242 #
+# HTTPoxy attack (CVE-2016-1000110)
+# https://httpoxy.org/
+# FIXED UPSTREAM: http://bugs.python.org/issue27568
+# Based on a patch by Rémi Rampin
+# Resolves: rhbz#1359177
+Patch242: 00242-CVE-2016-1000110-httpoxy.patch
+
+# 00243 #
 # Fix the triplet used on 64-bit MIPS
 # rhbz#1322526: https://bugzilla.redhat.com/show_bug.cgi?id=1322526
 # Upstream uses Debian-like style mips64-linux-gnuabi64
 # Fedora needs the default mips64-linux-gnu
-Patch242: 00242-fix-mips64-triplet.patch
+Patch243: 00243-fix-mips64-triplet.patch
 
 # (New patches go here ^^^)
 #
-# When adding new patches to "python" and "python3" in Fedora 17 onwards,
-# please try to keep the patch numbers in-sync between the two specfiles:
+# When adding new patches to "python" and "python3" in Fedora, EL, etc.,
+# please try to keep the patch numbers in-sync between all specfiles.
 #
-#   - use the same patch number across both specfiles for conceptually-equivalent
-#     fixes, ideally with the same name
+# More information, and a patch number catalog, is at:
 #
-#   - when a patch is relevant to both specfiles, use the same introductory
-#     comment in both specfiles where possible (to improve "diff" output when
-#     comparing them)
-#
-#   - when a patch is only relevant for one of the two specfiles, leave a gap
-#     in the patch numbering in the other specfile, adding a comment when
-#     omitting a patch, both in the manifest section here, and in the "prep"
-#     phase below
-#
-# Hopefully this will make it easier to ensure that all relevant fixes are
-# applied to both versions.
+#     https://fedoraproject.org/wiki/SIGs/Python/PythonPatches
+
 
 # add correct arch for ppc64/ppc64le
 # it should be ppc64le-linux-gnu/ppc64-linux-gnu instead powerpc64le-linux-gnu/powerpc64-linux-gnu
@@ -706,9 +704,10 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch207 -p1
 %patch208 -p1
 %patch209 -p1
-%patch210 -p1
-%patch211 -p1
+%patch237 -p1
+%patch241 -p1
 %patch242 -p1
+%patch243 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1613,6 +1612,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Tue Aug 09 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.5.1-15
+- Fix for CVE-2016-1000110 HTTPoxy attack
+- SPEC file cleanup
+
 * Mon Aug 01 2016 Michal Toman <mtoman@fedoraproject.org> - 3.5.1-14
 - Build properly on MIPS
 
