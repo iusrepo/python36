@@ -111,8 +111,8 @@
 # ==================
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
-Version: %{pybasever}.1
-Release: 15%{?dist}
+Version: %{pybasever}.2
+Release: 1%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -382,31 +382,6 @@ Patch188: 00188-fix-lib2to3-tests-when-hashlib-doesnt-compile-properly.patch
 Patch189: 00189-add-rewheel-module.patch
 %endif
 
-# 00194 #
-# Tests requiring SIGHUP to work don't work in Koji
-# see rhbz#1088233
-Patch194: temporarily-disable-tests-requiring-SIGHUP.patch
-
-# 00196 #
-#  Fix test_gdb failure on ppc64le
-Patch196: 00196-test-gdb-match-addr-before-builtin.patch
-
-# 00200 #
-# Fix for gettext plural form headers (lines that begin with "#")
-# Note: Backported from scl
-Patch200: 00200-gettext-plural-fix.patch
-
-# 00201 #
-# Fixes memory leak in gdbm module (rhbz#977308)
-# This was upstreamed as a part of bigger patch, but for our purposes
-# this is ok: http://bugs.python.org/issue18404
-# Note: Backported from scl
-Patch201: 00201-fix-memory-leak-in-gdbm.patch
-
-# 00203 #
-# test_threading fails in koji dues to it's handling of signals
-Patch203: 00203-disable-threading-test-koji.patch
-
 # 00205 #
 # LIBPL variable in makefile takes LIBPL from configure.ac
 # but the LIBPL variable defined there doesn't respect libdir macro
@@ -417,39 +392,11 @@ Patch205: 00205-make-libpl-respect-lib64.patch
 # by debian but fedora infra uses only eabi without hf
 Patch206: 00206-remove-hf-from-arm-triplet.patch
 
-# 00207 #
-# Avoid truncated _math.o files caused by parallel builds
-# modified version of https://bugs.python.org/issue24421
-# rhbz#1292461
-Patch207: 00207-math-once.patch
-
-# 00208 #
-# test_with_pip (test.test_venv.EnsurePipTest) fails on ppc64*
-# rhbz#1292467
-Patch208: 00208-disable-test_with_pip-on-ppc.patch
-
 # 00209 #
 # Fix test breakage with version 2.2.0 of Expat
 # rhbz#1353918: https://bugzilla.redhat.com/show_bug.cgi?id=1353918
 # FIXED UPSTREAM: http://bugs.python.org/issue27369
 Patch209: 00209-fix-test-pyexpat-failure.patch
-
-# 00237 #
-# CVE-2016-0772 python: smtplib StartTLS stripping attack
-# rhbz#1303647: https://bugzilla.redhat.com/show_bug.cgi?id=1303647
-# rhbz#1346345: https://bugzilla.redhat.com/show_bug.cgi?id=1346345
-# FIXED UPSTREAM: https://hg.python.org/cpython/rev/d590114c2394
-# Raise an error when STARTTLS fails
-Patch237: 00237-Raise-an-error-when-STARTTLS-fails.patch
-
-# 00241 #
-# CVE-2016-5636: http://seclists.org/oss-sec/2016/q2/560
-# rhbz#1345859: https://bugzilla.redhat.com/show_bug.cgi?id=1345859
-# https://hg.python.org/cpython/rev/10dad6da1b28/
-# https://hg.python.org/cpython/rev/5533a9e02b21
-# Fix possible integer overflow and heap corruption in zipimporter.get_data()
-# FIXED UPSTREAM: https://bugs.python.org/issue26171
-Patch241: 00241-CVE-2016-5636-buffer-overflow-in-zipimport-module-fix.patch
 
 # 00242 #
 # HTTPoxy attack (CVE-2016-1000110)
@@ -659,7 +606,7 @@ for f in md5module.c sha1module.c sha256module.c sha512module.c; do
 done
 
 %if 0%{with_rewheel}
-%global pip_version 7.1.0
+%global pip_version 8.1.2
 sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/ensurepip/__init__.py
 %endif
 
@@ -696,16 +643,9 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch189 -p1
 %endif
 
-%patch194 -p1
-%patch196 -p1
-%patch203 -p1
 %patch205 -p1
 %patch206 -p1
-%patch207 -p1
-%patch208 -p1
 %patch209 -p1
-%patch237 -p1
-%patch241 -p1
 %patch242 -p1
 %patch243 -p1
 
@@ -1612,6 +1552,15 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Aug 15 2016 Tomas Orsava <torsava@redhat.com> - 3.5.2-1
+- Rebased to version 3.5.2
+- Set to work with pip version 8.1.2
+- Removed patches 207, 237, 241 as fixes are already contained in Python 3.5.2
+- Removed arch or environment specific patches 194, 196, 203, and 208
+  as test builds indicate they are no longer needed
+- Updated patches 102, 146, and 242 to work with the new Python codebase
+- Removed patches 200, 201, 5000 which weren't even being applied
+
 * Tue Aug 09 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.5.1-15
 - Fix for CVE-2016-1000110 HTTPoxy attack
 - SPEC file cleanup
