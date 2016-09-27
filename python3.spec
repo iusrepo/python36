@@ -2,7 +2,7 @@
 # Conditionals and other variables controlling the build
 # ======================================================
 
-# NOTES ON BOOTSTRAPING PYTHON 3.5:
+# NOTES ON BOOTSTRAPING PYTHON 3.6:
 #
 # Due to dependency cycle between Python, pip, setuptools and
 # wheel caused by the rewheel patch, one has to build in the
@@ -14,12 +14,15 @@
 # 4) python3-setuptools and python3-pip with with_rewheel set to 1
 # 5) python3 with with_rewheel set to 1
 
+# First beta prerelease
+%global prerel b1
+
 %global with_rewheel 1
 
-%global pybasever 3.5
+%global pybasever 3.6
 
 # pybasever without the dot:
-%global pyshortver 35
+%global pyshortver 36
 
 %global pylibdir %{_libdir}/python%{pybasever}
 %global dynload_dir %{pylibdir}/lib-dynload
@@ -51,7 +54,7 @@
 # now has bytecode at:
 #   foo/__pycache__/bar.cpython-35.pyc
 #   foo/__pycache__/bar.cpython-35.pyo
-%global bytecode_suffixes .cpython-35*.py?
+%global bytecode_suffixes .cpython-36*.py?
 
 # Python's configure script defines SOVERSION, and this is used in the Makefile
 # to determine INSTSONAME, the name of the libpython DSO:
@@ -111,8 +114,8 @@
 # ==================
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
-Version: %{pybasever}.2
-Release: 7%{?dist}
+Version: %{pybasever}.0
+Release: 0.1.%{?prerel}%{?dist}
 License: Python
 Group: Development/Languages
 
