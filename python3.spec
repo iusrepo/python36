@@ -180,7 +180,7 @@ BuildRequires: python3-pip
 # Source code and patches
 # =======================
 
-Source: http://www.python.org/ftp/python/%{version}/Python-%{version}.tar.xz
+Source: https://www.python.org/ftp/python/3.6.0/Python-3.6.0b1.tar.xz
 
 # Supply an RPM macro "py_byte_compile" for the python3-devel subpackage
 # to enable specfiles to selectively byte-compile individual files and paths
