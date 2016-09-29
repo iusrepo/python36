@@ -604,11 +604,6 @@ cp -a %{SOURCE7} .
 #   Remove embedded copy of expat:
 rm -r Modules/expat || exit 1
 
-#   Remove embedded copy of libffi:
-for SUBDIR in darwin libffi libffi_arm_wince libffi_msvc libffi_osx ; do
-  rm -r Modules/_ctypes/$SUBDIR || exit 1 ;
-done
-
 #   Remove embedded copy of zlib:
 rm -r Modules/zlib || exit 1
 
