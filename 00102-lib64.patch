@@ -1,5 +1,5 @@
 diff --git a/Lib/distutils/command/install.py b/Lib/distutils/command/install.py
-index 67db007..b16fe0f 100644
+index 9474e9c..c0ce4c6 100644
 --- a/Lib/distutils/command/install.py
 +++ b/Lib/distutils/command/install.py
 @@ -30,14 +30,14 @@ WINDOWS_SCHEME = {
@@ -20,7 +20,7 @@ index 67db007..b16fe0f 100644
          'scripts': '$base/bin',
          'data'   : '$base',
 diff --git a/Lib/distutils/sysconfig.py b/Lib/distutils/sysconfig.py
-index e5c493d..a4846eb 100644
+index 026cca7..6d3e077 100644
 --- a/Lib/distutils/sysconfig.py
 +++ b/Lib/distutils/sysconfig.py
 @@ -132,8 +132,12 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
@@ -38,7 +38,7 @@ index e5c493d..a4846eb 100644
              return libpython
          else:
 diff --git a/Lib/site.py b/Lib/site.py
-index 3f78ef5..ad1033e 100644
+index a84e3bb..ba0d3ea 100644
 --- a/Lib/site.py
 +++ b/Lib/site.py
 @@ -303,11 +303,15 @@ def getsitepackages(prefixes=None):
@@ -49,7 +49,7 @@ index 3f78ef5..ad1033e 100644
 +                                        "python" + sys.version[:3],
 +                                        "site-packages"))
              sitepackages.append(os.path.join(prefix, "lib",
-                                         "python" + sys.version[:3],
+                                         "python%d.%d" % sys.version_info[:2],
                                          "site-packages"))
          else:
              sitepackages.append(prefix)
@@ -58,7 +58,7 @@ index 3f78ef5..ad1033e 100644
          if sys.platform == "darwin":
              # for framework builds *only* we add the standard Apple
 diff --git a/Lib/sysconfig.py b/Lib/sysconfig.py
-index 61451b2..b021cce 100644
+index b9bbfe5..2a5f29c 100644
 --- a/Lib/sysconfig.py
 +++ b/Lib/sysconfig.py
 @@ -20,10 +20,10 @@ __all__ = [
@@ -90,7 +90,7 @@ index 61451b2..b021cce 100644
          'scripts': '{userbase}/bin',
          'data': '{userbase}',
 diff --git a/Lib/test/test_site.py b/Lib/test/test_site.py
-index da20a3d..f38ce06 100644
+index f698927..bc977b5 100644
 --- a/Lib/test/test_site.py
 +++ b/Lib/test/test_site.py
 @@ -248,8 +248,8 @@ class HelperFunctionsTests(unittest.TestCase):
@@ -98,17 +98,17 @@ index da20a3d..f38ce06 100644
          elif os.sep == '/':
              # OS X non-framwework builds, Linux, FreeBSD, etc
 -            self.assertEqual(len(dirs), 1)
--            wanted = os.path.join('xoxo', 'lib', 'python' + sys.version[:3],
+-            wanted = os.path.join('xoxo', 'lib',
 +            self.assertEqual(len(dirs), 2)
-+            wanted = os.path.join('xoxo', 'lib64', 'python' + sys.version[:3],
++            wanted = os.path.join('xoxo', 'lib64',
+                                   'python%d.%d' % sys.version_info[:2],
                                    'site-packages')
              self.assertEqual(dirs[0], wanted)
-         else:
 diff --git a/Makefile.pre.in b/Makefile.pre.in
-index 58d4258..e8364f0 100644
+index 8fa7934..a693917 100644
 --- a/Makefile.pre.in
 +++ b/Makefile.pre.in
-@@ -125,7 +125,7 @@ LIBDIR=		@libdir@
+@@ -126,7 +126,7 @@ LIBDIR=		@libdir@
  MANDIR=		@mandir@
  INCLUDEDIR=	@includedir@
  CONFINCLUDEDIR=	$(exec_prefix)/include
@@ -118,7 +118,7 @@ index 58d4258..e8364f0 100644
  
  # Detailed destination directories
 diff --git a/Modules/getpath.c b/Modules/getpath.c
-index 18deb60..27ca814 100644
+index 65b47a3..eaa756c 100644
 --- a/Modules/getpath.c
 +++ b/Modules/getpath.c
 @@ -494,7 +494,7 @@ calculate_path(void)
@@ -149,7 +149,7 @@ index 18deb60..27ca814 100644
      /* If we found EXEC_PREFIX do *not* reduce it!  (Yet.) */
  
 diff --git a/setup.py b/setup.py
-index be33c46..f2779cc 100644
+index 0f2dfc4..da37896 100644
 --- a/setup.py
 +++ b/setup.py
 @@ -492,7 +492,7 @@ class PyBuildExt(build_ext):

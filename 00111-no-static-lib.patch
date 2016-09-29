@@ -1,18 +1,19 @@
-diff -up cpython-59223da36dec/Makefile.pre.in.no-static-lib cpython-59223da36dec/Makefile.pre.in
---- cpython-59223da36dec/Makefile.pre.in.no-static-lib	2012-08-07 16:43:43.296466422 -0400
-+++ cpython-59223da36dec/Makefile.pre.in	2012-08-07 16:44:13.299464371 -0400
-@@ -550,7 +550,7 @@ clinic: $(BUILDPYTHON)
+diff --git a/Makefile.pre.in b/Makefile.pre.in
+index 70e5927..04c8e3d 100644
+--- a/Makefile.pre.in
++++ b/Makefile.pre.in
+@@ -556,7 +556,7 @@ clinic: $(BUILDPYTHON) $(srcdir)/Modules/_blake2/blake2s_impl.c
  	$(RUNSHARED) $(PYTHON_FOR_BUILD) ./Tools/clinic/clinic.py --make
  
  # Build the interpreter
 -$(BUILDPYTHON):	Programs/python.o $(LIBRARY) $(LDLIBRARY) $(PY3LIBRARY)
-+$(BUILDPYTHON): Programs/python.o $(LDLIBRARY) $(PY3LIBRARY)
++$(BUILDPYTHON):	Programs/python.o $(LDLIBRARY) $(PY3LIBRARY)
  	$(LINKCC) $(PY_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/python.o $(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
  
  platform: $(BUILDPYTHON) pybuilddir.txt
-@@ -480,18 +480,6 @@ sharedmods: $(BUILDPYTHON) $(SYSCONFIGDA
- 		_TCLTK_INCLUDES='$(TCLTK_INCLUDES)' _TCLTK_LIBS='$(TCLTK_LIBS)' \
+@@ -601,18 +601,6 @@ sharedmods: $(BUILDPYTHON) pybuilddir.txt Modules/_math.o
  		$(PYTHON_FOR_BUILD) $(srcdir)/setup.py $$quiet build
+ 
  
 -# Build static library
 -# avoid long command lines, same as LIBRARY_OBJS
@@ -22,14 +23,14 @@ diff -up cpython-59223da36dec/Makefile.pre.in.no-static-lib cpython-59223da36dec
 -	$(AR) $(ARFLAGS) $@ $(PARSER_OBJS)
 -	$(AR) $(ARFLAGS) $@ $(OBJECT_OBJS)
 -	$(AR) $(ARFLAGS) $@ $(PYTHON_OBJS) Python/frozen.o
--	$(AR) $(ARFLAGS) $@ $(MODULE_OBJS) $(SIGNAL_OBJS)
+-	$(AR) $(ARFLAGS) $@ $(MODULE_OBJS)
 -	$(AR) $(ARFLAGS) $@ $(MODOBJS)
 -	$(RANLIB) $@
 -
  libpython$(LDVERSION).so: $(LIBRARY_OBJS)
  	if test $(INSTSONAME) != $(LDLIBRARY); then \
  		$(BLDSHARED) -Wl,-h$(INSTSONAME) -o $(INSTSONAME) $(LIBRARY_OBJS) $(MODLIBS) $(SHLIBS) $(LIBC) $(LIBM) $(LDLAST); \
-@@ -674,7 +674,7 @@ Modules/Setup: $(srcdir)/Modules/Setup.d
+@@ -702,7 +690,7 @@ Modules/Setup: $(srcdir)/Modules/Setup.dist
  		echo "-----------------------------------------------"; \
  	fi
  
@@ -38,7 +39,7 @@ diff -up cpython-59223da36dec/Makefile.pre.in.no-static-lib cpython-59223da36dec
  	$(LINKCC) $(PY_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/_testembed.o $(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
  
  ############################################################################
-@@ -1354,18 +1354,6 @@ libainstall:	all python-config
+@@ -1382,18 +1370,6 @@ libainstall:	all python-config
  		else	true; \
  		fi; \
  	done

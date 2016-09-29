@@ -1,8 +1,8 @@
-Index: Include/object.h
-===================================================================
---- Include/object.h	(revision 87911)
-+++ Include/object.h	(working copy)
-@@ -914,6 +914,49 @@
+diff --git a/Include/object.h b/Include/object.h
+index 0c88603..e3413e8 100644
+--- a/Include/object.h
++++ b/Include/object.h
+@@ -1059,6 +1059,49 @@ PyAPI_FUNC(void)
  _PyObject_DebugTypeStats(FILE *out);
  #endif /* ifndef Py_LIMITED_API */
  
@@ -52,63 +52,38 @@ Index: Include/object.h
  #ifdef __cplusplus
  }
  #endif
-Index: Objects/object.c
-===================================================================
---- Objects/object.c	(revision 87911)
-+++ Objects/object.c	(working copy)
-@@ -1899,6 +1899,35 @@
-     }
- }
- 
-+PyAPI_FUNC(void)
-+_PyObject_AssertFailed(PyObject *obj, const char *msg, const char *expr,
-+		       const char *file, int line, const char *function)
-+{
-+    fprintf(stderr,
-+            "%s:%d: %s: Assertion \"%s\" failed.\n",
-+            file, line, function, expr);
-+    if (msg) {
-+        fprintf(stderr, "%s\n", msg);
-+    }
-+
-+    fflush(stderr);
-+
-+    if (obj) {
-+        /* This might succeed or fail, but we're about to abort, so at least
-+           try to provide any extra info we can: */
-+        _PyObject_Dump(obj);
-+    }
-+    else {
-+        fprintf(stderr, "NULL object\n");
-+    }
-+
-+    fflush(stdout);
-+    fflush(stderr);
-+
-+    /* Terminate the process: */
-+    abort();
-+}
-+
- #ifndef Py_TRACE_REFS
- /* For Py_LIMITED_API, we need an out-of-line version of _Py_Dealloc.
-    Define this here, so we can undefine the macro. */
-Index: Lib/test/test_gc.py
-===================================================================
---- Lib/test/test_gc.py	(revision 87911)
-+++ Lib/test/test_gc.py	(working copy)
-@@ -1,7 +1,7 @@
+diff --git a/Lib/test/test_gc.py b/Lib/test/test_gc.py
+index e727499..6efcafb 100644
+--- a/Lib/test/test_gc.py
++++ b/Lib/test/test_gc.py
+@@ -1,10 +1,11 @@
  import unittest
  from test.support import (verbose, refcount_test, run_unittest,
-                             strip_python_stderr, cpython_only, start_threads,
--                            temp_dir)
-+                            temp_dir, import_module)
+                           strip_python_stderr, cpython_only, start_threads,
+-                          temp_dir, requires_type_collecting)
++                          temp_dir, import_module, requires_type_collecting)
  from test.support.script_helper import assert_python_ok, make_script
  
  import sys
-@@ -512,6 +512,48 @@
++import sysconfig
+ import time
+ import gc
+ import weakref
+@@ -50,6 +51,8 @@ class GC_Detector(object):
+         # gc collects it.
+         self.wr = weakref.ref(C1055820(666), it_happened)
+ 
++BUILD_WITH_NDEBUG = ('-DNDEBUG' in sysconfig.get_config_vars()['PY_CFLAGS'])
++
+ @with_tp_del
+ class Uncollectable(object):
+     """Create a reference cycle with multiple __del__ methods.
+@@ -862,6 +865,50 @@ class GCCallbackTests(unittest.TestCase):
          self.assertEqual(len(gc.garbage), 0)
  
  
++    @unittest.skipIf(BUILD_WITH_NDEBUG,
++                     'built with -NDEBUG')
 +    def test_refcount_errors(self):
 +        self.preclean()
 +        # Verify the "handling" of objects with broken refcounts
@@ -154,9 +129,10 @@ Index: Lib/test/test_gc.py
  class GCTogglingTests(unittest.TestCase):
      def setUp(self):
          gc.enable()
-diff -up Modules/gcmodule.c.orig2 Modules/gcmodule.c
---- Modules/gcmodule.c.orig2	2014-12-08 10:54:14.251742911 +0100
-+++ Modules/gcmodule.c	2014-12-08 10:52:45.674771917 +0100
+diff --git a/Modules/gcmodule.c b/Modules/gcmodule.c
+index 0c6f444..87edd5a 100644
+--- a/Modules/gcmodule.c
++++ b/Modules/gcmodule.c
 @@ -341,7 +341,8 @@ update_refs(PyGC_Head *containers)
  {
      PyGC_Head *gc = containers->gc.gc_next;
@@ -188,7 +164,7 @@ diff -up Modules/gcmodule.c.orig2 Modules/gcmodule.c
          if (_PyGCHead_REFS(gc) > 0)
              _PyGCHead_DECREF(gc);
      }
-@@ -436,9 +440,10 @@ visit_reachable(PyObject *op, PyGC_Head
+@@ -436,9 +440,10 @@ visit_reachable(PyObject *op, PyGC_Head *reachable)
           * If gc_refs == GC_UNTRACKED, it must be ignored.
           */
           else {
@@ -202,7 +178,7 @@ diff -up Modules/gcmodule.c.orig2 Modules/gcmodule.c
           }
      }
      return 0;
-@@ -480,7 +485,7 @@ move_unreachable(PyGC_Head *young, PyGC_
+@@ -480,7 +485,7 @@ move_unreachable(PyGC_Head *young, PyGC_Head *unreachable)
               */
              PyObject *op = FROM_GC(gc);
              traverseproc traverse = Py_TYPE(op)->tp_traverse;
@@ -211,7 +187,7 @@ diff -up Modules/gcmodule.c.orig2 Modules/gcmodule.c
              _PyGCHead_SET_REFS(gc, GC_REACHABLE);
              (void) traverse(op,
                              (visitproc)visit_reachable,
-@@ -543,7 +548,7 @@ move_legacy_finalizers(PyGC_Head *unreac
+@@ -543,7 +548,7 @@ move_legacy_finalizers(PyGC_Head *unreachable, PyGC_Head *finalizers)
      for (gc = unreachable->gc.gc_next; gc != unreachable; gc = next) {
          PyObject *op = FROM_GC(gc);
  
@@ -220,7 +196,7 @@ diff -up Modules/gcmodule.c.orig2 Modules/gcmodule.c
          next = gc->gc.gc_next;
  
          if (has_legacy_finalizer(op)) {
-@@ -619,7 +624,7 @@ handle_weakrefs(PyGC_Head *unreachable,
+@@ -619,7 +624,7 @@ handle_weakrefs(PyGC_Head *unreachable, PyGC_Head *old)
          PyWeakReference **wrlist;
  
          op = FROM_GC(gc);
@@ -229,7 +205,7 @@ diff -up Modules/gcmodule.c.orig2 Modules/gcmodule.c
          next = gc->gc.gc_next;
  
          if (! PyType_SUPPORTS_WEAKREFS(Py_TYPE(op)))
-@@ -640,9 +645,9 @@ handle_weakrefs(PyGC_Head *unreachable,
+@@ -640,9 +645,9 @@ handle_weakrefs(PyGC_Head *unreachable, PyGC_Head *old)
               * the callback pointer intact.  Obscure:  it also
               * changes *wrlist.
               */
@@ -241,7 +217,7 @@ diff -up Modules/gcmodule.c.orig2 Modules/gcmodule.c
              if (wr->wr_callback == NULL)
                  continue;                       /* no callback */
  
-@@ -676,7 +681,7 @@ handle_weakrefs(PyGC_Head *unreachable,
+@@ -676,7 +681,7 @@ handle_weakrefs(PyGC_Head *unreachable, PyGC_Head *old)
       */
              if (IS_TENTATIVELY_UNREACHABLE(wr))
                  continue;
@@ -250,7 +226,7 @@ diff -up Modules/gcmodule.c.orig2 Modules/gcmodule.c
  
              /* Create a new reference so that wr can't go away
               * before we can process it again.
-@@ -685,7 +690,8 @@ handle_weakrefs(PyGC_Head *unreachable,
+@@ -685,7 +690,8 @@ handle_weakrefs(PyGC_Head *unreachable, PyGC_Head *old)
  
              /* Move wr to wrcb_to_call, for the next pass. */
              wrasgc = AS_GC(wr);
@@ -260,7 +236,7 @@ diff -up Modules/gcmodule.c.orig2 Modules/gcmodule.c
                                         next isn't, so they can't
                                         be the same */
              gc_list_move(wrasgc, &wrcb_to_call);
-@@ -701,11 +707,11 @@ handle_weakrefs(PyGC_Head *unreachable,
+@@ -701,11 +707,11 @@ handle_weakrefs(PyGC_Head *unreachable, PyGC_Head *old)
  
          gc = wrcb_to_call.gc.gc_next;
          op = FROM_GC(gc);
@@ -292,35 +268,43 @@ diff -up Modules/gcmodule.c.orig2 Modules/gcmodule.c
          if (_PyGCHead_REFS(gc) != 0)
              return -1;
      }
-diff -up Lib/test/test_gc.py.old Lib/test/test_gc.py
---- Lib/test/test_gc.py.old	2014-12-10 11:19:33.503982288 +0100
-+++ Lib/test/test_gc.py	2014-12-10 11:21:13.220021364 +0100
-@@ -49,6 +49,8 @@ class GC_Detector(object):
-         # gc collects it.
-         self.wr = weakref.ref(C1055820(666), it_happened)
+diff --git a/Objects/object.c b/Objects/object.c
+index 559794f..a47d47f 100644
+--- a/Objects/object.c
++++ b/Objects/object.c
+@@ -2022,6 +2022,35 @@ _PyTrash_thread_destroy_chain(void)
+     }
+ }
  
-+BUILD_WITH_NDEBUG = ('-DNDEBUG' in sysconfig.get_config_vars()['PY_CFLAGS'])
++PyAPI_FUNC(void)
++_PyObject_AssertFailed(PyObject *obj, const char *msg, const char *expr,
++              const char *file, int line, const char *function)
++{
++    fprintf(stderr,
++            "%s:%d: %s: Assertion \"%s\" failed.\n",
++            file, line, function, expr);
++    if (msg) {
++        fprintf(stderr, "%s\n", msg);
++    }
 +
- @with_tp_del
- class Uncollectable(object):
-     """Create a reference cycle with multiple __del__ methods.
-@@ -854,6 +856,8 @@ class GCCallbackTests(unittest.TestCase)
-         self.assertEqual(len(gc.garbage), 0)
- 
- 
-+    @unittest.skipIf(BUILD_WITH_NDEBUG,
-+                     'built with -NDEBUG')
-     def test_refcount_errors(self):
-         self.preclean()
-         # Verify the "handling" of objects with broken refcounts
-diff -up Lib/test/test_gc.py.old Lib/test/test_gc.py
---- Lib/test/test_gc.py.old	2014-12-10 12:50:58.252121318 +0100
-+++ Lib/test/test_gc.py	2014-12-10 12:51:08.594266653 +0100
-@@ -4,6 +4,7 @@ from test.support import (verbose, refco
- from test.support.script_helper import assert_python_ok, make_script
- 
- import sys
-+import sysconfig
- import time
- import gc
- import weakref
++    fflush(stderr);
++
++    if (obj) {
++        /* This might succeed or fail, but we're about to abort, so at least
++           try to provide any extra info we can: */
++        _PyObject_Dump(obj);
++    }
++    else {
++        fprintf(stderr, "NULL object\n");
++    }
++
++    fflush(stdout);
++    fflush(stderr);
++
++    /* Terminate the process: */
++    abort();
++}
++
+ #ifndef Py_TRACE_REFS
+ /* For Py_LIMITED_API, we need an out-of-line version of _Py_Dealloc.
+    Define this here, so we can undefine the macro. */

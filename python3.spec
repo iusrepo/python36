@@ -395,33 +395,12 @@ Patch205: 00205-make-libpl-respect-lib64.patch
 # by debian but fedora infra uses only eabi without hf
 Patch206: 00206-remove-hf-from-arm-triplet.patch
 
-# 00209 #
-# Fix test breakage with version 2.2.0 of Expat
-# rhbz#1353918: https://bugzilla.redhat.com/show_bug.cgi?id=1353918
-# FIXED UPSTREAM: http://bugs.python.org/issue27369
-Patch209: 00209-fix-test-pyexpat-failure.patch
-
-# 00242 #
-# HTTPoxy attack (CVE-2016-1000110)
-# https://httpoxy.org/
-# FIXED UPSTREAM: http://bugs.python.org/issue27568
-# Based on a patch by Rémi Rampin
-# Resolves: rhbz#1359177
-Patch242: 00242-CVE-2016-1000110-httpoxy.patch
-
 # 00243 #
 # Fix the triplet used on 64-bit MIPS
 # rhbz#1322526: https://bugzilla.redhat.com/show_bug.cgi?id=1322526
 # Upstream uses Debian-like style mips64-linux-gnuabi64
 # Fedora needs the default mips64-linux-gnu
 Patch243: 00243-fix-mips64-triplet.patch
-
-# 00247 #
-# Port ssl and hashlib modules to OpenSSL 1.1.0.
-# As of F26, OpenSSL is rebased to 1.1.0, so in order for python
-# to not FTBFS we need to backport this patch from 3.5.3
-# FIXED UPSTREAM: https://bugs.python.org/issue26470
-Patch247: 00247-port-ssl-and-hashlib-to-OpenSSL-1.1.0.patch
 
 # (New patches go here ^^^)
 #
@@ -641,13 +620,13 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch111 -p1
 %patch132 -p1
 %patch137 -p1
-%patch143 -p1 -b .tsc-on-ppc
+#patch143 -p1 -b .tsc-on-ppc
 #patch146 -p1
 %patch155 -p1
 %patch157 -p1
 %patch160 -p1
 %patch163 -p1
-%patch170 -p0
+%patch170 -p1
 %patch178 -p1
 %patch180 -p1
 %patch184 -p1
@@ -660,10 +639,7 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 
 %patch205 -p1
 %patch206 -p1
-%patch209 -p1
-%patch242 -p1
 %patch243 -p1
-%patch247 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
