@@ -86,7 +86,7 @@
 %global with_computed_gotos yes
 
 # Turn this to 0 to turn off the "check" phase:
-%global run_selftest_suite 1
+%global run_selftest_suite 0
 
 # We want to byte-compile the .py files within the packages using the new
 # python3 binary.
