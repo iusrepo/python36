@@ -71,7 +71,7 @@
 
 %global with_gdb_hooks 1
 
-%global with_systemtap 1
+%global with_systemtap 0
 
 # some arches don't have valgrind so we need to disable its support on them
 %ifnarch s390 %{mips} riscv64
