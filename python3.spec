@@ -71,7 +71,7 @@
 %global with_systemtap 1
 
 # some arches don't have valgrind so we need to disable its support on them
-%ifnarch s390 %{mips}
+%ifnarch s390 %{mips} riscv64
 %global with_valgrind 1
 %else
 %global with_valgrind 0
