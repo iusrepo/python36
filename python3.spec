@@ -346,14 +346,6 @@ Patch178: 00178-dont-duplicate-flags-in-sysconfig.patch
 # Not appropriate for upstream, Fedora-specific naming
 Patch180: 00180-python-add-support-for-ppc64p7.patch
 
-# 00184 #
-# Fix for https://bugzilla.redhat.com/show_bug.cgi?id=979696
-# Fixes build of ctypes against libffi with multilib wrapper
-# Python recognizes ffi.h only if it contains "#define LIBFFI_H",
-# but the wrapper doesn't contain that, which makes the build fail
-# We patch this by also accepting "#define ffi_wrapper_h"
-Patch184: 00184-ctypes-should-build-with-libffi-multilib-wrapper.patch
-
 # 00186 #
 # Fix for https://bugzilla.redhat.com/show_bug.cgi?id=1023607
 # Previously, this fixed a problem where some *.py files were not being
@@ -630,7 +622,6 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch170 -p1
 %patch178 -p1
 %patch180 -p1
-%patch184 -p1
 %patch186 -p1
 %patch188 -p1
 
