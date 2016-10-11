@@ -1559,7 +1559,7 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
-* Tue Oct 10 2016 Tomáš Mráz <tmraz@redhat.com> - 3.5.2-5
+* Tue Oct 11 2016 Tomáš Mráz <tmraz@redhat.com> - 3.5.2-5
 - Make it build with OpenSSL-1.1.0 based on upstream patch
 
 * Wed Sep 14 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.5.2-4
