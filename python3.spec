@@ -14,8 +14,8 @@
 # 4) python3-setuptools and python3-pip with with_rewheel set to 1
 # 5) python3 with with_rewheel set to 1
 
-# First beta prerelease
-%global prerel b1
+# Second beta prerelease
+%global prerel b2
 
 %global with_rewheel 1
 
@@ -116,7 +116,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 0.1.%{?prerel}%{?dist}
+Release: 0.2.%{?prerel}%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -184,7 +184,7 @@ BuildRequires: python3-pip
 # Source code and patches
 # =======================
 
-Source: https://www.python.org/ftp/python/3.6.0/Python-3.6.0b1.tar.xz
+Source: https://www.python.org/ftp/python/3.6.0/Python-3.6.0b2.tar.xz
 
 # Supply an RPM macro "py_byte_compile" for the python3-devel subpackage
 # to enable specfiles to selectively byte-compile individual files and paths
