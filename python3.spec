@@ -1076,13 +1076,13 @@ CheckPython() {
     --verbose --findleaks \
     -x test_distutils \
     %ifarch ppc64le aarch64
-    -x test_faulthandler \
+    test_faulthandler \
     %endif
     %ifarch %{mips64}
-    -x test_ctypes \
+    test_ctypes \
     %endif
     %ifarch %{power64} s390 s390x armv7hl aarch64 %{mips}
-    -x test_gdb
+    test_gdb
     %endif
 
   echo FINISHED: CHECKING OF PYTHON FOR CONFIGURATION: $ConfName
