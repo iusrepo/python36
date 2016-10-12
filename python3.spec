@@ -112,7 +112,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -413,8 +413,12 @@ Patch242: 00242-CVE-2016-1000110-httpoxy.patch
 # Fedora needs the default mips64-linux-gnu
 Patch243: 00243-fix-mips64-triplet.patch
 
-# Make it build with OpenSSL-1.1.0 based on upstream patch
-Patch244: Python-3.5.2-openssl11.patch
+# 00247 #
+# Port ssl and hashlib modules to OpenSSL 1.1.0.
+# As of F26, OpenSSL is rebased to 1.1.0, so in order for python
+# to not FTBFS we need to backport this patch from 3.5.3
+# FIXED UPSTREAM: https://bugs.python.org/issue26470
+Patch247: 00247-port-ssl-and-hashlib-to-OpenSSL-1.1.0.patch
 
 # (New patches go here ^^^)
 #
@@ -605,6 +609,8 @@ done
 #   Remove embedded copy of zlib:
 rm -r Modules/zlib || exit 1
 
+## Disabling hashlib patch for now as it needs to be reimplemented
+## for OpenSSL 1.1.0.
 # Don't build upstream Python's implementation of these crypto algorithms;
 # instead rely on _hashlib and OpenSSL.
 #
@@ -612,9 +618,9 @@ rm -r Modules/zlib || exit 1
 # OpenSSL (and thus respects FIPS mode), and does not fall back to _md5
 # TODO: there seems to be no OpenSSL support in Python for sha3 so far
 # when it is there, also remove _sha3/ dir
-for f in md5module.c sha1module.c sha256module.c sha512module.c; do
-    rm Modules/$f
-done
+#for f in md5module.c sha1module.c sha256module.c sha512module.c; do
+#    rm Modules/$f
+#done
 
 %if 0%{with_rewheel}
 %global pip_version 8.1.2
@@ -638,7 +644,7 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch132 -p1
 %patch137 -p1
 %patch143 -p1 -b .tsc-on-ppc
-%patch146 -p1
+#patch146 -p1
 %patch155 -p1
 %patch157 -p1
 %patch160 -p1
@@ -659,7 +665,7 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch209 -p1
 %patch242 -p1
 %patch243 -p1
-%patch244 -p1
+%patch247 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1226,6 +1232,12 @@ rm -fr %{buildroot}
 %doc LICENSE README
 %dir %{pylibdir}
 %dir %{dynload_dir}
+
+%{dynload_dir}/_md5.%{SOABI_optimized}.so
+%{dynload_dir}/_sha256.%{SOABI_optimized}.so
+%{dynload_dir}/_sha512.%{SOABI_optimized}.so
+%{dynload_dir}/_sha1.%{SOABI_optimized}.so
+
 %{dynload_dir}/_bisect.%{SOABI_optimized}.so
 %{dynload_dir}/_bz2.%{SOABI_optimized}.so
 %{dynload_dir}/_codecs_cn.%{SOABI_optimized}.so
@@ -1448,6 +1460,12 @@ rm -fr %{buildroot}
 
 # Analog of the -libs subpackage's files:
 # ...with debug builds of the built-in "extension" modules:
+
+%{dynload_dir}/_md5.%{SOABI_debug}.so
+%{dynload_dir}/_sha256.%{SOABI_debug}.so
+%{dynload_dir}/_sha512.%{SOABI_debug}.so
+%{dynload_dir}/_sha1.%{SOABI_debug}.so
+
 %{dynload_dir}/_bisect.%{SOABI_debug}.so
 %{dynload_dir}/_bz2.%{SOABI_debug}.so
 %{dynload_dir}/_codecs_cn.%{SOABI_debug}.so
@@ -1559,6 +1577,12 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed Oct 12 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.5.2-6
+- Use proper patch numbering and base upstream branch for
+porting ssl and hashlib modules to OpenSSL 1.1.0
+- Drop hashlib patch for now
+- Add riscv64 arch to 64bit and no-valgrind arches
+
 * Tue Oct 11 2016 Tomáš Mráz <tmraz@redhat.com> - 3.5.2-5
 - Make it build with OpenSSL-1.1.0 based on upstream patch
 

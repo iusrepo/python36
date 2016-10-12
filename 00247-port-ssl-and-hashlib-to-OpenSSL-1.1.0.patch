@@ -1,20 +1,15 @@
-diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl.rst
---- Python-3.5.2/Doc/library/ssl.rst.openssl11	2016-06-25 23:38:35.000000000 +0200
-+++ Python-3.5.2/Doc/library/ssl.rst	2016-10-10 16:34:37.695049119 +0200
-@@ -49,6 +49,12 @@ For more sophisticated applications, the
- helps manage settings and certificates, which can then be inherited
- by SSL sockets created through the :meth:`SSLContext.wrap_socket` method.
- 
-+.. versionchanged:: 3.6
-+
-+   OpenSSL 0.9.8, 1.0.0 and 1.0.1 are deprecated and no longer supported.
-+   In the future the ssl module will require at least OpenSSL 1.0.2 or
-+   1.1.0.
-+
- 
- Functions, Constants, and Exceptions
- ------------------------------------
-@@ -178,7 +184,7 @@ instead.
+
+# HG changeset patch
+# User Christian Heimes <christian@python.org>
+# Date 1473110345 -7200
+# Node ID 5c75b315152b714f7c84258ea511b461e2c06154
+# Parent  82467d0dbaea31a7971d1429ca5f4a251a995f33
+Issue #26470: Port ssl and hashlib module to OpenSSL 1.1.0.
+
+diff --git a/Doc/library/ssl.rst b/Doc/library/ssl.rst
+--- a/Doc/library/ssl.rst
++++ b/Doc/library/ssl.rst
+@@ -178,7 +178,7 @@ instead.
     use.  Typically, the server chooses a particular protocol version, and the
     client must adapt to the server's choice.  Most of the versions are not
     interoperable with the other versions.  If not specified, the default is
@@ -23,7 +18,7 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
     versions.
  
     Here's a table showing which versions in a client (down the side) can connect
-@@ -187,11 +193,11 @@ instead.
+@@ -187,11 +187,11 @@ instead.
       .. table::
  
         ========================  =========  =========  ==========  =========  ===========  ===========
@@ -37,7 +32,7 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
          *TLSv1*                    no         no         yes         yes        no         no
          *TLSv1.1*                  no         no         yes         no         yes        no
          *TLSv1.2*                  no         no         yes         no         no         yes
-@@ -244,7 +250,7 @@ purposes.
+@@ -244,7 +244,7 @@ purposes.
     :const:`None`, this function can choose to trust the system's default
     CA certificates instead.
  
@@ -46,11 +41,11 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
     :data:`OP_NO_SSLv3` with high encryption cipher suites without RC4 and
     without unauthenticated cipher suites. Passing :data:`~Purpose.SERVER_AUTH`
     as *purpose* sets :data:`~SSLContext.verify_mode` to :data:`CERT_REQUIRED`
-@@ -316,6 +322,11 @@ Random generation
+@@ -316,6 +316,11 @@ Random generation
  
     .. versionadded:: 3.3
  
-+   .. deprecated:: 3.6
++   .. deprecated:: 3.5.3
 +
 +      OpenSSL has deprecated :func:`ssl.RAND_pseudo_bytes`, use
 +      :func:`ssl.RAND_bytes` instead.
@@ -58,7 +53,7 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
  .. function:: RAND_status()
  
     Return ``True`` if the SSL pseudo-random number generator has been seeded
-@@ -334,7 +345,7 @@ Random generation
+@@ -334,7 +339,7 @@ Random generation
     See http://egd.sourceforge.net/ or http://prngd.sourceforge.net/ for sources
     of entropy-gathering daemons.
  
@@ -67,7 +62,7 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
  
  .. function:: RAND_add(bytes, entropy)
  
-@@ -409,7 +420,7 @@ Certificate handling
+@@ -409,7 +414,7 @@ Certificate handling
        previously. Return an integer (no fractions of a second in the
        input format)
  
@@ -76,7 +71,7 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
  
     Given the address ``addr`` of an SSL-protected server, as a (*hostname*,
     *port-number*) pair, fetches the server's certificate, and returns it as a
-@@ -425,7 +436,7 @@ Certificate handling
+@@ -425,7 +430,7 @@ Certificate handling
  
     .. versionchanged:: 3.5
        The default *ssl_version* is changed from :data:`PROTOCOL_SSLv3` to
@@ -85,7 +80,7 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
  
  .. function:: DER_cert_to_PEM_cert(DER_cert_bytes)
  
-@@ -451,6 +462,9 @@ Certificate handling
+@@ -451,6 +456,9 @@ Certificate handling
     * :attr:`openssl_capath_env` - OpenSSL's environment key that points to a capath,
     * :attr:`openssl_capath` - hard coded path to a capath directory
  
@@ -95,7 +90,7 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
     .. versionadded:: 3.4
  
  .. function:: enum_certificates(store_name)
-@@ -568,11 +582,21 @@ Constants
+@@ -568,11 +576,21 @@ Constants
  
     .. versionadded:: 3.4.4
  
@@ -105,35 +100,35 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
     Selects the highest protocol version that both the client and server support.
     Despite the name, this option can select "TLS" protocols as well as "SSL".
  
-+   .. versionadded:: 3.6
++   .. versionadded:: 3.5.3
 +
 +.. data:: PROTOCOL_SSLv23
 +
 +   Alias for data:`PROTOCOL_TLS`.
 +
-+   .. deprecated:: 3.6
++   .. deprecated:: 3.5.3
 +
 +      Use data:`PROTOCOL_TLS` instead.
 +
  .. data:: PROTOCOL_SSLv2
  
     Selects SSL version 2 as the channel encryption protocol.
-@@ -584,6 +608,10 @@ Constants
+@@ -584,6 +602,10 @@ Constants
  
        SSL version 2 is insecure.  Its use is highly discouraged.
  
-+   .. deprecated:: 3.6
++   .. deprecated:: 3.5.3
 +
 +      OpenSSL has removed support for SSLv2.
 +
  .. data:: PROTOCOL_SSLv3
  
     Selects SSL version 3 as the channel encryption protocol.
-@@ -595,10 +623,20 @@ Constants
+@@ -595,10 +617,20 @@ Constants
  
        SSL version 3 is insecure.  Its use is highly discouraged.
  
-+   .. deprecated:: 3.6
++   .. deprecated:: 3.5.3
 +
 +      OpenSSL has deprecated all version specific protocols. Use the default
 +      protocol data:`PROTOCOL_TLS` with flags like data:`OP_NO_SSLv3` instead.
@@ -142,7 +137,7 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
  
     Selects TLS version 1.0 as the channel encryption protocol.
  
-+   .. deprecated:: 3.6
++   .. deprecated:: 3.5.3
 +
 +      OpenSSL has deprecated all version specific protocols. Use the default
 +      protocol data:`PROTOCOL_TLS` with flags like data:`OP_NO_SSLv3` instead.
@@ -150,11 +145,11 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
  .. data:: PROTOCOL_TLSv1_1
  
     Selects TLS version 1.1 as the channel encryption protocol.
-@@ -606,6 +644,11 @@ Constants
+@@ -606,6 +638,11 @@ Constants
  
     .. versionadded:: 3.4
  
-+   .. deprecated:: 3.6
++   .. deprecated:: 3.5.3
 +
 +      OpenSSL has deprecated all version specific protocols. Use the default
 +      protocol data:`PROTOCOL_TLS` with flags like data:`OP_NO_SSLv3` instead.
@@ -162,11 +157,11 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
  .. data:: PROTOCOL_TLSv1_2
  
     Selects TLS version 1.2 as the channel encryption protocol. This is the
-@@ -614,6 +657,11 @@ Constants
+@@ -614,6 +651,11 @@ Constants
  
     .. versionadded:: 3.4
  
-+   .. deprecated:: 3.6
++   .. deprecated:: 3.5.3
 +
 +      OpenSSL has deprecated all version specific protocols. Use the default
 +      protocol data:`PROTOCOL_TLS` with flags like data:`OP_NO_SSLv3` instead.
@@ -174,7 +169,7 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
  .. data:: OP_ALL
  
     Enables workarounds for various bugs present in other SSL implementations.
-@@ -625,23 +673,32 @@ Constants
+@@ -625,23 +667,32 @@ Constants
  .. data:: OP_NO_SSLv2
  
     Prevents an SSLv2 connection.  This option is only applicable in
@@ -184,7 +179,7 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
  
     .. versionadded:: 3.2
  
-+   .. deprecated:: 3.6
++   .. deprecated:: 3.5.3
 +
 +      SSLv2 is deprecated
 +
@@ -198,7 +193,7 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
  
     .. versionadded:: 3.2
  
-+   .. deprecated:: 3.6
++   .. deprecated:: 3.5.3
 +
 +      SSLv3 is deprecated
 +
@@ -210,7 +205,7 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
     choosing TLSv1 as the protocol version.
  
     .. versionadded:: 3.2
-@@ -649,7 +706,7 @@ Constants
+@@ -649,7 +700,7 @@ Constants
  .. data:: OP_NO_TLSv1_1
  
     Prevents a TLSv1.1 connection. This option is only applicable in conjunction
@@ -219,7 +214,7 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
     the protocol version. Available only with openssl version 1.0.1+.
  
     .. versionadded:: 3.4
-@@ -657,7 +714,7 @@ Constants
+@@ -657,7 +708,7 @@ Constants
  .. data:: OP_NO_TLSv1_2
  
     Prevents a TLSv1.2 connection. This option is only applicable in conjunction
@@ -228,14 +223,15 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
     the protocol version. Available only with openssl version 1.0.1+.
  
     .. versionadded:: 3.4
-@@ -1081,17 +1138,21 @@ such as SSL configuration options, certi
+@@ -1081,17 +1132,21 @@ such as SSL configuration options, certi
  It also manages a cache of SSL sessions for server-side sockets, in order
  to speed up repeated connections from the same clients.
  
 -.. class:: SSLContext(protocol)
-+.. class:: SSLContext(protocol=PROTOCOL_TLS)
- 
+-
 -   Create a new SSL context.  You must pass *protocol* which must be one
++.. class:: SSLContext(protocol=PROTOCOL_TLS)
++
 +   Create a new SSL context.  You may pass *protocol* which must be one
     of the ``PROTOCOL_*`` constants defined in this module.
 -   :data:`PROTOCOL_SSLv23` is currently recommended for maximum
@@ -247,14 +243,14 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
        :func:`create_default_context` lets the :mod:`ssl` module choose
        security settings for a given purpose.
  
-+   .. versionchanged:: 3.6
++   .. versionchanged:: 3.5.3
 +
 +      :data:`PROTOCOL_TLS` is the default value.
 +
  
  :class:`SSLContext` objects have the following methods and attributes:
  
-@@ -1232,6 +1293,9 @@ to speed up repeated connections from th
+@@ -1232,6 +1287,9 @@ to speed up repeated connections from th
     This method will raise :exc:`NotImplementedError` if :data:`HAS_ALPN` is
     False.
  
@@ -264,7 +260,7 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
     .. versionadded:: 3.5
  
  .. method:: SSLContext.set_npn_protocols(protocols)
-@@ -1598,7 +1662,7 @@ If you prefer to tune security settings
+@@ -1598,7 +1656,7 @@ If you prefer to tune security settings 
  a context from scratch (but beware that you might not get the settings
  right)::
  
@@ -273,7 +269,7 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
     >>> context.verify_mode = ssl.CERT_REQUIRED
     >>> context.check_hostname = True
     >>> context.load_verify_locations("/etc/ssl/certs/ca-bundle.crt")
-@@ -1999,15 +2063,17 @@ Protocol versions
+@@ -1999,15 +2057,17 @@ Protocol versions
  
  SSL versions 2 and 3 are considered insecure and are therefore dangerous to
  use.  If you want maximum compatibility between clients and servers, it is
@@ -286,17 +282,18 @@ diff -up Python-3.5.2/Doc/library/ssl.rst.openssl11 Python-3.5.2/Doc/library/ssl
 +   context = ssl.SSLContext(ssl.PROTOCOL_TLS)
     context.options |= ssl.OP_NO_SSLv2
     context.options |= ssl.OP_NO_SSLv3
+-
+-The SSL context created above will only allow TLSv1 and later (if
 +   context.options |= ssl.OP_NO_TLSv1
 +   context.options |= ssl.OP_NO_TLSv1_1
- 
--The SSL context created above will only allow TLSv1 and later (if
++
 +The SSL context created above will only allow TLSv1.2 and later (if
  supported by your system) connections.
  
  Cipher selection
-diff -up Python-3.5.2/Lib/ssl.py.openssl11 Python-3.5.2/Lib/ssl.py
---- Python-3.5.2/Lib/ssl.py.openssl11	2016-06-25 23:38:36.000000000 +0200
-+++ Python-3.5.2/Lib/ssl.py	2016-10-10 16:34:37.695049119 +0200
+diff --git a/Lib/ssl.py b/Lib/ssl.py
+--- a/Lib/ssl.py
++++ b/Lib/ssl.py
 @@ -51,6 +51,7 @@ The following constants identify various
  PROTOCOL_SSLv2
  PROTOCOL_SSLv3
@@ -378,9 +375,9 @@ diff -up Python-3.5.2/Lib/ssl.py.openssl11 Python-3.5.2/Lib/ssl.py
      """Retrieve the certificate from the server at the specified address,
      and return it as a PEM-encoded string.
      If 'ca_certs' is specified, validate the server cert against it.
-diff -up Python-3.5.2/Lib/test/test_ssl.py.openssl11 Python-3.5.2/Lib/test/test_ssl.py
---- Python-3.5.2/Lib/test/test_ssl.py.openssl11	2016-06-25 23:38:37.000000000 +0200
-+++ Python-3.5.2/Lib/test/test_ssl.py	2016-10-10 16:37:52.812573136 +0200
+diff --git a/Lib/test/test_ssl.py b/Lib/test/test_ssl.py
+--- a/Lib/test/test_ssl.py
++++ b/Lib/test/test_ssl.py
 @@ -23,6 +23,9 @@ ssl = support.import_module("ssl")
  
  PROTOCOLS = sorted(ssl._PROTOCOL_NAMES)
@@ -470,7 +467,7 @@ diff -up Python-3.5.2/Lib/test/test_ssl.py.openssl11 Python-3.5.2/Lib/test/test_
              self.assertTrue(sslobj.getpeercert())
              if 'tls-unique' in ssl.CHANNEL_BINDING_TYPES:
                  self.assertTrue(sslobj.get_channel_binding('tls-unique'))
-@@ -2980,7 +2985,7 @@ else:
+@@ -2993,7 +2998,7 @@ else:
                  with context.wrap_socket(socket.socket()) as s:
                      self.assertIs(s.version(), None)
                      s.connect((HOST, server.port))
@@ -479,7 +476,7 @@ diff -up Python-3.5.2/Lib/test/test_ssl.py.openssl11 Python-3.5.2/Lib/test/test_
                  self.assertIs(s.version(), None)
  
          @unittest.skipUnless(ssl.HAS_ECDH, "test requires ECDH-enabled OpenSSL")
-@@ -3122,24 +3127,36 @@ else:
+@@ -3135,24 +3140,36 @@ else:
                  (['http/3.0', 'http/4.0'], None)
              ]
              for client_protocols, expected in protocol_tests:
@@ -493,7 +490,7 @@ diff -up Python-3.5.2/Lib/test/test_ssl.py.openssl11 Python-3.5.2/Lib/test/test_
                  client_context.set_alpn_protocols(client_protocols)
 -                stats = server_params_test(client_context, server_context,
 -                                           chatty=True, connectionchatty=True)
- 
+-
 -                msg = "failed trying %s (s) and %s (c).\n" \
 -                      "was expecting %s, but got %%s from the %%s" \
 -                          % (str(server_protocols), str(client_protocols),
@@ -503,6 +500,7 @@ diff -up Python-3.5.2/Lib/test/test_ssl.py.openssl11 Python-3.5.2/Lib/test/test_
 -                server_result = stats['server_alpn_protocols'][-1] \
 -                    if len(stats['server_alpn_protocols']) else 'nothing'
 -                self.assertEqual(server_result, expected, msg % (server_result, "server"))
++
 +                try:
 +                    stats = server_params_test(client_context,
 +                                               server_context,
@@ -529,7 +527,7 @@ diff -up Python-3.5.2/Lib/test/test_ssl.py.openssl11 Python-3.5.2/Lib/test/test_
  
          def test_selected_npn_protocol(self):
              # selected_npn_protocol() is None unless NPN is used
-@@ -3287,13 +3304,23 @@ else:
+@@ -3300,13 +3317,23 @@ else:
              client_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
              client_context.verify_mode = ssl.CERT_REQUIRED
              client_context.load_verify_locations(SIGNING_CA)
@@ -556,18 +554,19 @@ diff -up Python-3.5.2/Lib/test/test_ssl.py.openssl11 Python-3.5.2/Lib/test/test_
  
          def test_read_write_after_close_raises_valuerror(self):
              context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-diff -up Python-3.5.2/Modules/_hashopenssl.c.openssl11 Python-3.5.2/Modules/_hashopenssl.c
---- Python-3.5.2/Modules/_hashopenssl.c.openssl11	2016-10-10 16:34:15.460533587 +0200
-+++ Python-3.5.2/Modules/_hashopenssl.c	2016-10-10 17:07:28.883123976 +0200
-@@ -23,7 +23,6 @@
- #include <openssl/ssl.h>
- #include <openssl/err.h>
+
+diff --git a/Modules/_hashopenssl.c b/Modules/_hashopenssl.c
+--- a/Modules/_hashopenssl.c
++++ b/Modules/_hashopenssl.c
+@@ -21,7 +21,6 @@
+ 
+ /* EVP is the preferred interface to hashing in OpenSSL */
  #include <openssl/evp.h>
 -#include <openssl/hmac.h>
  /* We use the object interface to discover what hashes OpenSSL supports. */
  #include <openssl/objects.h>
  #include "openssl/err.h"
-@@ -34,11 +33,22 @@
+@@ -32,11 +31,22 @@
  #define HASH_OBJ_CONSTRUCTOR 0
  #endif
  
@@ -591,17 +590,15 @@ diff -up Python-3.5.2/Modules/_hashopenssl.c.openssl11 Python-3.5.2/Modules/_has
  #ifdef WITH_THREAD
      PyThread_type_lock   lock;  /* OpenSSL context lock */
  #endif
-@@ -51,9 +61,6 @@ static PyTypeObject EVPtype;
-    We have one of these per algorithm */
- typedef struct {
-     PyObject *name_obj;
--    EVP_MD_CTX ctxs[2];
--    /* ctx_ptrs will point to ctxs unless an error occurred, when it will
--       be NULL: */
-     EVP_MD_CTX *ctx_ptrs[2];
-     PyObject *error_msgs[2];
- } EVPCachedInfo;
-@@ -69,19 +76,57 @@ DEFINE_CONSTS_FOR_NEW(sha384)
+@@ -48,7 +58,6 @@ static PyTypeObject EVPtype;
+ 
+ #define DEFINE_CONSTS_FOR_NEW(Name)  \
+     static PyObject *CONST_ ## Name ## _name_obj = NULL; \
+-    static EVP_MD_CTX CONST_new_ ## Name ## _ctx; \
+     static EVP_MD_CTX *CONST_new_ ## Name ## _ctx_p = NULL;
+ 
+ DEFINE_CONSTS_FOR_NEW(md5)
+@@ -59,19 +68,57 @@ DEFINE_CONSTS_FOR_NEW(sha384)
  DEFINE_CONSTS_FOR_NEW(sha512)
  
  
@@ -664,7 +661,7 @@ diff -up Python-3.5.2/Modules/_hashopenssl.c.openssl11 Python-3.5.2/Modules/_has
  
      return retval;
  }
-@@ -96,7 +141,7 @@ EVP_hash(EVPobject *self, const void *vp
+@@ -86,7 +133,7 @@ EVP_hash(EVPobject *self, const void *vp
              process = MUNCH_SIZE;
          else
              process = Py_SAFE_DOWNCAST(len, Py_ssize_t, unsigned int);
@@ -673,7 +670,7 @@ diff -up Python-3.5.2/Modules/_hashopenssl.c.openssl11 Python-3.5.2/Modules/_has
          len -= process;
          cp += process;
      }
-@@ -153,16 +198,19 @@ EVP_dealloc(EVPobject *self)
+@@ -101,16 +148,19 @@ EVP_dealloc(EVPobject *self)
      if (self->lock != NULL)
          PyThread_free_lock(self->lock);
  #endif
@@ -696,7 +693,7 @@ diff -up Python-3.5.2/Modules/_hashopenssl.c.openssl11 Python-3.5.2/Modules/_has
  }
  
  /* External methods for a hash object */
-@@ -178,7 +226,9 @@ EVP_copy(EVPobject *self, PyObject *unus
+@@ -126,7 +176,9 @@ EVP_copy(EVPobject *self, PyObject *unus
      if ( (newobj = newEVPobject(self->name))==NULL)
          return NULL;
  
@@ -707,7 +704,7 @@ diff -up Python-3.5.2/Modules/_hashopenssl.c.openssl11 Python-3.5.2/Modules/_has
      return (PyObject *)newobj;
  }
  
-@@ -189,16 +239,24 @@ static PyObject *
+@@ -137,16 +189,24 @@ static PyObject *
  EVP_digest(EVPobject *self, PyObject *unused)
  {
      unsigned char digest[EVP_MAX_MD_SIZE];
@@ -737,7 +734,7 @@ diff -up Python-3.5.2/Modules/_hashopenssl.c.openssl11 Python-3.5.2/Modules/_has
      return retval;
  }
  
-@@ -209,15 +267,23 @@ static PyObject *
+@@ -157,15 +217,23 @@ static PyObject *
  EVP_hexdigest(EVPobject *self, PyObject *unused)
  {
      unsigned char digest[EVP_MAX_MD_SIZE];
@@ -766,7 +763,7 @@ diff -up Python-3.5.2/Modules/_hashopenssl.c.openssl11 Python-3.5.2/Modules/_has
  
      return _Py_strhex((const char *)digest, digest_size);
  }
-@@ -271,7 +337,7 @@ static PyObject *
+@@ -219,7 +287,7 @@ static PyObject *
  EVP_get_block_size(EVPobject *self, void *closure)
  {
      long block_size;
@@ -775,7 +772,7 @@ diff -up Python-3.5.2/Modules/_hashopenssl.c.openssl11 Python-3.5.2/Modules/_has
      return PyLong_FromLong(block_size);
  }
  
-@@ -279,7 +345,7 @@ static PyObject *
+@@ -227,7 +295,7 @@ static PyObject *
  EVP_get_digest_size(EVPobject *self, void *closure)
  {
      long size;
@@ -784,32 +781,28 @@ diff -up Python-3.5.2/Modules/_hashopenssl.c.openssl11 Python-3.5.2/Modules/_has
      return PyLong_FromLong(size);
  }
  
-@@ -341,8 +407,8 @@ EVP_tp_init(EVPobject *self, PyObject *a
+@@ -288,7 +356,7 @@ EVP_tp_init(EVPobject *self, PyObject *a
              PyBuffer_Release(&view);
          return -1;
      }
--    mc_ctx_init(&self->ctx, usedforsecurity);
--    if (!EVP_DigestInit_ex(&self->ctx, digest, NULL)) {
-+    mc_ctx_init(self->ctx, usedforsecurity);
-+    if (!EVP_DigestInit_ex(self->ctx, digest, NULL)) {
-         set_evp_exception();
-         PyBuffer_Release(&view);
-         return -1;
-@@ -444,10 +510,10 @@ EVPnew(PyObject *name_obj,
+-    EVP_DigestInit(&self->ctx, digest);
++    EVP_DigestInit(self->ctx, digest);
+ 
+     self->name = name_obj;
+     Py_INCREF(self->name);
+@@ -385,9 +453,9 @@ EVPnew(PyObject *name_obj,
          return NULL;
  
      if (initial_ctx) {
 -        EVP_MD_CTX_copy(&self->ctx, initial_ctx);
 +        EVP_MD_CTX_copy(self->ctx, initial_ctx);
      } else {
--        mc_ctx_init(&self->ctx, usedforsecurity);
--        if (!EVP_DigestInit_ex(&self->ctx, digest, NULL)) {
-+        mc_ctx_init(self->ctx, usedforsecurity);
-+        if (!EVP_DigestInit_ex(self->ctx, digest, NULL)) {
-             set_evp_exception();
-             Py_DECREF(self);
-             return NULL;
-@@ -526,6 +592,7 @@ EVP_new(PyObject *self, PyObject *args,
+-        EVP_DigestInit(&self->ctx, digest);
++        EVP_DigestInit(self->ctx, digest);
+     }
+ 
+     if (cp && len) {
+@@ -453,6 +521,7 @@ EVP_new(PyObject *self, PyObject *args, 
  
  #define PY_PBKDF2_HMAC 1
  
@@ -817,7 +810,7 @@ diff -up Python-3.5.2/Modules/_hashopenssl.c.openssl11 Python-3.5.2/Modules/_has
  /* Improved implementation of PKCS5_PBKDF2_HMAC()
   *
   * PKCS5_PBKDF2_HMAC_fast() hashes the password exactly one time instead of
-@@ -607,37 +674,8 @@ PKCS5_PBKDF2_HMAC_fast(const char *pass,
+@@ -534,37 +603,8 @@ PKCS5_PBKDF2_HMAC_fast(const char *pass,
      HMAC_CTX_cleanup(&hctx_tpl);
      return 1;
  }
@@ -856,7 +849,7 @@ diff -up Python-3.5.2/Modules/_hashopenssl.c.openssl11 Python-3.5.2/Modules/_has
  
  PyDoc_STRVAR(pbkdf2_hmac__doc__,
  "pbkdf2_hmac(hash_name, password, salt, iterations, dklen=None) -> key\n\
-@@ -719,10 +757,17 @@ pbkdf2_hmac(PyObject *self, PyObject *ar
+@@ -646,10 +686,17 @@ pbkdf2_hmac(PyObject *self, PyObject *ar
      key = PyBytes_AS_STRING(key_obj);
  
      Py_BEGIN_ALLOW_THREADS
@@ -874,29 +867,18 @@ diff -up Python-3.5.2/Modules/_hashopenssl.c.openssl11 Python-3.5.2/Modules/_has
      Py_END_ALLOW_THREADS
  
      if (!retval) {
-@@ -890,13 +935,15 @@ init_constructor_constant(EVPCachedInfo
-     if (EVP_get_digestbyname(name)) {
-         int i;
-         for (i=0; i<2; i++) {
--            mc_ctx_init(&cached_info->ctxs[i], i);
--            if (EVP_DigestInit_ex(&cached_info->ctxs[i],
-+            cached_info->ctx_ptrs[i] = EVP_MD_CTX_new();
-+            if (cached_info->ctx_ptrs[i] == NULL)
-+              break;
-+            mc_ctx_init(cached_info->ctx_ptrs[i], i);
-+            if (EVP_DigestInit_ex(cached_info->ctx_ptrs[i],
-                                   EVP_get_digestbyname(name), NULL)) {
--                /* Success: */
--                cached_info->ctx_ptrs[i] = &cached_info->ctxs[i];
-             } else {
-                 /* Failure: */
-+              EVP_MD_CTX_free(cached_info->ctx_ptrs[i]);
-               cached_info->ctx_ptrs[i] = NULL;
-               cached_info->error_msgs[i] = error_msg_for_last_error();
-             }
-diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
---- Python-3.5.2/Modules/_ssl.c.openssl11	2016-06-25 23:38:38.000000000 +0200
-+++ Python-3.5.2/Modules/_ssl.c	2016-10-10 16:34:37.699049212 +0200
+@@ -768,7 +815,7 @@ generate_hash_name_list(void)
+     if (CONST_ ## NAME ## _name_obj == NULL) { \
+         CONST_ ## NAME ## _name_obj = PyUnicode_FromString(#NAME); \
+         if (EVP_get_digestbyname(#NAME)) { \
+-            CONST_new_ ## NAME ## _ctx_p = &CONST_new_ ## NAME ## _ctx; \
++            CONST_new_ ## NAME ## _ctx_p = EVP_MD_CTX_new(); \
+             EVP_DigestInit(CONST_new_ ## NAME ## _ctx_p, EVP_get_digestbyname(#NAME)); \
+         } \
+     } \
+diff --git a/Modules/_ssl.c b/Modules/_ssl.c
+--- a/Modules/_ssl.c
++++ b/Modules/_ssl.c
 @@ -55,6 +55,14 @@ static PySocketModule_APIObject PySocket
  #include <sys/poll.h>
  #endif
@@ -923,7 +905,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
  /* Openssl comes with TLSv1.1 and TLSv1.2 between 1.0.0h and 1.0.1
      http://www.openssl.org/news/changelog.html
   */
-@@ -113,6 +125,72 @@ struct py_ssl_library_code {
+@@ -117,6 +129,72 @@ struct py_ssl_library_code {
  # define HAVE_ALPN
  #endif
  
@@ -996,7 +978,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
  enum py_ssl_error {
      /* these mirror ssl.h */
      PY_SSL_ERROR_NONE,
-@@ -143,7 +221,7 @@ enum py_ssl_cert_requirements {
+@@ -147,7 +225,7 @@ enum py_ssl_cert_requirements {
  enum py_ssl_version {
      PY_SSL_VERSION_SSL2,
      PY_SSL_VERSION_SSL3=1,
@@ -1005,7 +987,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
  #if HAVE_TLSv1_2
      PY_SSL_VERSION_TLS1,
      PY_SSL_VERSION_TLS1_1,
-@@ -524,8 +602,8 @@ newPySSLSocket(PySSLContext *sslctx, PyS
+@@ -527,8 +605,8 @@ newPySSLSocket(PySSLContext *sslctx, PyS
          /* BIOs are reference counted and SSL_set_bio borrows our reference.
           * To prevent a double free in memory_bio_dealloc() we need to take an
           * extra reference here. */
@@ -1016,7 +998,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
          SSL_set_bio(self->ssl, inbio->bio, outbio->bio);
      }
      mode = SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER;
-@@ -736,7 +814,7 @@ _create_tuple_for_X509_NAME (X509_NAME *
+@@ -738,7 +816,7 @@ static PyObject *
  
          /* check to see if we've gotten to a new RDN */
          if (rdn_level >= 0) {
@@ -1025,7 +1007,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
                  /* yes, new RDN */
                  /* add old RDN to DN */
                  rdnt = PyList_AsTuple(rdn);
-@@ -753,7 +831,7 @@ _create_tuple_for_X509_NAME (X509_NAME *
+@@ -755,7 +833,7 @@ static PyObject *
                      goto fail0;
              }
          }
@@ -1034,7 +1016,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
  
          /* now add this attribute to the current RDN */
          name = X509_NAME_ENTRY_get_object(entry);
-@@ -851,18 +929,18 @@ _get_peer_alt_names (X509 *certificate)
+@@ -853,18 +931,18 @@ static PyObject *
              goto fail;
          }
  
@@ -1056,7 +1038,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
  
          for(j = 0; j < sk_GENERAL_NAME_num(names); j++) {
              /* get a rendering of each name in the set of names */
-@@ -1073,13 +1151,11 @@ _get_crl_dp(X509 *certificate) {
+@@ -1075,13 +1153,11 @@ static PyObject *
      int i, j;
      PyObject *lst, *res = NULL;
  
@@ -1072,7 +1054,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
  
      if (dps == NULL)
          return Py_None;
-@@ -1449,14 +1525,13 @@ static PyObject *
+@@ -1451,14 +1527,13 @@ static PyObject *
  _ssl__SSLSocket_shared_ciphers_impl(PySSLSocket *self)
  /*[clinic end generated code: output=3d174ead2e42c4fd input=0bfe149da8fe6306]*/
  {
@@ -1089,7 +1071,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
      res = PyList_New(sk_SSL_CIPHER_num(ciphers));
      if (!res)
          return NULL;
-@@ -1565,9 +1640,9 @@ _ssl__SSLSocket_compression_impl(PySSLSo
+@@ -1567,9 +1642,9 @@ static PyObject *
      if (self->ssl == NULL)
          Py_RETURN_NONE;
      comp_method = SSL_get_current_compression(self->ssl);
@@ -1101,7 +1083,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
      if (short_name == NULL)
          Py_RETURN_NONE;
      return PyUnicode_DecodeFSDefault(short_name);
-@@ -2245,8 +2320,8 @@ _ssl__SSLContext_impl(PyTypeObject *type
+@@ -2255,8 +2330,8 @@ static PyObject *
      else if (proto_version == PY_SSL_VERSION_SSL2)
          ctx = SSL_CTX_new(SSLv2_method());
  #endif
@@ -1112,7 +1094,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
      else
          proto_version = -1;
      PySSL_END_ALLOW_THREADS
-@@ -2308,8 +2383,9 @@ _ssl__SSLContext_impl(PyTypeObject *type
+@@ -2318,8 +2393,9 @@ static PyObject *
  #ifndef OPENSSL_NO_ECDH
      /* Allow automatic ECDH curve selection (on OpenSSL 1.0.2+), or use
         prime256v1 by default.  This is Apache mod_ssl's initialization
@@ -1124,7 +1106,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
      SSL_CTX_set_ecdh_auto(self->ctx, 1);
  #else
      {
-@@ -2576,10 +2652,12 @@ static PyObject *
+@@ -2586,10 +2662,12 @@ static PyObject *
  get_verify_flags(PySSLContext *self, void *c)
  {
      X509_STORE *store;
@@ -1138,7 +1120,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
      return PyLong_FromUnsignedLong(flags);
  }
  
-@@ -2587,22 +2665,24 @@ static int
+@@ -2597,22 +2675,24 @@ static int
  set_verify_flags(PySSLContext *self, PyObject *arg, void *c)
  {
      X509_STORE *store;
@@ -1166,7 +1148,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
              _setSSLError(NULL, 0, __FILE__, __LINE__);
              return -1;
          }
-@@ -2779,8 +2859,8 @@ _ssl__SSLContext_load_cert_chain_impl(Py
+@@ -2789,8 +2869,8 @@ static PyObject *
  /*[clinic end generated code: output=9480bc1c380e2095 input=7cf9ac673cbee6fc]*/
  {
      PyObject *certfile_bytes = NULL, *keyfile_bytes = NULL;
@@ -1177,7 +1159,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
      _PySSLPasswordInfo pw_info = { NULL, NULL, NULL, 0, 0 };
      int r;
  
-@@ -2907,8 +2987,9 @@ _add_ca_certs(PySSLContext *self, void *
+@@ -2917,8 +2997,9 @@ static int
              cert = d2i_X509_bio(biobuf, NULL);
          } else {
              cert = PEM_read_bio_X509(biobuf, NULL,
@@ -1189,7 +1171,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
          }
          if (cert == NULL) {
              break;
-@@ -3434,25 +3515,24 @@ _ssl__SSLContext_cert_store_stats_impl(P
+@@ -3444,25 +3525,24 @@ static PyObject *
  /*[clinic end generated code: output=5f356f4d9cca874d input=eb40dd0f6d0e40cf]*/
  {
      X509_STORE *store;
@@ -1222,7 +1204,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
              default:
                  /* Ignore X509_LU_FAIL, X509_LU_RETRY, X509_LU_PKEY.
                   * As far as I can tell they are internal states and never
-@@ -3482,6 +3562,7 @@ _ssl__SSLContext_get_ca_certs_impl(PySSL
+@@ -3492,6 +3572,7 @@ static PyObject *
  /*[clinic end generated code: output=0d58f148f37e2938 input=6887b5a09b7f9076]*/
  {
      X509_STORE *store;
@@ -1230,7 +1212,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
      PyObject *ci = NULL, *rlist = NULL;
      int i;
  
-@@ -3490,17 +3571,18 @@ _ssl__SSLContext_get_ca_certs_impl(PySSL
+@@ -3500,17 +3581,18 @@ static PyObject *
      }
  
      store = SSL_CTX_get_cert_store(self->ctx);
@@ -1253,7 +1235,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
          if (!X509_check_ca(cert)) {
              continue;
          }
-@@ -4364,10 +4446,12 @@ static PyMethodDef PySSL_methods[] = {
+@@ -4374,10 +4456,12 @@ static PyMethodDef PySSL_methods[] = {
  };
  
  
@@ -1268,7 +1250,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
  
  static PyThread_type_lock *_ssl_locks = NULL;
  
-@@ -4448,7 +4532,7 @@ static int _setup_ssl_threads(void) {
+@@ -4458,7 +4542,7 @@ static int _setup_ssl_threads(void) {
      return 1;
  }
  
@@ -1277,7 +1259,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
  
  PyDoc_STRVAR(module_doc,
  "Implementation module for SSL socket operations.  See the socket module\n\
-@@ -4517,11 +4601,16 @@ PyInit__ssl(void)
+@@ -4527,11 +4611,16 @@ PyInit__ssl(void)
      SSL_load_error_strings();
      SSL_library_init();
  #ifdef WITH_THREAD
@@ -1294,7 +1276,7 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
      OpenSSL_add_all_algorithms();
  
      /* Add symbols to module dict */
-@@ -4668,7 +4757,9 @@ PyInit__ssl(void)
+@@ -4678,7 +4767,9 @@ PyInit__ssl(void)
                              PY_SSL_VERSION_SSL3);
  #endif
      PyModule_AddIntConstant(m, "PROTOCOL_SSLv23",
@@ -1305,3 +1287,28 @@ diff -up Python-3.5.2/Modules/_ssl.c.openssl11 Python-3.5.2/Modules/_ssl.c
      PyModule_AddIntConstant(m, "PROTOCOL_TLSv1",
                              PY_SSL_VERSION_TLS1);
  #if HAVE_TLSv1_2
+
+diff --git a/Modules/_ssl.c b/Modules/_ssl.c
+--- a/Modules/_ssl.c
++++ b/Modules/_ssl.c
+@@ -151,11 +151,6 @@ static int COMP_get_type(const COMP_METH
+ {
+     return meth->type;
+ }
+-
+-static const char *COMP_get_name(const COMP_METHOD *meth)
+-{
+-    return meth->name;
+-}
+ #endif
+ 
+ static pem_password_cb *SSL_CTX_get_default_passwd_cb(SSL_CTX *ctx)
+@@ -1644,7 +1639,7 @@ static PyObject *
+     comp_method = SSL_get_current_compression(self->ssl);
+     if (comp_method == NULL || COMP_get_type(comp_method) == NID_undef)
+         Py_RETURN_NONE;
+-    short_name = COMP_get_name(comp_method);
++    short_name = OBJ_nid2sn(COMP_get_type(comp_method));
+     if (short_name == NULL)
+         Py_RETURN_NONE;
+     return PyUnicode_DecodeFSDefault(short_name);
