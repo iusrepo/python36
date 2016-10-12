@@ -119,7 +119,7 @@ diff -Nur Python-3.4.1/Lib/ensurepip/rewheel/__init__.py Python-3.4.1-rewheel/Li
 +    for project in projects:
 +        path = None
 +        for sp in sys_sitepack:
-+            dist_info_re = os.path.join(sp, project) + '-[^\{0}]+\.dist-info'.format(os.sep)
++            dist_info_re = os.path.join(sp, project) + r'-[^\{0}]+\.dist-info'.format(os.sep)
 +            candidates = [os.path.join(sp, p) for p in os.listdir(sp)]
 +            # filter out candidate dirs based on the above regexp
 +            filtered = [c for c in candidates if re.match(dist_info_re, c)]
