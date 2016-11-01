@@ -258,12 +258,6 @@ Patch132: 00132-add-rpmbuild-hooks-to-unittest.patch
 # Some tests within distutils fail when run in an rpmbuild:
 Patch137: 00137-skip-distutils-tests-that-fail-in-rpmbuild.patch
 
-# 00143 #
-# Fix the --with-tsc option on ppc64, and rework it on 32-bit ppc to avoid
-# aliasing violations (rhbz#698726)
-# Sent upstream as http://bugs.python.org/issue12872
-Patch143: 00143-tsc-on-ppc.patch
-
 # 00146 #
 # Support OpenSSL FIPS mode (e.g. when OPENSSL_FORCE_FIPS_MODE=1 is set)
 # - handle failures from OpenSSL (e.g. on attempts to use MD5 in a
@@ -613,7 +607,6 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch111 -p1
 %patch132 -p1
 %patch137 -p1
-#patch143 -p1 -b .tsc-on-ppc
 #patch146 -p1
 %patch155 -p1
 %patch157 -p1
@@ -719,7 +712,7 @@ BuildPython debug \
   python-debug \
   python%{pybasever}-debug \
 %ifarch %{ix86} x86_64 ppc %{power64}
-  "--with-pydebug --with-tsc --without-ensurepip" \
+  "--with-pydebug --without-ensurepip" \
 %else
   "--with-pydebug --without-ensurepip" \
 %endif
