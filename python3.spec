@@ -14,8 +14,8 @@
 # 4) python3-setuptools and python3-pip with with_rewheel set to 1
 # 5) python3 with with_rewheel set to 1
 
-# Second beta prerelease
-%global prerel b2
+# Third beta prerelease
+%global prerel b3
 
 %global with_rewheel 1
 
@@ -116,7 +116,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 0.2.%{?prerel}%{?dist}
+Release: 0.3.%{?prerel}%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -184,7 +184,7 @@ BuildRequires: python3-pip
 # Source code and patches
 # =======================
 
-Source: https://www.python.org/ftp/python/3.6.0/Python-3.6.0b2.tar.xz
+Source: https://www.python.org/ftp/python/%{version}/Python-%{version}%{prerel}.tar.xz
 
 # Supply an RPM macro "py_byte_compile" for the python3-devel subpackage
 # to enable specfiles to selectively byte-compile individual files and paths
@@ -1060,13 +1060,13 @@ CheckPython() {
     --verbose --findleaks \
     -x test_distutils \
     %ifarch ppc64le aarch64
-    test_faulthandler \
+    -x test_faulthandler \
     %endif
     %ifarch %{mips64}
-    test_ctypes \
+    -x test_ctypes \
     %endif
     %ifarch %{power64} s390 s390x armv7hl aarch64 %{mips}
-    test_gdb
+    -x test_gdb
     %endif
 
   echo FINISHED: CHECKING OF PYTHON FOR CONFIGURATION: $ConfName
@@ -1199,10 +1199,7 @@ rm -fr %{buildroot}
 %{dynload_dir}/_sha3.%{SOABI_optimized}.so
 %{dynload_dir}/_sha512.%{SOABI_optimized}.so
 
-%{dynload_dir}/_sysconfigdata_%{ABIFLAGS_optimized}_linux_%{_arch}-linux%{_gnu}.py
-%dir %{dynload_dir}/__pycache__/
-%{dynload_dir}/__pycache__/_sysconfigdata_%{ABIFLAGS_optimized}_linux_%{_arch}-linux%{_gnu}%{bytecode_suffixes}
-
+%{dynload_dir}/_asyncio.%{SOABI_optimized}.so
 %{dynload_dir}/_bisect.%{SOABI_optimized}.so
 %{dynload_dir}/_bz2.%{SOABI_optimized}.so
 %{dynload_dir}/_codecs_cn.%{SOABI_optimized}.so
@@ -1219,7 +1216,6 @@ rm -fr %{buildroot}
 %{dynload_dir}/_dbm.%{SOABI_optimized}.so
 %{dynload_dir}/_decimal.%{SOABI_optimized}.so
 %{dynload_dir}/_elementtree.%{SOABI_optimized}.so
-%{dynload_dir}/_futures.%{SOABI_optimized}.so
 %if %{with_gdbm}
 %{dynload_dir}/_gdbm.%{SOABI_optimized}.so
 %endif
@@ -1434,9 +1430,7 @@ rm -fr %{buildroot}
 %{dynload_dir}/_sha3.%{SOABI_debug}.so
 %{dynload_dir}/_sha512.%{SOABI_debug}.so
 
-%{dynload_dir}/_sysconfigdata_%{ABIFLAGS_debug}_linux_%{_arch}-linux%{_gnu}.py
-%{dynload_dir}/__pycache__/_sysconfigdata_%{ABIFLAGS_debug}_linux_%{_arch}-linux%{_gnu}%{bytecode_suffixes}
-
+%{dynload_dir}/_asyncio.%{SOABI_debug}.so
 %{dynload_dir}/_bisect.%{SOABI_debug}.so
 %{dynload_dir}/_bz2.%{SOABI_debug}.so
 %{dynload_dir}/_codecs_cn.%{SOABI_debug}.so
@@ -1453,7 +1447,6 @@ rm -fr %{buildroot}
 %{dynload_dir}/_dbm.%{SOABI_debug}.so
 %{dynload_dir}/_decimal.%{SOABI_debug}.so
 %{dynload_dir}/_elementtree.%{SOABI_debug}.so
-%{dynload_dir}/_futures.%{SOABI_debug}.so
 %if %{with_gdbm}
 %{dynload_dir}/_gdbm.%{SOABI_debug}.so
 %endif
