@@ -155,12 +155,11 @@ BuildRequires: pkgconfig
 BuildRequires: readline-devel
 BuildRequires: sqlite-devel
 
-%if 0%{?with_systemtap}
 BuildRequires: systemtap-sdt-devel
+BuildRequires: systemtap-devel
 # (this introduces a dependency on "python", in that systemtap-sdt-devel's
 # /usr/bin/dtrace is a python 2 script)
 %global tapsetdir      /usr/share/systemtap/tapset
-%endif # with_systemtap
 
 BuildRequires: tar
 BuildRequires: tcl-devel
@@ -388,6 +387,12 @@ Patch206: 00206-remove-hf-from-arm-triplet.patch
 # Upstream uses Debian-like style mips64-linux-gnuabi64
 # Fedora needs the default mips64-linux-gnu
 Patch243: 00243-fix-mips64-triplet.patch
+
+# 00249 #
+# Fix builds using the --with-dtrace flag as the rpmbuild
+# of python is an out of tree build
+# Not yet fixed upstream: http://bugs.python.org/issue28787
+Patch249: 00249-fix-out-of-tree-dtrace-builds.patch
 
 # (New patches go here ^^^)
 #
@@ -625,6 +630,7 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch205 -p1
 %patch206 -p1
 %patch243 -p1
+%patch249 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -681,6 +687,7 @@ BuildPython() {
   --with-system-expat \
   --with-system-ffi \
   --enable-loadable-sqlite-extensions \
+  --with-dtrace \
 %if 0%{?with_systemtap}
   --with-systemtap \
 %endif
