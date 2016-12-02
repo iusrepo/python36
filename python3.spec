@@ -14,10 +14,10 @@
 # 4) python3-setuptools and python3-pip with with_rewheel set to 1
 # 5) python3 with with_rewheel set to 1
 
-# Third beta prerelease
-%global prerel b3
+# Fourth beta prerelease
+%global prerel b4
 
-%global with_rewheel 1
+%global with_rewheel 0
 
 %global pybasever 3.6
 
@@ -116,7 +116,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 0.3.%{?prerel}%{?dist}
+Release: 0.4.%{?prerel}%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1549,6 +1549,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Dec 02 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.6.0-0.4.b4
+- Update to Python 3.6.0 beta 4
+
 * Mon Dec 05 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.5.2-7
 - Set to work with pip version 9.0.1
 
