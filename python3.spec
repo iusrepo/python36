@@ -112,7 +112,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.2
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -623,7 +623,7 @@ rm -r Modules/zlib || exit 1
 #done
 
 %if 0%{with_rewheel}
-%global pip_version 8.1.2
+%global pip_version 9.0.1
 sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/ensurepip/__init__.py
 %endif
 
@@ -1577,6 +1577,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Dec 05 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.5.2-7
+- Set to work with pip version 9.0.1
+
 * Wed Oct 12 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.5.2-6
 - Use proper patch numbering and base upstream branch for
 porting ssl and hashlib modules to OpenSSL 1.1.0
