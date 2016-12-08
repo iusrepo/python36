@@ -394,6 +394,13 @@ Patch243: 00243-fix-mips64-triplet.patch
 # Not yet fixed upstream: http://bugs.python.org/issue28787
 Patch249: 00249-fix-out-of-tree-dtrace-builds.patch
 
+# 00250 #
+# Guard HAVE_LONG_LONG definition in pyport.h as gdb also sets this
+# and by defining it unconditionally in python will make compilation of
+# gdb to fail.
+# FIXED UPSTREAM: http://bugs.python.org/issue28898
+Patch250: 00250-guard-HAVE_LONG_LONG-definition-to-prevent-redefinition.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora, EL, etc.,
@@ -631,6 +638,7 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch206 -p1
 %patch243 -p1
 %patch249 -p1
+%patch250 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
