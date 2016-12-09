@@ -1560,7 +1560,7 @@ rm -fr %{buildroot}
 * Wed Dec 07 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.6.0-0.5.rc1
 - Update to Python 3.6.0 release candidate 1
 
-* Fri Dec 02 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.6.0-0.4.b4
+* Mon Dec 05 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.6.0-0.4.b4
 - Update to Python 3.6.0 beta 4
 
 * Mon Dec 05 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.5.2-7
