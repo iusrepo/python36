@@ -17,7 +17,7 @@
 # First release candidate
 %global prerel rc1
 
-%global with_rewheel 0
+%global with_rewheel 1
 
 %global pybasever 3.6
 
@@ -116,7 +116,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python3
 Version: %{pybasever}.0
-Release: 0.5.%{?prerel}%{?dist}
+Release: 0.6.%{?prerel}%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -421,7 +421,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-root
 # Additional metadata, and subpackages
 # ======================================================
 
-URL: http://www.python.org/
+URL: https://www.python.org/
 
 # See notes in bug 532118:
 Provides: python(abi) = %{pybasever}
@@ -1557,6 +1557,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Dec 09 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.6.0-0.6.rc1
+- Enable rewheel
+
 * Wed Dec 07 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.6.0-0.5.rc1
 - Update to Python 3.6.0 release candidate 1
 
