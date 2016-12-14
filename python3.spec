@@ -4,15 +4,25 @@
 
 # NOTES ON BOOTSTRAPING PYTHON 3.6:
 #
-# Due to dependency cycle between Python, pip, setuptools and
-# wheel caused by the rewheel patch, one has to build in the
-# following order:
+# Due to dependency cycle between Python, gdb, rpm, pip, setuptools and
+# wheel, in order to rebase Python 3, one has to build in the following order:
 #
-# 1) python3 with with_rewheel set to 0
-# 2) python3-setuptools and python3-pip with with_rewheel set to 0
-# 3) python3-wheel
-# 4) python3-setuptools and python3-pip with with_rewheel set to 1
-# 5) python3 with with_rewheel set to 1
+# 1) gdb without python support (add %%global _without_python 1 on top of gdb's SPEC file)
+# 2) python3 with with_rewheel set to 0
+# 3) gdb with python support (remove %%global _without_python 1 on top of gdb's SPEC file)
+# 4) rpm
+# 5) python-setuptools with bootstrap set to 1
+# 6) python-pip with build_wheel set to 0
+# 7) python-wheel with %%bcond_without bootstrap
+# 8) python-setuptools with bootstrap set to 0 and also with_check set to 0
+# 9) python-pip with build_wheel set to 1
+# 10) pyparsing
+# 11) python3 with with_rewheel set to 1
+#
+# Then the most important packages have to be built, starting from their various leaf dependencies
+# recursively. After these have been built, a targeted rebuild should be requested for the rest.
+# Currently these packages are recommended to have been built before a targeted rebuild after a python abi change:
+# python-sphinx, pytest, python-requests, cloud-init, dnf, anaconda, abrt.
 
 # First release candidate
 %global prerel rc1
