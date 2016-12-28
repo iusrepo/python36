@@ -1245,6 +1245,7 @@ CheckPython optimized
 %dir %{_includedir}/python%{LDVERSION_optimized}/
 %{_includedir}/python%{LDVERSION_optimized}/%{_pyconfig_h}
 
+%{_libdir}/libpython%{LDVERSION_optimized}.so
 %{_libdir}/%{py_INSTSONAME_optimized}
 %if 0%{?with_systemtap}
 %dir %(dirname %{tapsetdir})
@@ -1262,7 +1263,6 @@ CheckPython optimized
 %{_bindir}/python%{pybasever}-config
 %{_bindir}/python%{LDVERSION_optimized}-config
 %{_bindir}/python%{LDVERSION_optimized}-*-config
-%{_libdir}/libpython%{LDVERSION_optimized}.so
 %{_libdir}/pkgconfig/python-%{LDVERSION_optimized}.pc
 %{_libdir}/pkgconfig/python-%{pybasever}.pc
 %{_rpmconfigdir}/macros.d/macros.pybytecompile%{pybasever}
@@ -1386,6 +1386,7 @@ CheckPython optimized
 # do for the regular build above (bug 531901), since they're all in one package
 # now; they're listed below, under "-devel":
 
+%{_libdir}/libpython%{LDVERSION_debug}.so
 %{_libdir}/%{py_INSTSONAME_debug}
 %if 0%{?with_systemtap}
 %dir %(dirname %{tapsetdir})
@@ -1397,8 +1398,6 @@ CheckPython optimized
 %{pylibdir}/config-%{LDVERSION_debug}
 %{_includedir}/python%{LDVERSION_debug}
 %{_bindir}/python%{LDVERSION_debug}-config
-%{_libdir}/libpython%{LDVERSION_debug}.so
-%{_libdir}/libpython%{LDVERSION_debug}.so.1.0
 %{_libdir}/pkgconfig/python-%{LDVERSION_debug}.pc
 
 # Analog of the -tools subpackage's files:
@@ -1440,6 +1439,7 @@ CheckPython optimized
 - Remove rewheel
 - Undo https://fedoraproject.org/wiki/Changes/System_Python
 - Import altinstall changes from EPEL's python34
+- Cleanup libpython* files
 
 * Tue Dec 27 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.6.0-1
 - Update to Python 3.6.0 final
