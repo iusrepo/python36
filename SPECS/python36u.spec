@@ -2,31 +2,6 @@
 # Conditionals and other variables controlling the build
 # ======================================================
 
-# NOTES ON BOOTSTRAPING PYTHON 3.6:
-#
-# Due to dependency cycle between Python, gdb, rpm, pip, setuptools and
-# wheel, in order to rebase Python 3, one has to build in the following order:
-#
-# 1) gdb without python support (add %%global _without_python 1 on top of gdb's SPEC file)
-# 2) python3 with with_rewheel set to 0
-# 3) gdb with python support (remove %%global _without_python 1 on top of gdb's SPEC file)
-# 4) rpm
-# 5) python-setuptools with bootstrap set to 1
-# 6) python-pip with build_wheel set to 0
-# 7) python-wheel with %%bcond_without bootstrap
-# 8) python-setuptools with bootstrap set to 0 and also with_check set to 0
-# 9) python-pip with build_wheel set to 1
-# 10) pyparsing
-# 11) python3 with with_rewheel set to 1
-#
-# Then the most important packages have to be built, starting from their various leaf dependencies
-# recursively. After these have been built, a targeted rebuild should be requested for the rest.
-# Currently these packages are recommended to have been built before a targeted rebuild after a python abi change:
-# python-sphinx, pytest, python-requests, cloud-init, dnf, anaconda, abrt.
-
-
-%global with_rewheel 1
-
 %global pybasever 3.6
 
 # pybasever without the dot:
@@ -180,11 +155,6 @@ BuildRequires: valgrind-devel
 
 BuildRequires: xz-devel
 BuildRequires: zlib-devel
-
-%if 0%{?with_rewheel}
-BuildRequires: python3-setuptools
-BuildRequires: python3-pip
-%endif
 
 
 # =======================
@@ -371,14 +341,6 @@ Patch186: 00186-dont-raise-from-py_compile.patch
 #   relying on this will fail (test_filename_changing_on_output_single_dir)
 Patch188: 00188-fix-lib2to3-tests-when-hashlib-doesnt-compile-properly.patch
 
-# 00189 #
-# Add the rewheel module, allowing to recreate wheels from already installed
-# ones
-# https://github.com/bkabrda/rewheel
-%if 0%{with_rewheel}
-Patch189: 00189-add-rewheel-module.patch
-%endif
-
 # 00205 #
 # LIBPL variable in makefile takes LIBPL from configure.ac
 # but the LIBPL variable defined there doesn't respect libdir macro
@@ -411,7 +373,6 @@ Patch249: 00249-fix-out-of-tree-dtrace-builds.patch
 #
 #     https://fedoraproject.org/wiki/SIGs/Python/PythonPatches
 
-
 # add correct arch for ppc64/ppc64le
 # it should be ppc64le-linux-gnu/ppc64-linux-gnu instead powerpc64le-linux-gnu/powerpc64-linux-gnu
 Patch5001: python3-powerppc-arch.patch
@@ -428,10 +389,6 @@ Provides: python(abi) = %{pybasever}
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 
-%if 0%{with_rewheel}
-Requires: python3-setuptools
-Requires: python3-pip
-%endif
 
 %description
 Python 3 is a new version of the language that is incompatible with the 2.x
@@ -585,11 +542,6 @@ rm -r Modules/zlib || exit 1
 #    rm Modules/$f
 #done
 
-%if 0%{with_rewheel}
-%global pip_version 9.0.1
-sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/ensurepip/__init__.py
-%endif
-
 #
 # Apply patches:
 #
@@ -616,10 +568,6 @@ sed -r -i s/'_PIP_VERSION = "[0-9.]+"'/'_PIP_VERSION = "%{pip_version}"'/ Lib/en
 %patch180 -p1
 %patch186 -p1
 %patch188 -p1
-
-%if 0%{with_rewheel}
-%patch189 -p1
-%endif
 
 %patch205 -p1
 %patch206 -p1
@@ -1139,14 +1087,7 @@ CheckPython optimized
 %dir %{pylibdir}/ensurepip/__pycache__/
 %{pylibdir}/ensurepip/*.py
 %{pylibdir}/ensurepip/__pycache__/*%{bytecode_suffixes}
-%exclude %{pylibdir}/ensurepip/_bundled
-
-%if 0%{?with_rewheel}
-%dir %{pylibdir}/ensurepip/rewheel/
-%dir %{pylibdir}/ensurepip/rewheel/__pycache__/
-%{pylibdir}/ensurepip/rewheel/*.py
-%{pylibdir}/ensurepip/rewheel/__pycache__/*%{bytecode_suffixes}
-%endif
+%{pylibdir}/ensurepip/_bundled
 
 %{pylibdir}/idlelib
 
@@ -1530,6 +1471,7 @@ CheckPython optimized
 %changelog
 * Wed Dec 28 2016 Carl George <carl.george@rackspace.com> - 3.6.0-1.ius
 - Port from Fedora to IUS
+- Remove rewheel
 
 * Tue Dec 27 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.6.0-1
 - Update to Python 3.6.0 final
