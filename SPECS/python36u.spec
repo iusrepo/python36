@@ -62,7 +62,7 @@
 # now has bytecode at:
 #   foo/__pycache__/bar.cpython-36.pyc
 #   foo/__pycache__/bar.cpython-36.opt-1.pyc
-#	foo/__pycache__/bar.cpython-36.opt-2.pyc
+#   foo/__pycache__/bar.cpython-36.opt-2.pyc
 %global bytecode_suffixes .cpython-36*.pyc
 
 # Python's configure script defines SOVERSION, and this is used in the Makefile
@@ -122,9 +122,9 @@
 # Top-level metadata
 # ==================
 Summary: Version 3 of the Python programming language aka Python 3000
-Name: python3
+Name: python%{pyshortver}u
 Version: %{pybasever}.0
-Release: 1%{?dist}
+Release: 1.ius%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -219,6 +219,10 @@ Source8: check-pyc-and-pyo-timestamps.py
 # A simple macro that enables packages to require system-python(abi) instead of python(abi)
 Source9: macros.systempython
 
+# Supply various useful macros for building python 3.X modules:
+#  __python3Xu, python3Xu_sitelib, python3Xu_sitearch
+Source10: macros.python%{pybasever}
+
 # Fixup distutils/unixccompiler.py to remove standard library path from rpath:
 # Was Patch0 in ivazquez' python3000 specfile:
 Patch1:         Python-3.1.1-rpath.patch
@@ -256,10 +260,6 @@ Patch111: 00111-no-static-lib.patch
 # phase below (and which potentially other python-* rpms could set, to reuse
 # these unittest hooks in their own "check" phases)
 Patch132: 00132-add-rpmbuild-hooks-to-unittest.patch
-
-# 00133 #
-# 00133-skip-test_dl.patch is not relevant for python3: the "dl" module no
-# longer exists
 
 # 00137 #
 # Some tests within distutils fail when run in an rpmbuild:
@@ -416,7 +416,6 @@ Patch249: 00249-fix-out-of-tree-dtrace-builds.patch
 # it should be ppc64le-linux-gnu/ppc64-linux-gnu instead powerpc64le-linux-gnu/powerpc64-linux-gnu
 Patch5001: python3-powerppc-arch.patch
 
-BuildRoot: %{_tmppath}/%{name}-%{version}-root
 
 # ======================================================
 # Additional metadata, and subpackages
@@ -428,14 +427,6 @@ URL: https://www.python.org/
 Provides: python(abi) = %{pybasever}
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
-
-# In order to support multiple python interpreters, apart from the system python3,
-# for development purposes, new packages were introduced which can be installed in parallel
-# with the main python3 package (e.g. 1369688), with the naming scheme 'python<version>',
-# however in order to keep the upgrade path clean we need to Obsolete and Provide
-# these packages at the main python3 package.
-Obsoletes: python%{pyshortver}
-Provides: python%{pyshortver} = %{version}-%{release}
 
 %if 0%{with_rewheel}
 Requires: python3-setuptools
@@ -458,8 +449,6 @@ Requires:       system-python-libs%{?_isa} = %{version}-%{release}
 # prevent "import pyexpat" from failing with a linker error if someone hasn't
 # yet upgraded expat:
 Requires: expat >= 2.1.0
-Provides: python3-enum34 = 1.0.4-5%{?dist}
-Obsoletes: python3-enum34 < 1.0.4-5%{?dist}
 
 %description libs
 This package contains files used to embed Python 3 into applications.
@@ -491,9 +480,6 @@ Summary: Libraries and header files needed for Python 3 development
 Group: Development/Libraries
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
-BuildRequires: python-rpm-macros
-Requires: python-rpm-macros
-Requires: python3-rpm-macros
 Conflicts: %{name} < %{version}-%{release}
 
 %description devel
@@ -529,7 +515,7 @@ The test modules from the main %{name} package.
 These are in a separate package to save space, as they are almost never used
 in production.
 
-You might want to install the python3-test package if you're developing
+You might want to install the %{name}-test package if you're developing
 python 3 code that uses more than just unittest and/or test_support.py.
 
 %if 0%{?with_debug_build}
@@ -548,7 +534,7 @@ Requires: %{name}-tkinter%{?_isa} = %{version}-%{release}
 Requires: %{name}-tools%{?_isa} = %{version}-%{release}
 
 %description debug
-python3-debug provides a version of the Python 3 runtime with numerous debugging
+%{name}-debug provides a version of the Python 3 runtime with numerous debugging
 features enabled, aimed at advanced Python users, such as developers of Python
 extension modules.
 
@@ -959,6 +945,7 @@ find %{buildroot} \
 mkdir -p %{buildroot}/%{_rpmconfigdir}/macros.d/
 install -m 644 %{SOURCE3} %{buildroot}/%{_rpmconfigdir}/macros.d/
 install -m 644 %{SOURCE9} %{buildroot}/%{_rpmconfigdir}/macros.d/
+install -m 644 %{SOURCE10} %{buildroot}/%{_rpmconfigdir}/macros.d/
 
 # Ensure that the curses module was linked against libncursesw.so, rather than
 # libncurses.so (bug 539917)
@@ -1100,14 +1087,6 @@ CheckPython optimized
 
 
 # ======================================================
-# Cleaning up
-# ======================================================
-
-%clean
-rm -fr %{buildroot}
-
-
-# ======================================================
 # Scriptlets
 # ======================================================
 
@@ -1122,7 +1101,6 @@ rm -fr %{buildroot}
 
 
 %files
-%defattr(-, root, root)
 %doc LICENSE README
 %{_bindir}/pydoc*
 %{_bindir}/python3
@@ -1133,7 +1111,6 @@ rm -fr %{buildroot}
 %{_mandir}/*/*
 
 %files libs
-%defattr(-,root,root,-)
 %doc LICENSE README
 
 %{pylibdir}/lib2to3
@@ -1197,12 +1174,10 @@ rm -fr %{buildroot}
 ##################################################################################
 
 %files -n system-python
-%defattr(-,root,root,-)
 %doc LICENSE README
 %{_libexecdir}/system-python
 
 %files -n system-python-libs
-%defattr(-,root,root,-)
 %doc LICENSE README
 %dir %{pylibdir}
 %dir %{dynload_dir}
@@ -1368,7 +1343,6 @@ rm -fr %{buildroot}
 %endif
 
 %files devel
-%defattr(-,root,root)
 %{pylibdir}/config-%{LDVERSION_optimized}/*
 %exclude %{pylibdir}/config-%{LDVERSION_optimized}/Makefile
 %{_includedir}/python%{LDVERSION_optimized}/*.h
@@ -1384,9 +1358,9 @@ rm -fr %{buildroot}
 %{_libdir}/pkgconfig/python3.pc
 %{_rpmconfigdir}/macros.d/macros.pybytecompile%{pybasever}
 %{_rpmconfigdir}/macros.d/macros.systempython
+%{_rpmconfigdir}/macros.d/macros.python%{pybasever}
 
 %files tools
-%defattr(-,root,root,755)
 %{_bindir}/python3-2to3
 %{_bindir}/2to3-%{pybasever}
 %{_bindir}/idle*
@@ -1394,7 +1368,6 @@ rm -fr %{buildroot}
 %doc %{pylibdir}/Doc
 
 %files tkinter
-%defattr(-,root,root,755)
 %{pylibdir}/tkinter
 %exclude %{pylibdir}/tkinter/test
 %{dynload_dir}/_tkinter.%{SOABI_optimized}.so
@@ -1407,7 +1380,6 @@ rm -fr %{buildroot}
 %{pylibdir}/turtledemo/__pycache__/*%{bytecode_suffixes}
 
 %files test
-%defattr(-, root, root)
 %{pylibdir}/ctypes/test
 %{pylibdir}/distutils/tests
 %{pylibdir}/sqlite3/test
@@ -1429,7 +1401,6 @@ rm -fr %{buildroot}
 
 %if 0%{?with_debug_build}
 %files debug
-%defattr(-,root,root,-)
 
 # Analog of the core subpackage's files:
 %{_bindir}/python%{LDVERSION_debug}
@@ -1557,6 +1528,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed Dec 28 2016 Carl George <carl.george@rackspace.com> - 3.6.0-1.ius
+- Port from Fedora to IUS
+
 * Tue Dec 27 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.6.0-1
 - Update to Python 3.6.0 final
 
