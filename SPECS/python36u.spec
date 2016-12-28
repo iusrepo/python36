@@ -186,9 +186,6 @@ Source7: pyfuntop.stp
 # Written by bkabrda
 Source8: check-pyc-and-pyo-timestamps.py
 
-# A simple macro that enables packages to require system-python(abi) instead of python(abi)
-Source9: macros.systempython
-
 # Supply various useful macros for building python 3.X modules:
 #  __python3Xu, python3Xu_sitelib, python3Xu_sitearch
 Source10: macros.python%{pybasever}
@@ -399,7 +396,6 @@ considerably, and a lot of deprecated features have finally been removed.
 %package libs
 Summary:        Python 3 runtime libraries
 Group:          Development/Libraries
-Requires:       system-python-libs%{?_isa} = %{version}-%{release}
 
 # expat 2.1.0 added the symbol XML_SetHashSalt without bumping SONAME.  We use
 # this symbol (in pyexpat), so we must explicitly state this dependency to
@@ -409,28 +405,6 @@ Requires: expat >= 2.1.0
 
 %description libs
 This package contains files used to embed Python 3 into applications.
-
-%package -n system-python
-Summary:        System Python executable
-Group:          Development/Libraries
-Requires:       system-python-libs%{?_isa} = %{version}-%{release}
-Provides:       system-python(abi) = %{pybasever}
-
-%description -n system-python
-System Python provides a binary interpreter which uses system-python-libs,
-a subset of standard Python library considered essential to run various tools,
-requiring Python, that consider themselves "system tools".
-
-%package -n system-python-libs
-Summary:        System Python runtime libraries
-Group:          Development/Libraries
-
-%define __requires_exclude ^(/usr/bin/python3.*|python\\(abi\\) = 3\\..*)$
-
-Requires: expat >= 2.1.0
-
-%description -n system-python-libs
-This package contains files used to embed System Python into applications.
 
 %package devel
 Summary: Libraries and header files needed for Python 3 development
@@ -892,7 +866,6 @@ find %{buildroot} \
 # Install macros for rpm:
 mkdir -p %{buildroot}/%{_rpmconfigdir}/macros.d/
 install -m 644 %{SOURCE3} %{buildroot}/%{_rpmconfigdir}/macros.d/
-install -m 644 %{SOURCE9} %{buildroot}/%{_rpmconfigdir}/macros.d/
 install -m 644 %{SOURCE10} %{buildroot}/%{_rpmconfigdir}/macros.d/
 
 # Ensure that the curses module was linked against libncursesw.so, rather than
@@ -967,9 +940,6 @@ echo '[ $? -eq 127 ] && echo "Could not find python%{LDVERSION_optimized}-`uname
   %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
   chmod +x %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
 
-# System Python: Copy the executable to libexec
-mkdir -p %{buildroot}%{_libexecdir}
-cp %{buildroot}%{_bindir}/python%{pybasever} %{buildroot}%{_libexecdir}/system-python
 
 # ======================================================
 # Running the upstream test suite
@@ -1042,11 +1012,6 @@ CheckPython optimized
 
 %postun libs -p /sbin/ldconfig
 
-%post -n system-python-libs -p /sbin/ldconfig
-
-%postun -n system-python-libs -p /sbin/ldconfig
-
-
 
 %files
 %doc LICENSE README
@@ -1112,14 +1077,6 @@ CheckPython optimized
 
 %{pylibdir}/pydoc_data
 
-##################################################################################
-
-%files -n system-python
-%doc LICENSE README
-%{_libexecdir}/system-python
-
-%files -n system-python-libs
-%doc LICENSE README
 %dir %{pylibdir}
 %dir %{dynload_dir}
 
@@ -1223,7 +1180,6 @@ CheckPython optimized
 %{pylibdir}/distutils/README
 %{pylibdir}/distutils/command
 
-
 %dir %{pylibdir}/email/
 %dir %{pylibdir}/email/__pycache__/
 %{pylibdir}/email/*.py
@@ -1298,7 +1254,6 @@ CheckPython optimized
 %{_libdir}/pkgconfig/python-%{pybasever}.pc
 %{_libdir}/pkgconfig/python3.pc
 %{_rpmconfigdir}/macros.d/macros.pybytecompile%{pybasever}
-%{_rpmconfigdir}/macros.d/macros.systempython
 %{_rpmconfigdir}/macros.d/macros.python%{pybasever}
 
 %files tools
@@ -1472,6 +1427,7 @@ CheckPython optimized
 * Wed Dec 28 2016 Carl George <carl.george@rackspace.com> - 3.6.0-1.ius
 - Port from Fedora to IUS
 - Remove rewheel
+- Undo https://fedoraproject.org/wiki/Changes/System_Python
 
 * Tue Dec 27 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.6.0-1
 - Update to Python 3.6.0 final

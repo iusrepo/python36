@@ -1,4 +1,0 @@
-%system_python_abi %{expand: \
-%global __requires_exclude ^python\\\\(abi\\\\) = 3\\\\..$
-Requires: system-python(abi) = %{python3_version}
-}
