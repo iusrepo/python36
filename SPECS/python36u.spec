@@ -328,15 +328,6 @@ Patch178: 00178-dont-duplicate-flags-in-sysconfig.patch
 # Not appropriate for upstream, Fedora-specific naming
 Patch180: 00180-python-add-support-for-ppc64p7.patch
 
-# 00186 #
-# Fix for https://bugzilla.redhat.com/show_bug.cgi?id=1023607
-# Previously, this fixed a problem where some *.py files were not being
-# bytecompiled properly during build. This was result of py_compile.compile
-# raising exception when trying to convert test file with bad encoding, and
-# thus not continuing bytecompilation for other files.
-# This was fixed upstream, but the test hasn't been merged yet, so we keep it
-Patch186: 00186-dont-raise-from-py_compile.patch
-
 # 00188 #
 # Downstream only patch that should be removed when we compile all guaranteed
 # hashlib algorithms properly. The problem is this:
@@ -565,7 +556,6 @@ cp -a %{SOURCE21} Lib/ensurepip/_bundled/
 %patch170 -p1
 %patch178 -p1
 %patch180 -p1
-%patch186 -p1
 %patch188 -p1
 
 %patch205 -p1
@@ -1467,6 +1457,7 @@ CheckPython optimized
 - Cleanup libpython* files
 - Add macros to optionally include the latest wheels of setuptools and pip
 - Set minimum sqlite version
+- Patch186 merged upstream
 
 * Tue Dec 27 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.6.0-1
 - Update to Python 3.6.0 final
