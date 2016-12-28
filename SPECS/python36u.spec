@@ -92,6 +92,10 @@
 # invocation of brp-python-hardlink (since this should still work for python3
 # pyc/pyo files)
 
+# Bundle latest wheels of setuptools and/or pip.
+#global setuptools_version 28.8.0
+#global pip_version 9.0.1
+
 
 # ==================
 # Top-level metadata
@@ -189,6 +193,13 @@ Source8: check-pyc-and-pyo-timestamps.py
 # Supply various useful macros for building python 3.X modules:
 #  __python3Xu, python3Xu_sitelib, python3Xu_sitearch
 Source10: macros.python%{pybasever}
+
+%if 0%{?setuptools_version:1}
+Source20: https://files.pythonhosted.org/packages/py2.py3/s/setuptools/setuptools-%{setuptools_version}-py2.py3-none-any.whl
+%endif
+%if 0%{?pip_version:1}
+Source21: https://files.pythonhosted.org/packages/py2.py3/p/pip/pip-%{pip_version}-py2.py3-none-any.whl
+%endif
 
 # Fixup distutils/unixccompiler.py to remove standard library path from rpath:
 # Was Patch0 in ivazquez' python3000 specfile:
@@ -515,6 +526,17 @@ rm -r Modules/zlib || exit 1
 #for f in md5module.c sha1module.c sha256module.c sha512module.c; do
 #    rm Modules/$f
 #done
+
+%if 0%{?setuptools_version:1}
+sed -r -e '/^_SETUPTOOLS_VERSION =/ s/"[0-9.]+"/"%{setuptools_version}"/' -i Lib/ensurepip/__init__.py
+rm Lib/ensurepip/_bundled/setuptools-*.whl
+cp -a %{SOURCE20} Lib/ensurepip/_bundled/
+%endif
+%if 0%{?pip_version:1}
+sed -r -e '/^_PIP_VERSION =/ s/"[0-9.]+"/"%{pip_version}"/' -i Lib/ensurepip/__init__.py
+rm Lib/ensurepip/_bundled/pip-*.whl
+cp -a %{SOURCE21} Lib/ensurepip/_bundled/
+%endif
 
 #
 # Apply patches:
@@ -1440,6 +1462,7 @@ CheckPython optimized
 - Undo https://fedoraproject.org/wiki/Changes/System_Python
 - Import altinstall changes from EPEL's python34
 - Cleanup libpython* files
+- Add macros to optionally include the latest wheels of setuptools and pip
 
 * Tue Dec 27 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.6.0-1
 - Update to Python 3.6.0 final
