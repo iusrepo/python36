@@ -140,7 +140,10 @@ BuildRequires: net-tools
 BuildRequires: openssl-devel
 BuildRequires: pkgconfig
 BuildRequires: readline-devel
-BuildRequires: sqlite-devel
+# the Python 3.6 _sqlite module now requires at least sqlite 3.7.4
+# http://bugs.python.org/issue10740
+# http://www.sqlite.org/releaselog/3_7_4.html
+BuildRequires: sqlite-devel >= 3.7.4
 
 BuildRequires: systemtap-sdt-devel
 BuildRequires: systemtap-devel
@@ -1463,6 +1466,7 @@ CheckPython optimized
 - Import altinstall changes from EPEL's python34
 - Cleanup libpython* files
 - Add macros to optionally include the latest wheels of setuptools and pip
+- Set minimum sqlite version
 
 * Tue Dec 27 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.6.0-1
 - Update to Python 3.6.0 final
