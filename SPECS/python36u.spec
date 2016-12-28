@@ -671,7 +671,7 @@ InstallPython() {
 
   pushd $ConfDir
 
-make install DESTDIR=%{buildroot} INSTALL="install -p" EXTRA_CFLAGS="$MoreCFlags"
+make altinstall DESTDIR=%{buildroot} INSTALL="install -p" EXTRA_CFLAGS="$MoreCFlags"
 
   popd
 
@@ -716,6 +716,13 @@ make install DESTDIR=%{buildroot} INSTALL="install -p" EXTRA_CFLAGS="$MoreCFlags
 InstallPython debug \
   %{py_INSTSONAME_debug} \
   -O0
+
+# altinstall only creates pkgconfig/python-3.X.pc, not the version with ABIFAGS,
+#  so we need to move the debug .pc file to not overwrite it by optimized install
+mv \
+  %{buildroot}%{_libdir}/pkgconfig/python-%{pybasever}.pc \
+  %{buildroot}%{_libdir}/pkgconfig/python-%{LDVERSION_debug}.pc
+
 %endif # with_debug_build
 
 # Now the optimized build:
@@ -723,8 +730,6 @@ InstallPython optimized \
   %{py_INSTSONAME_optimized}
 
 install -d -m 0755 ${RPM_BUILD_ROOT}%{pylibdir}/site-packages/__pycache__
-
-mv ${RPM_BUILD_ROOT}%{_bindir}/2to3 ${RPM_BUILD_ROOT}%{_bindir}/python3-2to3
 
 # Development tools
 install -m755 -d ${RPM_BUILD_ROOT}%{pylibdir}/Tools
@@ -896,7 +901,7 @@ done
 %if 0%{?with_debug_build}
 ln -s \
   %{_bindir}/python%{LDVERSION_debug} \
-  %{buildroot}%{_bindir}/python3-debug
+  %{buildroot}%{_bindir}/python%{pybasever}-debug
 %endif
 
 #
@@ -921,11 +926,11 @@ sed \
 
 %if 0%{?with_debug_build}
 # In Python 3, python3 and python3-debug don't point to the same binary,
-# so we have to replace "python3" with "python3-debug" to get systemtap
+# so we have to replace "python3" with "python3.X-debug" to get systemtap
 # working with debug build
 sed \
    -e "s|LIBRARY_PATH|%{_libdir}/%{py_INSTSONAME_debug}|" \
-   -e 's|"python3"|"python3-debug"|' \
+   -e 's|"python3"|"python%{pybasever}-debug"|' \
    %{_sourcedir}/libpython.stp \
    > %{buildroot}%{tapsetdir}/%{libpython_stp_debug}
 %endif # with_debug_build
@@ -940,6 +945,18 @@ echo '[ $? -eq 127 ] && echo "Could not find python%{LDVERSION_optimized}-`uname
   %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
   chmod +x %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
 
+# make altinstall doesn't create python3.X-config, but we want it
+#  (we don't want to have just python3.Xm-config, that's a bit confusing)
+ln -s \
+  %{_bindir}/python%{LDVERSION_optimized}-config \
+  %{buildroot}%{_bindir}/python%{pybasever}-config
+# make altinstall doesn't create python-3.Xm.pc, only python-3.X.pc, but we want both
+ln -s \
+  %{_libdir}/pkgconfig/python-%{pybasever}.pc \
+  %{buildroot}%{_libdir}/pkgconfig/python-%{LDVERSION_optimized}.pc
+
+# remove libpython3.so non-main python to not cause collision
+rm -f %{buildroot}%{_libdir}/libpython3.so
 
 # ======================================================
 # Running the upstream test suite
@@ -1016,10 +1033,8 @@ CheckPython optimized
 %files
 %doc LICENSE README
 %{_bindir}/pydoc*
-%{_bindir}/python3
 %{_bindir}/python%{pybasever}
 %{_bindir}/python%{pybasever}m
-%{_bindir}/pyvenv
 %{_bindir}/pyvenv-%{pybasever}
 %{_mandir}/*/*
 
@@ -1231,7 +1246,6 @@ CheckPython optimized
 %{_includedir}/python%{LDVERSION_optimized}/%{_pyconfig_h}
 
 %{_libdir}/%{py_INSTSONAME_optimized}
-%{_libdir}/libpython3.so
 %if 0%{?with_systemtap}
 %dir %(dirname %{tapsetdir})
 %dir %{tapsetdir}
@@ -1245,19 +1259,16 @@ CheckPython optimized
 %{_includedir}/python%{LDVERSION_optimized}/*.h
 %exclude %{_includedir}/python%{LDVERSION_optimized}/%{_pyconfig_h}
 %doc Misc/README.valgrind Misc/valgrind-python.supp Misc/gdbinit
-%{_bindir}/python3-config
 %{_bindir}/python%{pybasever}-config
 %{_bindir}/python%{LDVERSION_optimized}-config
 %{_bindir}/python%{LDVERSION_optimized}-*-config
 %{_libdir}/libpython%{LDVERSION_optimized}.so
 %{_libdir}/pkgconfig/python-%{LDVERSION_optimized}.pc
 %{_libdir}/pkgconfig/python-%{pybasever}.pc
-%{_libdir}/pkgconfig/python3.pc
 %{_rpmconfigdir}/macros.d/macros.pybytecompile%{pybasever}
 %{_rpmconfigdir}/macros.d/macros.python%{pybasever}
 
 %files tools
-%{_bindir}/python3-2to3
 %{_bindir}/2to3-%{pybasever}
 %{_bindir}/idle*
 %{pylibdir}/Tools
@@ -1300,7 +1311,7 @@ CheckPython optimized
 
 # Analog of the core subpackage's files:
 %{_bindir}/python%{LDVERSION_debug}
-%{_bindir}/python3-debug
+%{_bindir}/python%{pybasever}-debug
 
 # Analog of the -libs subpackage's files:
 # ...with debug builds of the built-in "extension" modules:
@@ -1428,6 +1439,7 @@ CheckPython optimized
 - Port from Fedora to IUS
 - Remove rewheel
 - Undo https://fedoraproject.org/wiki/Changes/System_Python
+- Import altinstall changes from EPEL's python34
 
 * Tue Dec 27 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.6.0-1
 - Update to Python 3.6.0 final
