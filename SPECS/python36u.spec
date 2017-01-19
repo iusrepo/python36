@@ -103,7 +103,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python%{pyshortver}u
 Version: %{pybasever}.0
-Release: 1.ius%{?dist}
+Release: 2.ius%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -366,6 +366,12 @@ Patch243: 00243-fix-mips64-triplet.patch
 # Not yet fixed upstream: http://bugs.python.org/issue28787
 Patch249: 00249-fix-out-of-tree-dtrace-builds.patch
 
+# 00250 #
+# After  glibc-2.24.90, Python 3 failed to start on EL7 kernel
+# rhbz#1410175: https://bugzilla.redhat.com/show_bug.cgi?id=1410175
+# http://bugs.python.org/issue29157
+Patch250: 00250-getentropy.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora, EL, etc.,
@@ -562,6 +568,7 @@ cp -a %{SOURCE21} Lib/ensurepip/_bundled/
 %patch206 -p1
 %patch243 -p1
 %patch249 -p1
+%patch250 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1449,6 +1456,9 @@ CheckPython optimized
 # ======================================================
 
 %changelog
+* Thu Jan 19 2017 Carl George <carl.george@rackspace.com> - 3.6.0-2.ius
+- Don't blow up on EL7 kernel (random generator) (rhbz#1410175) (Fedora)
+
 * Wed Dec 28 2016 Carl George <carl.george@rackspace.com> - 3.6.0-1.ius
 - Port from Fedora to IUS
 - Remove rewheel
