@@ -372,6 +372,11 @@ Patch249: 00249-fix-out-of-tree-dtrace-builds.patch
 # http://bugs.python.org/issue29157
 Patch250: 00250-getentropy.patch
 
+# 00253 #
+# Define HAVE_LONG_LONG as 1 instead of blank for backwards compatibility
+# Fixed upstream: https://hg.python.org/cpython/rev/fad67c66885f
+Patch253: 00253-fix-HAVE_LONG_LONG-compatibility.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora, EL, etc.,
@@ -569,6 +574,7 @@ cp -a %{SOURCE21} Lib/ensurepip/_bundled/
 %patch243 -p1
 %patch249 -p1
 %patch250 -p1
+%patch253 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1458,6 +1464,7 @@ CheckPython optimized
 %changelog
 * Thu Jan 19 2017 Carl George <carl.george@rackspace.com> - 3.6.0-2.ius
 - Don't blow up on EL7 kernel (random generator) (rhbz#1410175) (Fedora)
+- Define HAVE_LONG_LONG as 1 for backwards compatibility (Fedora)
 
 * Wed Dec 28 2016 Carl George <carl.george@rackspace.com> - 3.6.0-1.ius
 - Port from Fedora to IUS
