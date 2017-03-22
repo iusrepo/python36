@@ -1459,6 +1459,7 @@ CheckPython optimized
 * Wed Mar 22 2017 Carl George <carl.george@rackspace.com> - 3.6.1-1.ius
 - Latest upstream
 - Add --executable option to install.py command (Fedora)
+- Fix syntax error in %%py_byte_compile macro (rhbz#1433569) (Fedora)
 
 * Thu Jan 19 2017 Carl George <carl.george@rackspace.com> - 3.6.0-2.ius
 - Don't blow up on EL7 kernel (random generator) (rhbz#1410175) (Fedora)

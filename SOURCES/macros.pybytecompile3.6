@@ -6,5 +6,5 @@
 %py_byte_compile()\
 python_binary="%1"\
 bytecode_compilation_path="%2"\
-find $bytecode_compilation_path -type f -a -name "*.py" -print0 | xargs -0 $python_binary -O -c 'import py_compile, sys; [py_compile.compile(f, dfile=f.partition("$RPM_BUILD_ROOT")[2]], optimize=opt) for opt in range(2) for f in sys.argv[1:]]' || :\
+find $bytecode_compilation_path -type f -a -name "*.py" -print0 | xargs -0 $python_binary -O -c 'import py_compile, sys; [py_compile.compile(f, dfile=f.partition("$RPM_BUILD_ROOT")[2], optimize=opt) for opt in range(2) for f in sys.argv[1:]]' || :\
 %{nil}
