@@ -371,6 +371,12 @@ Patch249: 00249-fix-out-of-tree-dtrace-builds.patch
 # scripts specified as an entry_points
 Patch252: 00252-add-executable-option.patch
 
+# 00258 #
+# Kernel 4.9 introduced some changes to its crypto API
+# making test_aead_aes_gcm fail, so skipping the test for now
+# Reported upstream: http://bugs.python.org/issue29324
+Patch258: 00258-fix-test_aead_aes_gcm.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora, EL, etc.,
@@ -568,6 +574,7 @@ cp -a %{SOURCE21} Lib/ensurepip/_bundled/
 %patch243 -p1
 %patch249 -p1
 %patch252 -p1
+%patch258 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1460,6 +1467,7 @@ CheckPython optimized
 - Latest upstream
 - Add --executable option to install.py command (Fedora)
 - Fix syntax error in %%py_byte_compile macro (rhbz#1433569) (Fedora)
+- Skip test_aead_aes_gcm during rpmbuild (Fedora)
 
 * Thu Jan 19 2017 Carl George <carl.george@rackspace.com> - 3.6.0-2.ius
 - Don't blow up on EL7 kernel (random generator) (rhbz#1410175) (Fedora)
