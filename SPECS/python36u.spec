@@ -102,8 +102,8 @@
 # ==================
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python%{pyshortver}u
-Version: %{pybasever}.0
-Release: 2.ius%{?dist}
+Version: %{pybasever}.1
+Release: 1.ius%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -366,22 +366,6 @@ Patch243: 00243-fix-mips64-triplet.patch
 # Not yet fixed upstream: http://bugs.python.org/issue28787
 Patch249: 00249-fix-out-of-tree-dtrace-builds.patch
 
-# 00250 #
-# After  glibc-2.24.90, Python 3 failed to start on EL7 kernel
-# rhbz#1410175: https://bugzilla.redhat.com/show_bug.cgi?id=1410175
-# http://bugs.python.org/issue29157
-Patch250: 00250-getentropy.patch
-
-# 00253 #
-# Define HAVE_LONG_LONG as 1 instead of blank for backwards compatibility
-# Fixed upstream: https://hg.python.org/cpython/rev/fad67c66885f
-Patch253: 00253-fix-HAVE_LONG_LONG-compatibility.patch
-
-# 00254 #
-# Fix error check, so that Random.seed actually uses OS randomness
-# rhbz#1412275: https://bugzilla.redhat.com/show_bug.cgi?id=1412275
-# Fixed upstream: https://bugs.python.org/issue29085
-Patch254: 00254-make-Random.seed-actually-use-OS-randomness.patch
 
 # (New patches go here ^^^)
 #
@@ -579,9 +563,6 @@ cp -a %{SOURCE21} Lib/ensurepip/_bundled/
 %patch206 -p1
 %patch243 -p1
 %patch249 -p1
-%patch250 -p1
-%patch253 -p1
-%patch254 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1066,7 +1047,8 @@ CheckPython optimized
 
 
 %files
-%doc LICENSE README
+%license LICENSE
+%doc README.rst
 %{_bindir}/pydoc*
 %{_bindir}/python%{pybasever}
 %{_bindir}/python%{pybasever}m
@@ -1074,7 +1056,8 @@ CheckPython optimized
 %{_mandir}/*/*
 
 %files libs
-%doc LICENSE README
+%license LICENSE
+%doc README.rst
 
 %{pylibdir}/lib2to3
 %exclude %{pylibdir}/lib2to3/tests
@@ -1199,7 +1182,6 @@ CheckPython optimized
 
 %dir %{pylibdir}/site-packages/
 %dir %{pylibdir}/site-packages/__pycache__/
-%{pylibdir}/site-packages/README
 %{pylibdir}/site-packages/README.txt
 %{pylibdir}/*.py
 %dir %{pylibdir}/__pycache__/
@@ -1469,6 +1451,9 @@ CheckPython optimized
 # ======================================================
 
 %changelog
+* Wed Mar 22 2017 Carl George <carl.george@rackspace.com> - 3.6.1-1.ius
+- Latest upstream
+
 * Thu Jan 19 2017 Carl George <carl.george@rackspace.com> - 3.6.0-2.ius
 - Don't blow up on EL7 kernel (random generator) (rhbz#1410175) (Fedora)
 - Define HAVE_LONG_LONG as 1 for backwards compatibility (Fedora)
