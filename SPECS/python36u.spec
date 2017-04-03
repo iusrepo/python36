@@ -87,7 +87,7 @@
   %{!?__debug_package:/usr/lib/rpm/brp-strip %{__strip}} \
   /usr/lib/rpm/brp-strip-static-archive %{__strip} \
   /usr/lib/rpm/brp-strip-comment-note %{__strip} %{__objdump} \
-  /usr/lib/rpm/brp-python-hardlink
+  /usr/lib/rpm/%{?el6:redhat/}brp-python-hardlink
 # to remove the invocation of brp-python-bytecompile, whilst keeping the
 # invocation of brp-python-hardlink (since this should still work for python3
 # pyc/pyo files)
@@ -103,7 +103,7 @@
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python%{pyshortver}u
 Version: %{pybasever}.1
-Release: 1.ius%{?dist}
+Release: 2.ius%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -118,11 +118,16 @@ BuildRequires: autoconf
 BuildRequires: bluez-libs-devel
 BuildRequires: bzip2
 BuildRequires: bzip2-devel
-BuildRequires: db4-devel >= 4.7
 
 # expat 2.1.0 added the symbol XML_SetHashSalt without bumping SONAME.  We use
 # it (in pyexpat) in order to enable the fix in Python-3.2.3 for CVE-2012-0876:
+%if 0%{?rhel} && 0%{?rhel} < 7
+# XML_SetHashSalt was backported to EL6
+# https://rhn.redhat.com/errata/RHSA-2012-0731.html
+BuildRequires: expat-devel >= 2.0.1-11
+%else
 BuildRequires: expat-devel >= 2.1.0
+%endif
 
 BuildRequires: findutils
 BuildRequires: gcc-c++
@@ -140,10 +145,7 @@ BuildRequires: net-tools
 BuildRequires: openssl-devel
 BuildRequires: pkgconfig
 BuildRequires: readline-devel
-# the Python 3.6 _sqlite module now requires at least sqlite 3.7.4
-# http://bugs.python.org/issue10740
-# http://www.sqlite.org/releaselog/3_7_4.html
-BuildRequires: sqlite-devel >= 3.7.4
+BuildRequires: sqlite-devel
 
 BuildRequires: systemtap-sdt-devel
 BuildRequires: systemtap-devel
@@ -417,7 +419,13 @@ Group:          Development/Libraries
 # this symbol (in pyexpat), so we must explicitly state this dependency to
 # prevent "import pyexpat" from failing with a linker error if someone hasn't
 # yet upgraded expat:
+%if 0%{?rhel} && 0%{?rhel} < 7
+# XML_SetHashSalt was backported to EL6
+# https://rhn.redhat.com/errata/RHSA-2012-0731.html
+Requires: expat >= 2.0.1-11
+%else
 Requires: expat >= 2.1.0
+%endif
 
 %description libs
 This package contains files used to embed Python 3 into applications.
@@ -897,9 +905,9 @@ find %{buildroot} \
     -perm 555 -exec chmod 755 {} \;
 
 # Install macros for rpm:
-mkdir -p %{buildroot}/%{_rpmconfigdir}/macros.d/
-install -m 644 %{SOURCE3} %{buildroot}/%{_rpmconfigdir}/macros.d/
-install -m 644 %{SOURCE10} %{buildroot}/%{_rpmconfigdir}/macros.d/
+mkdir -p %{buildroot}/%{rpmmacrodir}
+install -m 644 %{SOURCE3} %{buildroot}/%{rpmmacrodir}
+install -m 644 %{SOURCE10} %{buildroot}/%{rpmmacrodir}
 
 # Ensure that the curses module was linked against libncursesw.so, rather than
 # libncurses.so (bug 539917)
@@ -1294,8 +1302,8 @@ CheckPython optimized
 %{_bindir}/python%{LDVERSION_optimized}-*-config
 %{_libdir}/pkgconfig/python-%{LDVERSION_optimized}.pc
 %{_libdir}/pkgconfig/python-%{pybasever}.pc
-%{_rpmconfigdir}/macros.d/macros.pybytecompile%{pybasever}
-%{_rpmconfigdir}/macros.d/macros.python%{pybasever}
+%{rpmmacrodir}/macros.pybytecompile%{pybasever}
+%{rpmmacrodir}/macros.python%{pybasever}
 
 %files tools
 %{_bindir}/2to3-%{pybasever}
@@ -1463,6 +1471,11 @@ CheckPython optimized
 # ======================================================
 
 %changelog
+* Mon Apr 03 2017 Carl George <carl.george@rackspace.com> - 3.6.1-2.ius
+- EL6 support
+- Remove minimum sqlite version (pybt#10740 and pybt#29098)
+- Require correct version of expat{,-devel}
+
 * Wed Mar 22 2017 Carl George <carl.george@rackspace.com> - 3.6.1-1.ius
 - Latest upstream
 - Add --executable option to install.py command (Fedora)
