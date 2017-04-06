@@ -1277,8 +1277,8 @@ CheckPython optimized
 # "Makefile" and the config-32/64.h file are needed by
 # distutils/sysconfig.py:_init_posix(), so we include them in the core
 # package, along with their parent directories (bug 531901):
-%dir %{pylibdir}/config-%{LDVERSION_optimized}/
-%{pylibdir}/config-%{LDVERSION_optimized}/Makefile
+%dir %{pylibdir}/config-%{LDVERSION_optimized}-%{_arch}-linux%{_gnu}/
+%{pylibdir}/config-%{LDVERSION_optimized}-%{_arch}-linux%{_gnu}/Makefile
 %dir %{_includedir}/python%{LDVERSION_optimized}/
 %{_includedir}/python%{LDVERSION_optimized}/%{_pyconfig_h}
 
@@ -1292,8 +1292,8 @@ CheckPython optimized
 %endif
 
 %files devel
-%{pylibdir}/config-%{LDVERSION_optimized}/*
-%exclude %{pylibdir}/config-%{LDVERSION_optimized}/Makefile
+%{pylibdir}/config-%{LDVERSION_optimized}-%{_arch}-linux%{_gnu}/*
+%exclude %{pylibdir}/config-%{LDVERSION_optimized}-%{_arch}-linux%{_gnu}/Makefile
 %{_includedir}/python%{LDVERSION_optimized}/*.h
 %exclude %{_includedir}/python%{LDVERSION_optimized}/%{_pyconfig_h}
 %doc Misc/README.valgrind Misc/valgrind-python.supp Misc/gdbinit
@@ -1432,7 +1432,7 @@ CheckPython optimized
 %endif
 
 # Analog of the -devel subpackage's files:
-%{pylibdir}/config-%{LDVERSION_debug}
+%{pylibdir}/config-%{LDVERSION_debug}-%{_arch}-linux%{_gnu}
 %{_includedir}/python%{LDVERSION_debug}
 %{_bindir}/python%{LDVERSION_debug}-config
 %{_libdir}/pkgconfig/python-%{LDVERSION_debug}.pc
@@ -1471,10 +1471,11 @@ CheckPython optimized
 # ======================================================
 
 %changelog
-* Mon Apr 03 2017 Carl George <carl.george@rackspace.com> - 3.6.1-2.ius
+* Thu Apr 06 2017 Carl George <carl.george@rackspace.com> - 3.6.1-2.ius
 - EL6 support
 - Remove minimum sqlite version (pybt#10740 and pybt#29098)
 - Require correct version of expat{,-devel}
+- Install the Makefile in its proper location (rhbz#1438219) (Fedora)
 
 * Wed Mar 22 2017 Carl George <carl.george@rackspace.com> - 3.6.1-1.ius
 - Latest upstream
