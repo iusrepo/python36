@@ -379,6 +379,9 @@ Patch252: 00252-add-executable-option.patch
 # Reported upstream: http://bugs.python.org/issue29324
 Patch258: 00258-fix-test_aead_aes_gcm.patch
 
+# 00900 #
+Patch900: 00900-skip-tan0064-32bit.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora, EL, etc.,
@@ -583,6 +586,7 @@ cp -a %{SOURCE21} Lib/ensurepip/_bundled/
 %patch249 -p1
 %patch252 -p1
 %patch258 -p1
+%patch900 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
 # are many differences between 2.6 and the Python 3 library.
@@ -1476,6 +1480,7 @@ CheckPython optimized
 - Remove minimum sqlite version (pybt#10740 and pybt#29098)
 - Require correct version of expat{,-devel}
 - Install the Makefile in its proper location (rhbz#1438219) (Fedora)
+- Skip tan0064 in test_math and test_cmath on 32bit
 
 * Wed Mar 22 2017 Carl George <carl.george@rackspace.com> - 3.6.1-1.ius
 - Latest upstream
