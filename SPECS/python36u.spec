@@ -367,12 +367,6 @@ Patch243: 00243-fix-mips64-triplet.patch
 # scripts specified as an entry_points
 Patch252: 00252-add-executable-option.patch
 
-# 00258 #
-# Kernel 4.9 introduced some changes to its crypto API
-# making test_aead_aes_gcm fail, so skipping the test for now
-# Reported upstream: http://bugs.python.org/issue29324
-Patch258: 00258-fix-test_aead_aes_gcm.patch
-
 # 00900 #
 Patch900: 00900-skip-tan0064-32bit.patch
 
@@ -578,7 +572,6 @@ cp -a %{SOURCE21} Lib/ensurepip/_bundled/
 %patch206 -p1
 %patch243 -p1
 %patch252 -p1
-%patch258 -p1
 %patch900 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
@@ -1472,6 +1465,7 @@ CheckPython optimized
 - Latest upstream
 - Rebase patch180
 - Remove patch249, resolved upstream pybt#28787
+- Remove patch258, resolved upstream pybt#29324
 
 * Thu Apr 06 2017 Carl George <carl.george@rackspace.com> - 3.6.1-2.ius
 - EL6 support
