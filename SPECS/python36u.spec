@@ -102,8 +102,8 @@
 # ==================
 Summary: Version 3 of the Python programming language aka Python 3000
 Name: python%{pyshortver}u
-Version: %{pybasever}.1
-Release: 2.ius%{?dist}
+Version: %{pybasever}.2
+Release: 1.ius%{?dist}
 License: Python
 Group: Development/Languages
 
@@ -1475,6 +1475,9 @@ CheckPython optimized
 # ======================================================
 
 %changelog
+* Tue Jul 18 2017 Carl George <carl.george@rackspace.com> - 3.6.2-1.ius
+- Latest upstream
+
 * Thu Apr 06 2017 Carl George <carl.george@rackspace.com> - 3.6.1-2.ius
 - EL6 support
 - Remove minimum sqlite version (pybt#10740 and pybt#29098)
