@@ -362,12 +362,6 @@ Patch206: 00206-remove-hf-from-arm-triplet.patch
 # Fedora needs the default mips64-linux-gnu
 Patch243: 00243-fix-mips64-triplet.patch
 
-# 00249 #
-# Fix builds using the --with-dtrace flag as the rpmbuild
-# of python is an out of tree build
-# Not yet fixed upstream: http://bugs.python.org/issue28787
-Patch249: 00249-fix-out-of-tree-dtrace-builds.patch
-
 # 00252
 # Add executable option to install.py command to make it work for
 # scripts specified as an entry_points
@@ -583,7 +577,6 @@ cp -a %{SOURCE21} Lib/ensurepip/_bundled/
 %patch205 -p1
 %patch206 -p1
 %patch243 -p1
-%patch249 -p1
 %patch252 -p1
 %patch258 -p1
 %patch900 -p1
@@ -1478,6 +1471,7 @@ CheckPython optimized
 * Tue Jul 18 2017 Carl George <carl.george@rackspace.com> - 3.6.2-1.ius
 - Latest upstream
 - Rebase patch180
+- Remove patch249, resolved upstream pybt#28787
 
 * Thu Apr 06 2017 Carl George <carl.george@rackspace.com> - 3.6.1-2.ius
 - EL6 support
