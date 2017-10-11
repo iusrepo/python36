@@ -363,6 +363,14 @@ Patch243: 00243-fix-mips64-triplet.patch
 # scripts specified as an entry_points
 Patch252: 00252-add-executable-option.patch
 
+# 00277 #
+# Fix test_exception_errpipe_bad_data() and
+# test_exception_errpipe_normal() of test_subprocess: mock os.waitpid()
+# to avoid calling the real os.waitpid(0, 0) which is an unexpected
+# side effect of the test, which makes the koji builds hang.
+# Fixed upstream: https://github.com/python/cpython/commit/11045c9d8a21dd9bd182a3939189db02815f9783
+Patch277: 00277-fix-test-subprocess-hanging-tests.patch
+
 # 00900 #
 Patch900: 00900-skip-tan0064-32bit.patch
 
@@ -567,6 +575,7 @@ cp -a %{SOURCE21} Lib/ensurepip/_bundled/
 %patch206 -p1
 %patch243 -p1
 %patch252 -p1
+%patch277 -p1
 %patch900 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
@@ -1460,6 +1469,7 @@ CheckPython optimized
 * Wed Oct 11 2017 Carl George <carl@george.computer> - 3.6.3-1.ius
 - Latest upstream
 - Skip test_bdist_rpm using test config rather than a patch (removes patch 137) (Fedora)
+- Add patch277 to fix two hanging tests from test_subprocess (Fedora)
 
 * Tue Jul 18 2017 Carl George <carl.george@rackspace.com> - 3.6.2-1.ius
 - Latest upstream
