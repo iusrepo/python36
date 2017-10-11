@@ -276,22 +276,6 @@ Patch146: 00146-hashlib-fips.patch
 # embedding Python within httpd (rhbz#814391)
 Patch155: 00155-avoid-ctypes-thunks.patch
 
-# 00157 #
-# Update uid/gid handling throughout the standard library: uid_t and gid_t are
-# unsigned 32-bit values, but existing code often passed them through C long
-# values, which are signed 32-bit values on 32-bit architectures, leading to
-# negative int objects for uid/gid values >= 2^31 on 32-bit architectures.
-#
-# Introduce _PyObject_FromUid/Gid to convert uid_t/gid_t values to python
-# objects, using int objects where the value will fit (long objects otherwise),
-# and _PyArg_ParseUid/Gid to convert int/long to uid_t/gid_t, with -1 allowed
-# as a special case (since this is given special meaning by the chown syscall)
-#
-# Update standard library to use this throughout for uid/gid values, so that
-# very large uid/gid values are round-trippable, and -1 remains usable.
-# (rhbz#697470)
-Patch157: 00157-uid-gid-overflows.patch
-
 # 00160 #
 # Python 3.3 added os.SEEK_DATA and os.SEEK_HOLE, which may be present in the
 # header files in the build chroot, but may not be supported in the running
@@ -327,21 +311,6 @@ Patch178: 00178-dont-duplicate-flags-in-sysconfig.patch
 # Enable building on ppc64p7
 # Not appropriate for upstream, Fedora-specific naming
 Patch180: 00180-python-add-support-for-ppc64p7.patch
-
-# 00188 #
-# Downstream only patch that should be removed when we compile all guaranteed
-# hashlib algorithms properly. The problem is this:
-# - during tests, test_hashlib is imported and executed before test_lib2to3
-# - if at least one hash function has failed, trying to import it triggers an
-#   exception that is being caught and exception is logged:
-#   http://hg.python.org/cpython/file/2de806c8b070/Lib/hashlib.py#l217
-# - logging the exception makes logging module run basicConfig
-# - when lib2to3 tests are run again, lib2to3 runs basicConfig again, which
-#   doesn't do anything, because it was run previously
-#   (logging.root.handlers != []), which means that the default setup
-#   (most importantly logging level) is not overriden. That means that a test
-#   relying on this will fail (test_filename_changing_on_output_single_dir)
-Patch188: 00188-fix-lib2to3-tests-when-hashlib-doesnt-compile-properly.patch
 
 # 00205 #
 # LIBPL variable in makefile takes LIBPL from configure.ac
@@ -570,13 +539,11 @@ cp -a %{SOURCE21} Lib/ensurepip/_bundled/
 %patch132 -p1
 #patch146 -p1
 %patch155 -p1
-%patch157 -p1
 %patch160 -p1
 %patch163 -p1
 %patch170 -p1
 %patch178 -p1
 %patch180 -p1
-%patch188 -p1
 
 %patch205 -p1
 %patch206 -p1
@@ -1483,6 +1450,7 @@ CheckPython optimized
 - Fix memory corruption due to allocator mix rhbz#1498207 (Fedora)
 - Use a larger stack size on EL6
 - Conditionalize systemtap-devel BuildRequires (Fedora)
+- Drop patches 157 and 188
 
 * Tue Jul 18 2017 Carl George <carl.george@rackspace.com> - 3.6.2-1.ius
 - Latest upstream
