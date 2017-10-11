@@ -1006,8 +1006,10 @@ find %{buildroot} -type f -a -name "*.py" -print0 | \
     PYTHONPATH="%{buildroot}%{_libdir}/python%{pybasever} %{buildroot}%{_libdir}/python%{pybasever}/site-packages" \
     xargs -0 %{buildroot}%{_bindir}/python%{pybasever} %{SOURCE8}
 
-# For ppc64 we need a larger stack than default (rhbz#1292462)
-%ifarch %{power64}
+# In some scenarios a larger stack is needed to avoid testInfiniteRecursion
+# from segfaulting.  This was previously seen on ppc64 (rhbz#1292462), and more
+# recently on EL6.
+%if 0%{?rhel} && 0%{?rhel} < 7
   ulimit -a
   ulimit -s 16384
 %endif
@@ -1477,6 +1479,7 @@ CheckPython optimized
 - Skip test_bdist_rpm using test config rather than a patch (removes patch 137) (Fedora)
 - Add patch277 to fix two hanging tests from test_subprocess (Fedora)
 - Fix memory corruption due to allocator mix rhbz#1498207 (Fedora)
+- Use a larger stack size on EL6
 
 * Tue Jul 18 2017 Carl George <carl.george@rackspace.com> - 3.6.2-1.ius
 - Latest upstream
