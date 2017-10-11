@@ -47,6 +47,12 @@ License: Python
 %global with_valgrind 0
 %endif
 
+%if 0%{?rhel} && 0%{?rhel} < 7
+%global with_system_expat 0
+%else
+%global with_system_expat 1
+%endif
+
 # Bundle latest wheels of setuptools and/or pip.
 #global setuptools_version 28.8.0
 #global pip_version 9.0.1
@@ -126,11 +132,7 @@ BuildRequires: bzip2-devel
 
 # expat 2.1.0 added the symbol XML_SetHashSalt without bumping SONAME.  We use
 # it (in pyexpat) in order to enable the fix in Python-3.2.3 for CVE-2012-0876:
-%if 0%{?rhel} && 0%{?rhel} < 7
-# XML_SetHashSalt was backported to EL6
-# https://rhn.redhat.com/errata/RHSA-2012-0731.html
-BuildRequires: expat-devel >= 2.0.1-11
-%else
+%if 0%{?with_system_expat}
 BuildRequires: expat-devel >= 2.1.0
 %endif
 
@@ -364,17 +366,6 @@ the "%{name}-" prefix.
 %package libs
 Summary:        Python runtime libraries
 
-# expat 2.1.0 added the symbol XML_SetHashSalt without bumping SONAME.  We use
-# this symbol (in pyexpat), so we must explicitly state this dependency to
-# prevent "import pyexpat" from failing with a linker error if someone hasn't
-# yet upgraded expat:
-%if 0%{?rhel} && 0%{?rhel} < 7
-# XML_SetHashSalt was backported to EL6
-# https://rhn.redhat.com/errata/RHSA-2012-0731.html
-Requires: expat >= 2.0.1-11
-%else
-Requires: expat >= 2.1.0
-%endif
 
 %description libs
 This package contains runtime libraries for use by Python:
@@ -479,7 +470,9 @@ cp -a %{SOURCE7} .
 %endif # with_systemtap
 
 # Remove bundled libraries to ensure that we're using the system copy.
+%if 0%{?with_system_expat}
 rm -r Modules/expat
+%endif
 rm -r Modules/zlib
 
 %if %{defined setuptools_version}
@@ -575,7 +568,9 @@ BuildPython() {
   --enable-shared \
   --with-computed-gotos=%{with_computed_gotos} \
   --with-dbmliborder=gdbm:ndbm:bdb \
+%if 0%{?with_system_expat}
   --with-system-expat \
+%endif
   --with-system-ffi \
   --enable-loadable-sqlite-extensions \
   --with-dtrace \
@@ -1406,6 +1401,7 @@ CheckPython optimized
 - Merge lib64 patches (104 into 102) (Fedora)
 - Merge patches 180, 206, 243, 5001 (architecture naming) into new patch 274 (Fedora)
 - Run autotools to generate the configure script before building (Fedora)
+- Use bundled expat on EL6
 
 * Tue Jul 18 2017 Carl George <carl.george@rackspace.com> - 3.6.2-1.ius
 - Latest upstream
