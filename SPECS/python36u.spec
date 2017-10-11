@@ -371,6 +371,11 @@ Patch252: 00252-add-executable-option.patch
 # Fixed upstream: https://github.com/python/cpython/commit/11045c9d8a21dd9bd182a3939189db02815f9783
 Patch277: 00277-fix-test-subprocess-hanging-tests.patch
 
+# 00279 #
+# Fix memory corruption due to allocator mix
+# Fixed upstream: https://bugs.python.org/issue31532
+Patch279: 00279-fix-memory-corruption-due-to-allocator-mix.patch
+
 # 00900 #
 Patch900: 00900-skip-tan0064-32bit.patch
 
@@ -576,6 +581,7 @@ cp -a %{SOURCE21} Lib/ensurepip/_bundled/
 %patch243 -p1
 %patch252 -p1
 %patch277 -p1
+%patch279 -p1
 %patch900 -p1
 
 # Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
@@ -1470,6 +1476,7 @@ CheckPython optimized
 - Latest upstream
 - Skip test_bdist_rpm using test config rather than a patch (removes patch 137) (Fedora)
 - Add patch277 to fix two hanging tests from test_subprocess (Fedora)
+- Fix memory corruption due to allocator mix rhbz#1498207 (Fedora)
 
 * Tue Jul 18 2017 Carl George <carl.george@rackspace.com> - 3.6.2-1.ius
 - Latest upstream
