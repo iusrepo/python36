@@ -147,11 +147,11 @@ BuildRequires: pkgconfig
 BuildRequires: readline-devel
 BuildRequires: sqlite-devel
 
-BuildRequires: systemtap-sdt-devel
+%if 0%{?with_systemtap}
 BuildRequires: systemtap-devel
-# (this introduces a dependency on "python", in that systemtap-sdt-devel's
-# /usr/bin/dtrace is a python 2 script)
+BuildRequires: systemtap-sdt-devel
 %global tapsetdir      /usr/share/systemtap/tapset
+%endif
 
 BuildRequires: tar
 BuildRequires: tcl-devel
@@ -164,6 +164,8 @@ BuildRequires: valgrind-devel
 
 BuildRequires: xz-devel
 BuildRequires: zlib-devel
+
+BuildRequires: /usr/bin/dtrace
 
 
 # =======================
@@ -1480,6 +1482,7 @@ CheckPython optimized
 - Add patch277 to fix two hanging tests from test_subprocess (Fedora)
 - Fix memory corruption due to allocator mix rhbz#1498207 (Fedora)
 - Use a larger stack size on EL6
+- Conditionalize systemtap-devel BuildRequires (Fedora)
 
 * Tue Jul 18 2017 Carl George <carl.george@rackspace.com> - 3.6.2-1.ius
 - Latest upstream
