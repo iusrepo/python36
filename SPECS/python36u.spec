@@ -244,10 +244,6 @@ Patch111: 00111-no-static-lib.patch
 # these unittest hooks in their own "check" phases)
 Patch132: 00132-add-rpmbuild-hooks-to-unittest.patch
 
-# 00137 #
-# Some tests within distutils fail when run in an rpmbuild:
-Patch137: 00137-skip-distutils-tests-that-fail-in-rpmbuild.patch
-
 # 00146 #
 # Support OpenSSL FIPS mode (e.g. when OPENSSL_FORCE_FIPS_MODE=1 is set)
 # - handle failures from OpenSSL (e.g. on attempts to use MD5 in a
@@ -557,7 +553,6 @@ cp -a %{SOURCE21} Lib/ensurepip/_bundled/
 %endif
 %patch111 -p1
 %patch132 -p1
-%patch137 -p1
 #patch146 -p1
 %patch155 -p1
 %patch157 -p1
@@ -1022,6 +1017,7 @@ CheckPython() {
   LD_LIBRARY_PATH=$ConfDir $ConfDir/python -m test.regrtest \
     --verbose --findleaks \
     -x test_distutils \
+    -x test_bdist_rpm \
     %ifarch ppc64le aarch64
     -x test_faulthandler \
     %endif
@@ -1463,6 +1459,7 @@ CheckPython optimized
 %changelog
 * Wed Oct 11 2017 Carl George <carl@george.computer> - 3.6.3-1.ius
 - Latest upstream
+- Skip test_bdist_rpm using test config rather than a patch (removes patch 137) (Fedora)
 
 * Tue Jul 18 2017 Carl George <carl.george@rackspace.com> - 3.6.2-1.ius
 - Latest upstream
