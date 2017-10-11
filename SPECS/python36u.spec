@@ -1,24 +1,66 @@
-# ======================================================
-# Conditionals and other variables controlling the build
-# ======================================================
+# ==================
+# Top-level metadata
+# ==================
+
+Name: python36u
+Summary: Interpreter of the Python programming language
+URL: https://www.python.org/
 
 %global pybasever 3.6
 
 # pybasever without the dot:
 %global pyshortver 36
 
+Version: %{pybasever}.3
+Release: 1.ius%{?dist}
+License: Python
+
+
+# ==================================
+# Conditionals controlling the build
+# ==================================
+
+# Run the test suite in %%check
+%global run_selftest_suite 1
+
+# Extra build for debugging the interpreter or C-API extensions
+# (the -debug subpackages)
+%global with_debug_build 1
+
+# Support for the GDB debugger
+%global with_gdb_hooks 1
+
+# Support for systemtap instrumentation
+%global with_systemtap 0
+
+# The dbm.gnu module (key-value database)
+%global with_gdbm 1
+
+# Change from yes to no to turn this off
+%global with_computed_gotos yes
+
+# Support for the Valgrind debugger/profiler
+%ifnarch s390 %{mips} riscv64
+%global with_valgrind 1
+%else
+# Some arches don't have valgrind, disable support for it there.
+%global with_valgrind 0
+%endif
+
+# Bundle latest wheels of setuptools and/or pip.
+#global setuptools_version 28.8.0
+#global pip_version 9.0.1
+
+
+# =====================
+# General global macros
+# =====================
+
 %global pylibdir %{_libdir}/python%{pybasever}
 %global dynload_dir %{pylibdir}/lib-dynload
 
-# SOABI is defined in the upstream configure.in from Python-3.2a2 onwards,
-# for PEP 3149:
-#   http://www.python.org/dev/peps/pep-3149/
-
-# ("configure.in" became "configure.ac" in Python 3.3 onwards, and in
-# backports)
-
-# ABIFLAGS, LDVERSION and SOABI are in the upstream Makefile
-# With Python 3.3, we lose the "u" suffix due to PEP 393
+# ABIFLAGS, LDVERSION and SOABI are in the upstream configure.ac
+# See PEP 3149 for some background: http://www.python.org/dev/peps/pep-3149/
 %global ABIFLAGS_optimized m
 %global ABIFLAGS_debug     dm
 
@@ -28,17 +70,16 @@
 %global SOABI_optimized cpython-%{pyshortver}%{ABIFLAGS_optimized}-%{_arch}-linux%{_gnu}
 %global SOABI_debug     cpython-%{pyshortver}%{ABIFLAGS_debug}-%{_arch}-linux%{_gnu}
 
-# All bytecode files are now in a __pycache__ subdirectory, with a name
-# reflecting the version of the bytecode (to permit sharing of python libraries
-# between different runtimes)
-# See http://www.python.org/dev/peps/pep-3147/
+# All bytecode files are in a __pycache__ subdirectory, with a name
+# reflecting the version of the bytecode.
+# See PEP 3147: http://www.python.org/dev/peps/pep-3147/
 # For example,
 #   foo/bar.py
-# now has bytecode at:
-#   foo/__pycache__/bar.cpython-36.pyc
-#   foo/__pycache__/bar.cpython-36.opt-1.pyc
-#   foo/__pycache__/bar.cpython-36.opt-2.pyc
-%global bytecode_suffixes .cpython-36*.pyc
+# has bytecode at:
+#   foo/__pycache__/bar.cpython-%%{pyshortver}.pyc
+#   foo/__pycache__/bar.cpython-%%{pyshortver}.opt-1.pyc
+#   foo/__pycache__/bar.cpython-%%{pyshortver}.opt-2.pyc
+%global bytecode_suffixes .cpython-%{pyshortver}*.pyc
 
 # Python's configure script defines SOVERSION, and this is used in the Makefile
 # to determine INSTSONAME, the name of the libpython DSO:
@@ -51,27 +92,6 @@
 %global py_INSTSONAME_optimized libpython%{LDVERSION_optimized}.so.%{py_SOVERSION}
 %global py_INSTSONAME_debug     libpython%{LDVERSION_debug}.so.%{py_SOVERSION}
 
-%global with_debug_build 1
-
-%global with_gdb_hooks 1
-
-%global with_systemtap 0
-
-# some arches don't have valgrind so we need to disable its support on them
-%ifnarch s390 %{mips} riscv64
-%global with_valgrind 1
-%else
-%global with_valgrind 0
-%endif
-
-%global with_gdbm 1
-
-# Change from yes to no to turn this off
-%global with_computed_gotos yes
-
-# Turn this to 0 to turn off the "check" phase:
-%global run_selftest_suite 1
-
 # We want to byte-compile the .py files within the packages using the new
 # python3 binary.
 #
@@ -83,29 +103,14 @@
 # (/usr/bin/python, rather than the freshly built python), thus leading to
 # numerous syntax errors, and incorrect magic numbers in the .pyc files.  We
 # thus override __os_install_post to avoid invoking this script:
-%global __os_install_post /usr/lib/rpm/brp-compress \
-  %{!?__debug_package:/usr/lib/rpm/brp-strip %{__strip}} \
-  /usr/lib/rpm/brp-strip-static-archive %{__strip} \
-  /usr/lib/rpm/brp-strip-comment-note %{__strip} %{__objdump} \
-  /usr/lib/rpm/%{?el6:redhat/}brp-python-hardlink
+%global __os_install_post /usr/lib/rpm%{?rhel:/redhat}/brp-compress \
+  %{!?__debug_package:/usr/lib/rpm%{?rhel:/redhat}/brp-strip %{__strip}} \
+  %{!?__debug_package:/usr/lib/rpm%{?rhel:/redhat}/brp-strip-comment-note %{__strip} %{__objdump}} \
+  /usr/lib/rpm%{?rhel:/redhat}/brp-strip-static-archive %{__strip} \
+  /usr/lib/rpm%{?rhel:/redhat}/brp-python-hardlink
 # to remove the invocation of brp-python-bytecompile, whilst keeping the
 # invocation of brp-python-hardlink (since this should still work for python3
 # pyc/pyo files)
-
-# Bundle latest wheels of setuptools and/or pip.
-#global setuptools_version 28.8.0
-#global pip_version 9.0.1
-
-
-# ==================
-# Top-level metadata
-# ==================
-Summary: Version 3 of the Python programming language aka Python 3000
-Name: python%{pyshortver}u
-Version: %{pybasever}.3
-Release: 1.ius%{?dist}
-License: Python
-Group: Development/Languages
 
 
 # =======================
@@ -131,7 +136,7 @@ BuildRequires: expat-devel >= 2.1.0
 
 BuildRequires: findutils
 BuildRequires: gcc-c++
-%if %{with_gdbm}
+%if 0%{?with_gdbm}
 BuildRequires: gdbm-devel
 %endif
 BuildRequires: glibc-devel
@@ -201,16 +206,17 @@ Source8: check-pyc-and-pyo-timestamps.py
 #  __python3Xu, python3Xu_sitelib, python3Xu_sitearch
 Source10: macros.python%{pybasever}
 
-%if 0%{?setuptools_version:1}
+%if %{defined setuptools_version}
 Source20: https://files.pythonhosted.org/packages/py2.py3/s/setuptools/setuptools-%{setuptools_version}-py2.py3-none-any.whl
 %endif
-%if 0%{?pip_version:1}
+%if %{defined pip_version}
 Source21: https://files.pythonhosted.org/packages/py2.py3/p/pip/pip-%{pip_version}-py2.py3-none-any.whl
 %endif
 
+# 00001 #
 # Fixup distutils/unixccompiler.py to remove standard library path from rpath:
 # Was Patch0 in ivazquez' python3000 specfile:
-Patch1:         Python-3.1.1-rpath.patch
+Patch1:         00001-rpath.patch
 
 # 00055 #
 # Systemtap support: add statically-defined probe points
@@ -227,7 +233,8 @@ Patch102: 00102-lib64.patch
 
 # 00111 #
 # Patch the Makefile.pre.in so that the generated Makefile doesn't try to build
-# a libpythonMAJOR.MINOR.a (bug 550692):
+# a libpythonMAJOR.MINOR.a
+# See https://bugzilla.redhat.com/show_bug.cgi?id=556092
 # Downstream only: not appropriate for upstream
 Patch111: 00111-no-static-lib.patch
 
@@ -245,34 +252,11 @@ Patch111: 00111-no-static-lib.patch
 # these unittest hooks in their own "check" phases)
 Patch132: 00132-add-rpmbuild-hooks-to-unittest.patch
 
-# 00146 #
-# Support OpenSSL FIPS mode (e.g. when OPENSSL_FORCE_FIPS_MODE=1 is set)
-# - handle failures from OpenSSL (e.g. on attempts to use MD5 in a
-#   FIPS-enforcing environment)
-# - add a new "usedforsecurity" keyword argument to the various digest
-#   algorithms in hashlib so that you can whitelist a callsite with
-#   "usedforsecurity=False"
-# (sent upstream for python 3 as http://bugs.python.org/issue9216 ; see RHEL6
-# python patch 119)
-# - enforce usage of the _hashlib implementation: don't fall back to the _md5
-#   and _sha* modules (leading to clearer error messages if fips selftests
-#   fail)
-# - don't build the _md5 and _sha* modules; rely on the _hashlib implementation
-#   of hashlib
-# (rhbz#563986)
-# Note: Up to Python 3.4.0.b1, upstream had their own implementation of what
-# they assumed would become sha3. This patch was adapted to give it the
-# usedforsecurity argument, even though it did nothing (OpenSSL didn't have
-# sha3 implementation at that time).In 3.4.0.b2, sha3 implementation was reverted
-# (see http://bugs.python.org/issue16113), but the alterations were left in the
-# patch, since they may be useful again if upstream decides to rerevert sha3
-# implementation and OpenSSL still doesn't support it. For now, they're harmless.
-Patch146: 00146-hashlib-fips.patch
-
 # 00155 #
 # Avoid allocating thunks in ctypes unless absolutely necessary, to avoid
 # generating SELinux denials on "import ctypes" and "import uuid" when
-# embedding Python within httpd (rhbz#814391)
+# embedding Python within httpd
+# See https://bugzilla.redhat.com/show_bug.cgi?id=814391
 Patch155: 00155-avoid-ctypes-thunks.patch
 
 # 00160 #
@@ -293,11 +277,10 @@ Patch163: 00163-disable-parts-of-test_socket-in-rpm-build.patch
 # In debug builds, try to print repr() when a C-level assert fails in the
 # garbage collector (typically indicating a reference-counting error
 # somewhere else e.g in an extension module)
-# Backported to 2.7 from a patch I sent upstream for py3k
-#   http://bugs.python.org/issue9263  (rhbz#614680)
-# hiding the proposed new macros/functions within gcmodule.c to avoid exposing
+# The new macros/functions within gcmodule.c are hidden to avoid exposing
 # them within the extension API.
-# (rhbz#850013
+# Sent upstream: http://bugs.python.org/issue9263
+# See https://bugzilla.redhat.com/show_bug.cgi?id=614680
 Patch170: 00170-gc-assertions.patch
 
 # 00178 #
@@ -346,27 +329,40 @@ Patch900: 00900-skip-tan0064-32bit.patch
 #     https://fedoraproject.org/wiki/SIGs/Python/PythonPatches
 
 
-# ======================================================
-# Additional metadata, and subpackages
-# ======================================================
+# ==========================================
+# Descriptions, and metadata for subpackages
+# ==========================================
 
-URL: https://www.python.org/
-
-# See notes in bug 532118:
+# Packages with Python modules in standard locations automatically
+# depend on python(abi). Provide that here.
 Provides: python(abi) = %{pybasever}
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 
 
+# The description used both for the SRPM and the main `python3` subpackage:
 %description
-Python 3 is a new version of the language that is incompatible with the 2.x
-line of releases. The language is mostly the same, but many details, especially
-how built-in objects like dictionaries and strings work, have changed
-considerably, and a lot of deprecated features have finally been removed.
+Python is an accessible, high-level, dynamically typed, interpreted programming
+language, designed with an emphasis on code readibility.
+It includes an extensive standard library, and has a vast ecosystem of
+third-party libraries.
+
+The %{name} package provides the "python%{pybasever}" executable: the reference
+interpreter for the Python language, version 3.
+The majority of its standard library is provided in the %{name}-libs package,
+which should be installed automatically along with %{name}.
+The remaining parts of the Python standard library are broken out into the
+%{name}-tkinter and %{name}-test packages, which may need to be installed
+separately.
+
+Documentation for Python is provided in the %{name}-docs package.
+
+Packages containing additional libraries for Python are generally named with
+the "%{name}-" prefix.
+
 
 %package libs
-Summary:        Python 3 runtime libraries
-Group:          Development/Libraries
+Summary:        Python runtime libraries
 
 # expat 2.1.0 added the symbol XML_SetHashSalt without bumping SONAME.  We use
 # this symbol (in pyexpat), so we must explicitly state this dependency to
@@ -381,55 +377,63 @@ Requires: expat >= 2.1.0
 %endif
 
 %description libs
-This package contains files used to embed Python 3 into applications.
+This package contains runtime libraries for use by Python:
+- the majority of the Python standard library
+- a dynamically linked library for use by applications that embed Python as
+  a scripting language, and by the main "python3" executable
+
 
 %package devel
-Summary: Libraries and header files needed for Python 3 development
-Group: Development/Libraries
+Summary: Libraries and header files needed for Python development
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Conflicts: %{name} < %{version}-%{release}
 
 %description devel
-This package contains libraries and header files used to build applications
-with and native libraries for Python 3
+This package contains the header files and configuration needed to compile
+Python extension modules (typically written in C or C++), to embed Python
+into other programs, and to make binary distributions for Python libraries.
+
+It also contains the necessary macros to build RPM packages with Python modules.
+
 
 %package tools
-Summary: A collection of tools included with Python 3
-Group: Development/Tools
+Summary: A collection of tools included with Python including 2to3 and idle
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-tkinter = %{version}-%{release}
 
 %description tools
-This package contains several tools included with Python 3
+This package contains several tools included with Python, including:
+- 2to3, an automatic source converter from Python 2.X
+- idle, a basic graphical development environment
+
 
 %package tkinter
-Summary: A GUI toolkit for Python 3
-Group: Development/Languages
+Summary: A GUI toolkit for Python
 Requires: %{name} = %{version}-%{release}
 
 %description tkinter
-The Tkinter (Tk interface) program is an graphical user interface for
-the Python scripting language.
+The Tkinter (Tk interface) library is a graphical user interface toolkit for
+the Python programming language.
+
 
 %package test
-Summary: The test modules from the main python 3 package
-Group: Development/Languages
+Summary: The self-test suite for the main %{name} package
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-tools = %{version}-%{release}
 
-%description test
-The test modules from the main %{name} package.
-These are in a separate package to save space, as they are almost never used
-in production.
 
-You might want to install the %{name}-test package if you're developing
-python 3 code that uses more than just unittest and/or test_support.py.
+%description test
+The self-test suite for the Python interpreter.
+
+This is only useful to test Python itself. For testing general Python code,
+you should use the unittest module from %{name}-libs, or a library such as
+%{name}-pytest or %{name}-nose.
+
 
 %if 0%{?with_debug_build}
 %package debug
-Summary: Debug version of the Python 3 runtime
-Group: Applications/System
+Summary: Debug version of the Python runtime
 
 # The debug build is an all-in-one package version of the regular build, and
 # shares the same .py/.pyc files and directories as the regular build.  Hence
@@ -442,22 +446,24 @@ Requires: %{name}-tkinter%{?_isa} = %{version}-%{release}
 Requires: %{name}-tools%{?_isa} = %{version}-%{release}
 
 %description debug
-%{name}-debug provides a version of the Python 3 runtime with numerous debugging
-features enabled, aimed at advanced Python users, such as developers of Python
+%{name}-debug provides a version of the Python runtime with numerous debugging
+features enabled, aimed at advanced Python users such as developers of Python
 extension modules.
 
-This version uses more memory and will be slower than the regular Python 3 build,
-but is useful for tracking down reference-counting issues, and other bugs.
+This version uses more memory and will be slower than the regular Python build,
+but is useful for tracking down reference-counting issues and other bugs.
 
-The bytecodes are unchanged, so that .pyc files are compatible between the two
-versions of Python 3, but the debugging features mean that C/C++ extension
-modules are ABI-incompatible with those built for the standard runtime.
+The bytecode format is unchanged, so that .pyc files are compatible between
+this and the standard version of Python, but the debugging features mean that
+C/C++ extension modules are ABI-incompatible and must be built for each version
+separately.
 
-It shares installation directories with the standard Python 3 runtime, so that
-.py and .pyc files can be shared.  All compiled extension modules gain a "_d"
-suffix ("foo_d.so" rather than "foo.so") so that each Python 3 implementation
-can load its own extensions.
+The debug build shares installation directories with the standard Python
+runtime, so that .py and .pyc files can be shared.
+Compiled extension modules use a special ABI flag ("d") in the filename,
+so extensions for both verisons can co-exist in the same directory.
 %endif # with_debug_build
+
 
 # ======================================================
 # The prep phase of the build:
@@ -472,33 +478,16 @@ cp -a %{SOURCE6} .
 cp -a %{SOURCE7} .
 %endif # with_systemtap
 
-# Ensure that we're using the system copy of various libraries, rather than
-# copies shipped by upstream in the tarball:
-#   Remove embedded copy of expat:
-rm -r Modules/expat || exit 1
+# Remove bundled libraries to ensure that we're using the system copy.
+rm -r Modules/expat
+rm -r Modules/zlib
 
-#   Remove embedded copy of zlib:
-rm -r Modules/zlib || exit 1
-
-## Disabling hashlib patch for now as it needs to be reimplemented
-## for OpenSSL 1.1.0.
-# Don't build upstream Python's implementation of these crypto algorithms;
-# instead rely on _hashlib and OpenSSL.
-#
-# For example, in our builds hashlib.md5 is implemented within _hashlib via
-# OpenSSL (and thus respects FIPS mode), and does not fall back to _md5
-# TODO: there seems to be no OpenSSL support in Python for sha3 so far
-# when it is there, also remove _sha3/ dir
-#for f in md5module.c sha1module.c sha256module.c sha512module.c; do
-#    rm Modules/$f
-#done
-
-%if 0%{?setuptools_version:1}
+%if %{defined setuptools_version}
 sed -r -e '/^_SETUPTOOLS_VERSION =/ s/"[0-9.]+"/"%{setuptools_version}"/' -i Lib/ensurepip/__init__.py
 rm Lib/ensurepip/_bundled/setuptools-*.whl
 cp -a %{SOURCE20} Lib/ensurepip/_bundled/
 %endif
-%if 0%{?pip_version:1}
+%if %{defined pip_version}
 sed -r -e '/^_PIP_VERSION =/ s/"[0-9.]+"/"%{pip_version}"/' -i Lib/ensurepip/__init__.py
 rm Lib/ensurepip/_bundled/pip-*.whl
 cp -a %{SOURCE21} Lib/ensurepip/_bundled/
@@ -518,7 +507,6 @@ cp -a %{SOURCE21} Lib/ensurepip/_bundled/
 %endif
 %patch111 -p1
 %patch132 -p1
-#patch146 -p1
 %patch155 -p1
 %patch160 -p1
 %patch163 -p1
@@ -537,16 +525,6 @@ cp -a %{SOURCE21} Lib/ensurepip/_bundled/
 # (This is after patching, so that we can use patches directly from upstream)
 rm configure pyconfig.h.in
 
-# Currently (2010-01-15), http://docs.python.org/library is for 2.6, and there
-# are many differences between 2.6 and the Python 3 library.
-#
-# Fix up the URLs within pydoc to point at the documentation for this
-# MAJOR.MINOR version:
-#
-sed --in-place \
-    --expression="s|http://docs.python.org/library|http://docs.python.org/%{pybasever}/library|g" \
-    Lib/pydoc.py || exit 1
-
 
 # ======================================================
 # Configuring and building the code:
@@ -558,18 +536,21 @@ sed --in-place \
 autoconf
 autoheader
 
+# Remember the current directory (which has sources and the configure script),
+# so we can refer to it after we "cd" elsewhere.
 topdir=$(pwd)
+
+# Set common compiler/linker flags
 export CFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC -fwrapv"
 export CXXFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC -fwrapv"
-export CPPFLAGS="`pkg-config --cflags-only-I libffi`"
+export CPPFLAGS="$(pkg-config --cflags-only-I libffi)"
 export OPT="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC -fwrapv"
 export LINKCC="gcc"
-export CFLAGS="$CFLAGS `pkg-config --cflags openssl`"
-export LDFLAGS="$RPM_LD_FLAGS `pkg-config --libs-only-L openssl`"
+export CFLAGS="$CFLAGS $(pkg-config --cflags openssl)"
+export LDFLAGS="$RPM_LD_FLAGS $(pkg-config --libs-only-L openssl)"
 
-
-# Define a function, for how to perform a "build" of python for a given
-# configuration:
+# We can build several different configurations of Python: regular and debug.
+# Define a common function that does one build:
 BuildPython() {
   ConfName=$1
   BinaryName=$2
@@ -578,14 +559,15 @@ BuildPython() {
   PathFixWithThisBinary=$5
   MoreCFlags=$6
 
+  # Each build is done in its own directory
   ConfDir=build/$ConfName
-
   echo STARTING: BUILD OF PYTHON FOR CONFIGURATION: $ConfName - %{_bindir}/$BinaryName
   mkdir -p $ConfDir
-
   pushd $ConfDir
 
-  # Use the freshly created "configure" script, but in the directory two above:
+  # Normally, %%configure looks for the "configure" script in the current
+  # directory.
+  # Since we changed directories, we need to tell %%configure where to look.
   %global _configure $topdir/configure
 
 %configure \
@@ -606,34 +588,22 @@ BuildPython() {
   $ExtraConfigArgs \
   %{nil}
 
-  # Set EXTRA_CFLAGS to our CFLAGS (rather than overriding OPT, as we've done
-  # in the past).
-  # This should fix a problem with --with-valgrind where it adds
-  #   -DDYNAMIC_ANNOTATIONS_ENABLED=1
-  # to OPT which must be passed to all compilation units in the build,
-  # otherwise leading to linker errors, e.g.
-  #    missing symbol AnnotateRWLockDestroy
-  #
-  # Invoke the build:
+  # Invoke the build
   make EXTRA_CFLAGS="$CFLAGS $MoreCFlags" %{?_smp_mflags}
 
   popd
   echo FINISHED: BUILD OF PYTHON FOR CONFIGURATION: $ConfDir
 }
 
-# Use "BuildPython" to support building with different configurations:
+# Call the above to build each configuration.
 
 %if 0%{?with_debug_build}
 BuildPython debug \
   python-debug \
   python%{pybasever}-debug \
-%ifarch %{ix86} x86_64 ppc %{power64}
-  "--with-pydebug --without-ensurepip" \
-%else
-  "--with-pydebug --without-ensurepip" \
-%endif
+  "--without-ensurepip --with-pydebug" \
   false \
-  -O0
+  "-O0"
 %endif # with_debug_build
 
 BuildPython optimized \
@@ -647,64 +617,66 @@ BuildPython optimized \
 # ======================================================
 
 %install
-topdir=$(pwd)
-rm -fr %{buildroot}
-mkdir -p %{buildroot}%{_prefix} %{buildroot}%{_mandir}
 
+# As in %%build, remember the current directory
+topdir=$(pwd)
+
+# We install a collection of hooks for gdb that make it easier to debug
+# executables linked against libpython3* (such as /usr/bin/python3 itself)
+#
+# These hooks are implemented in Python itself (though they are for the version
+# of python that gdb is linked with)
+#
+# gdb-archer looks for them in the same path as the ELF file or its .debug
+# file, with a -gdb.py suffix.
+# We put them next to the debug file, because ldconfig would complain if
+# it found non-library files directly in /usr/lib/
+# (see https://bugzilla.redhat.com/show_bug.cgi?id=562980)
+#
+# We'll put these files in the debuginfo package by installing them to e.g.:
+#  /usr/lib/debug/usr/lib/libpython3.2.so.1.0.debug-gdb.py
+# (note that the debug path is /usr/lib/debug for both 32/64 bit)
+#
+# See https://fedoraproject.org/wiki/Features/EasierPythonDebugging for more
+# information
+
+%if 0%{?with_gdb_hooks}
+DirHoldingGdbPy=%{_prefix}/lib/debug/%{_libdir}
+mkdir -p %{buildroot}$DirHoldingGdbPy
+%endif # with_gdb_hooks
+
+# Use a common function to do an install for all our configurations:
 InstallPython() {
 
   ConfName=$1
   PyInstSoName=$2
   MoreCFlags=$3
 
+  # Switch to the directory with this configuration's built files
   ConfDir=build/$ConfName
-
   echo STARTING: INSTALL OF PYTHON FOR CONFIGURATION: $ConfName
   mkdir -p $ConfDir
-
   pushd $ConfDir
 
-make altinstall DESTDIR=%{buildroot} INSTALL="install -p" EXTRA_CFLAGS="$MoreCFlags"
+  make \
+    DESTDIR=%{buildroot} \
+    INSTALL="install -p" \
+    EXTRA_CFLAGS="$MoreCFlags" \
+    altinstall
 
   popd
 
-  # We install a collection of hooks for gdb that make it easier to debug
-  # executables linked against libpython3* (such as /usr/bin/python3 itself)
-  #
-  # These hooks are implemented in Python itself (though they are for the version
-  # of python that gdb is linked with, in this case Python 2.7)
-  #
-  # gdb-archer looks for them in the same path as the ELF file, with a -gdb.py suffix.
-  # We put them in the debuginfo package by installing them to e.g.:
-  #  /usr/lib/debug/usr/lib/libpython3.2.so.1.0.debug-gdb.py
-  #
-  # See https://fedoraproject.org/wiki/Features/EasierPythonDebugging for more
-  # information
-  #
-  # Copy up the gdb hooks into place; the python file will be autoloaded by gdb
-  # when visiting libpython.so, provided that the python file is installed to the
-  # same path as the library (or its .debug file) plus a "-gdb.py" suffix, e.g:
-  #  /usr/lib/debug/usr/lib64/libpython3.2.so.1.0.debug-gdb.py
-  # (note that the debug path is /usr/lib/debug for both 32/64 bit)
-  #
-  # Initially I tried:
-  #  /usr/lib/libpython3.1.so.1.0-gdb.py
-  # but doing so generated noise when ldconfig was rerun (rhbz:562980)
-  #
 %if 0%{?with_gdb_hooks}
-  DirHoldingGdbPy=%{_prefix}/lib/debug/%{_libdir}
-  PathOfGdbPy=$DirHoldingGdbPy/$PyInstSoName.debug-gdb.py
-
-  mkdir -p %{buildroot}$DirHoldingGdbPy
+  # See comment on $DirHoldingGdbPy above
+  PathOfGdbPy=$DirHoldingGdbPy/$PyInstSoName-%{version}-%{release}.%{_arch}.debug-gdb.py
   cp Tools/gdb/libpython.py %{buildroot}$PathOfGdbPy
 %endif # with_gdb_hooks
 
   echo FINISHED: INSTALL OF PYTHON FOR CONFIGURATION: $ConfName
 }
 
-# Use "InstallPython" to support building with different configurations:
-
-# Install the "debug" build first, so that we can move some files aside
+# Install the "debug" build first; any common files will be overridden with
+# later builds
 %if 0%{?with_debug_build}
 InstallPython debug \
   %{py_INSTSONAME_debug} \
@@ -722,15 +694,24 @@ mv \
 InstallPython optimized \
   %{py_INSTSONAME_optimized}
 
-install -d -m 0755 ${RPM_BUILD_ROOT}%{pylibdir}/site-packages/__pycache__
+# Install directories for additional packages
+install -d -m 0755 %{buildroot}%{pylibdir}/site-packages/__pycache__
+%if "%{_lib}" == "lib64"
+# The 64-bit version needs to create "site-packages" in /usr/lib/ (for
+# pure-Python modules) as well as in /usr/lib64/ (for packages with extension
+# modules).
+# Note that rpmlint will complain about hardcoded library path;
+# this is intentional.
+install -d -m 0755 %{buildroot}%{_prefix}/lib/python%{pybasever}/site-packages/__pycache__
+%endif
 
 # Development tools
-install -m755 -d ${RPM_BUILD_ROOT}%{pylibdir}/Tools
-install Tools/README ${RPM_BUILD_ROOT}%{pylibdir}/Tools/
-cp -ar Tools/freeze ${RPM_BUILD_ROOT}%{pylibdir}/Tools/
-cp -ar Tools/i18n ${RPM_BUILD_ROOT}%{pylibdir}/Tools/
-cp -ar Tools/pynche ${RPM_BUILD_ROOT}%{pylibdir}/Tools/
-cp -ar Tools/scripts ${RPM_BUILD_ROOT}%{pylibdir}/Tools/
+install -m755 -d %{buildroot}%{pylibdir}/Tools
+install Tools/README %{buildroot}%{pylibdir}/Tools/
+cp -ar Tools/freeze %{buildroot}%{pylibdir}/Tools/
+cp -ar Tools/i18n %{buildroot}%{pylibdir}/Tools/
+cp -ar Tools/pynche %{buildroot}%{pylibdir}/Tools/
+cp -ar Tools/scripts %{buildroot}%{pylibdir}/Tools/
 
 # Documentation tools
 install -m755 -d %{buildroot}%{pylibdir}/Doc
@@ -738,13 +719,6 @@ cp -ar Doc/tools %{buildroot}%{pylibdir}/Doc/
 
 # Demo scripts
 cp -ar Tools/demo %{buildroot}%{pylibdir}/Tools/
-
-# Fix for bug #136654
-rm -f %{buildroot}%{pylibdir}/email/test/data/audiotest.au %{buildroot}%{pylibdir}/test/audiotest.au
-
-%if "%{_lib}" == "lib64"
-install -d -m 0755 %{buildroot}/%{_prefix}/lib/python%{pybasever}/site-packages/__pycache__
-%endif
 
 # Make python3-devel multilib-ready (bug #192747, #139911)
 %global _pyconfig32_h pyconfig-32.h
@@ -789,10 +763,11 @@ for PyIncludeDir in %{PyIncludeDirs} ; do
 EOF
 done
 
-# Fix for bug 201434: make sure distutils looks at the right pyconfig.h file
+# Make sure distutils looks at the right pyconfig.h file
+# See https://bugzilla.redhat.com/show_bug.cgi?id=201434
 # Similar for sysconfig: sysconfig.get_config_h_filename tries to locate
 # pyconfig.h so it can be parsed, and needs to do this at runtime in site.py
-# when python starts up (bug 653058)
+# when python starts up (see https://bugzilla.redhat.com/show_bug.cgi?id=653058)
 #
 # Split this out so it goes directly to the pyconfig-32.h/pyconfig-64.h
 # variants:
@@ -801,10 +776,15 @@ sed -i -e "s/'pyconfig.h'/'%{_pyconfig_h}'/" \
   %{buildroot}%{pylibdir}/sysconfig.py
 
 # Switch all shebangs to refer to the specific Python version.
+# This currently only covers files matching ^[a-zA-Z0-9_]+\.py$,
+# so handle files named using other naming scheme separately.
 LD_LIBRARY_PATH=./build/optimized ./build/optimized/python \
   Tools/scripts/pathfix.py \
   -i "%{_bindir}/python%{pybasever}" \
-  %{buildroot}
+  %{buildroot} %{buildroot}%{pylibdir}/Tools/scripts/*-*.py \
+  %{buildroot}%{pylibdir}/Tools/pynche/{pynche,pynche.pyw}
+# not covered, also redundant and useless:
+rm %{buildroot}%{pylibdir}/Tools/scripts/{2to3,idle3,pydoc3,pyvenv}
 
 # Remove shebang lines from .py files that aren't executable, and
 # remove executability from .py files that don't have a shebang line:
@@ -814,14 +794,8 @@ find %{buildroot} -name \*.py \
   -perm /u+x,g+x,o+x ! -exec grep -m 1 -q '^#!' {} \; \
   -exec chmod a-x {} \; \) \)
 
-# .xpm and .xbm files should not be executable:
-find %{buildroot} \
-  \( -name \*.xbm -o -name \*.xpm -o -name \*.xpm.1 \) \
-  -exec chmod a-x {} \;
-
 # Remove executable flag from files that shouldn't have it:
 chmod a-x \
-  %{buildroot}%{pylibdir}/distutils/tests/Setup.sample \
   %{buildroot}%{pylibdir}/Tools/README
 
 # Get rid of DOS batch files:
@@ -830,24 +804,9 @@ find %{buildroot} -name \*.bat -exec rm {} \;
 # Get rid of backup files:
 find %{buildroot}/ -name "*~" -exec rm -f {} \;
 find . -name "*~" -exec rm -f {} \;
-rm -f %{buildroot}%{pylibdir}/LICENSE.txt
-# Junk, no point in putting in -test sub-pkg
-rm -f ${RPM_BUILD_ROOT}/%{pylibdir}/idlelib/testcode.py*
 
-# Get rid of stray patch file from buildroot:
-rm -f %{buildroot}%{pylibdir}/test/test_imp.py.apply-our-changes-to-expected-shebang # from patch 4
-
-# Fix end-of-line encodings:
-find %{buildroot}/ -name \*.py -exec sed -i 's/\r//' {} \;
-
-# Fix an encoding:
-iconv -f iso8859-1 -t utf-8 %{buildroot}/%{pylibdir}/Demo/rpc/README > README.conv && mv -f README.conv %{buildroot}/%{pylibdir}/Demo/rpc/README
-
-# Note that
-#  %{pylibdir}/Demo/distutils/test2to3/setup.py
-# is in iso-8859-1 encoding, and that this is deliberate; this is test data
-# for the 2to3 tool, and one of the functions of the 2to3 tool is to fixup
-# character encodings within python source code
+# Get rid of a stray copy of the license:
+rm %{buildroot}%{pylibdir}/LICENSE.txt
 
 # Do bytecompilation with the newly installed interpreter.
 # This is similar to the script in macros.pybytecompile
@@ -858,39 +817,16 @@ find %{buildroot} -type f -a -name "*.py" -print0 | \
     xargs -0 %{buildroot}%{_bindir}/python%{pybasever} -O -c 'import py_compile, sys; [py_compile.compile(f, dfile=f.partition("%{buildroot}")[2], optimize=opt) for opt in range(3) for f in sys.argv[1:]]' || :
 
 # Fixup permissions for shared libraries from non-standard 555 to standard 755:
-find %{buildroot} \
-    -perm 555 -exec chmod 755 {} \;
+find %{buildroot} -perm 555 -exec chmod 755 {} \;
 
 # Install macros for rpm:
 mkdir -p %{buildroot}/%{rpmmacrodir}
 install -m 644 %{SOURCE3} %{buildroot}/%{rpmmacrodir}
 install -m 644 %{SOURCE10} %{buildroot}/%{rpmmacrodir}
 
-# Ensure that the curses module was linked against libncursesw.so, rather than
-# libncurses.so (bug 539917)
-ldd %{buildroot}/%{dynload_dir}/_curses*.so \
-    | grep curses \
-    | grep libncurses.so && (echo "_curses.so linked against libncurses.so" ; exit 1)
-
-# Ensure that the debug modules are linked against the debug libpython, and
-# likewise for the optimized modules and libpython:
-for Module in %{buildroot}/%{dynload_dir}/*.so ; do
-    case $Module in
-    *.%{SOABI_debug})
-        ldd $Module | grep %{py_INSTSONAME_optimized} &&
-            (echo Debug module $Module linked against optimized %{py_INSTSONAME_optimized} ; exit 1)
-
-        ;;
-    *.%{SOABI_optimized})
-        ldd $Module | grep %{py_INSTSONAME_debug} &&
-            (echo Optimized module $Module linked against debug %{py_INSTSONAME_debug} ; exit 1)
-        ;;
-    esac
-done
-
 # Create "/usr/bin/python3-debug", a symlink to the python3 debug binary, to
-# avoid the user having to know the precise version and ABI flags.  (see
-# e.g. rhbz#676748):
+# avoid the user having to know the precise version and ABI flags.
+# See e.g. https://bugzilla.redhat.com/show_bug.cgi?id=676748
 %if 0%{?with_debug_build}
 ln -s \
   %{_bindir}/python%{LDVERSION_debug} \
@@ -952,7 +888,7 @@ ln -s \
 rm -f %{buildroot}%{_libdir}/libpython3.so
 
 # ======================================================
-# Running the upstream test suite
+# Checks for packaging issues
 # ======================================================
 
 %check
@@ -963,6 +899,33 @@ find %{buildroot} -type f -a -name "*.py" -print0 | \
     PYTHONPATH="%{buildroot}%{_libdir}/python%{pybasever} %{buildroot}%{_libdir}/python%{pybasever}/site-packages" \
     xargs -0 %{buildroot}%{_bindir}/python%{pybasever} %{SOURCE8}
 
+# Ensure that the curses module was linked against libncursesw.so, rather than
+# libncurses.so
+# See https://bugzilla.redhat.com/show_bug.cgi?id=539917
+ldd %{buildroot}/%{dynload_dir}/_curses*.so \
+    | grep curses \
+    | grep libncurses.so && (echo "_curses.so linked against libncurses.so" ; exit 1)
+
+# Ensure that the debug modules are linked against the debug libpython, and
+# likewise for the optimized modules and libpython:
+for Module in %{buildroot}/%{dynload_dir}/*.so ; do
+    case $Module in
+    *.%{SOABI_debug})
+        ldd $Module | grep %{py_INSTSONAME_optimized} &&
+            (echo Debug module $Module linked against optimized %{py_INSTSONAME_optimized} ; exit 1)
+
+        ;;
+    *.%{SOABI_optimized})
+        ldd $Module | grep %{py_INSTSONAME_debug} &&
+            (echo Optimized module $Module linked against debug %{py_INSTSONAME_debug} ; exit 1)
+        ;;
+    esac
+done
+
+# ======================================================
+# Running the upstream test suite
+# ======================================================
+
 # In some scenarios a larger stack is needed to avoid testInfiniteRecursion
 # from segfaulting.  This was previously seen on ppc64 (rhbz#1292462), and more
 # recently on EL6.
@@ -970,6 +933,7 @@ find %{buildroot} -type f -a -name "*.py" -print0 | \
   ulimit -a
   ulimit -s 16384
 %endif
+
 
 topdir=$(pwd)
 CheckPython() {
@@ -1039,6 +1003,9 @@ CheckPython optimized
 %license LICENSE
 %doc README.rst
 
+%dir %{pylibdir}
+%dir %{dynload_dir}
+
 %{pylibdir}/lib2to3
 %exclude %{pylibdir}/lib2to3/tests
 
@@ -1090,9 +1057,6 @@ CheckPython optimized
 
 %{pylibdir}/pydoc_data
 
-%dir %{pylibdir}
-%dir %{dynload_dir}
-
 %{dynload_dir}/_blake2.%{SOABI_optimized}.so
 %{dynload_dir}/_md5.%{SOABI_optimized}.so
 %{dynload_dir}/_sha1.%{SOABI_optimized}.so
@@ -1117,7 +1081,7 @@ CheckPython optimized
 %{dynload_dir}/_dbm.%{SOABI_optimized}.so
 %{dynload_dir}/_decimal.%{SOABI_optimized}.so
 %{dynload_dir}/_elementtree.%{SOABI_optimized}.so
-%if %{with_gdbm}
+%if 0%{?with_gdbm}
 %{dynload_dir}/_gdbm.%{SOABI_optimized}.so
 %endif
 %{dynload_dir}/_hashlib.%{SOABI_optimized}.so
@@ -1242,7 +1206,6 @@ CheckPython optimized
 %dir %{_includedir}/python%{LDVERSION_optimized}/
 %{_includedir}/python%{LDVERSION_optimized}/%{_pyconfig_h}
 
-%{_libdir}/libpython%{LDVERSION_optimized}.so
 %{_libdir}/%{py_INSTSONAME_optimized}
 %if 0%{?with_systemtap}
 %dir %(dirname %{tapsetdir})
@@ -1260,6 +1223,7 @@ CheckPython optimized
 %{_bindir}/python%{pybasever}-config
 %{_bindir}/python%{LDVERSION_optimized}-config
 %{_bindir}/python%{LDVERSION_optimized}-*-config
+%{_libdir}/libpython%{LDVERSION_optimized}.so
 %{_libdir}/pkgconfig/python-%{LDVERSION_optimized}.pc
 %{_libdir}/pkgconfig/python-%{pybasever}.pc
 %{rpmmacrodir}/macros.pybytecompile%{pybasever}
@@ -1337,7 +1301,7 @@ CheckPython optimized
 %{dynload_dir}/_dbm.%{SOABI_debug}.so
 %{dynload_dir}/_decimal.%{SOABI_debug}.so
 %{dynload_dir}/_elementtree.%{SOABI_debug}.so
-%if %{with_gdbm}
+%if 0%{?with_gdbm}
 %{dynload_dir}/_gdbm.%{SOABI_debug}.so
 %endif
 %{dynload_dir}/_hashlib.%{SOABI_debug}.so
@@ -1412,8 +1376,8 @@ CheckPython optimized
 
 %endif # with_debug_build
 
-# We put the debug-gdb.py file inside /usr/lib/debug to avoid noise from
-# ldconfig (rhbz:562980).
+# We put the debug-gdb.py file inside /usr/lib/debug to avoid noise from ldconfig
+# See https://bugzilla.redhat.com/show_bug.cgi?id=562980
 #
 # The /usr/lib/rpm/redhat/macros defines %__debug_package to use
 # debugfiles.list, and it appears that everything below /usr/lib/debug and
