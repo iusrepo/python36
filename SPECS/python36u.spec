@@ -125,7 +125,7 @@ License: Python
 
 # (keep this list alphabetized)
 
-BuildRequires: autoconf
+BuildRequires: autoconf%{?el6:268}
 BuildRequires: bluez-libs-devel
 BuildRequires: bzip2
 BuildRequires: bzip2-devel
@@ -520,8 +520,8 @@ rm configure pyconfig.h.in
 %build
 
 # Regenerate the configure script and pyconfig.h.in
-autoconf
-autoheader
+autoconf%{?el6:268}
+autoheader%{?el6:268}
 
 # Remember the current directory (which has sources and the configure script),
 # so we can refer to it after we "cd" elsewhere.
@@ -1400,6 +1400,7 @@ CheckPython optimized
 - Use bundled expat on EL6
 - Move windows executables to the devel subpackage (rhbz#1426257) (Fedora)
 - Drop patch252, as it was deemed unnecessary and could possibly collide with `pip --editable` option (Fedora)
+- Use autoconf268 on EL6
 
 * Tue Jul 18 2017 Carl George <carl.george@rackspace.com> - 3.6.2-1.ius
 - Latest upstream
