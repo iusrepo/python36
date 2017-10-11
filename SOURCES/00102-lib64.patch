@@ -37,6 +37,20 @@ index 026cca7..6d3e077 100644
          if standard_lib:
              return libpython
          else:
+diff a/Lib/distutils/tests/test_install.py b/Lib/distutils/tests/test_install.py
+--- a/Lib/distutils/tests/test_install.py
++++ b/Lib/distutils/tests/test_install.py
+@@ -57,8 +57,9 @@
+             self.assertEqual(got, expected)
+ 
+         libdir = os.path.join(destination, "lib", "python")
++        platlibdir = os.path.join(destination, "lib64", "python")
+         check_path(cmd.install_lib, libdir)
+-        check_path(cmd.install_platlib, libdir)
++        check_path(cmd.install_platlib, platlibdir)
+         check_path(cmd.install_purelib, libdir)
+         check_path(cmd.install_headers,
+                    os.path.join(destination, "include", "python", "foopkg"))
 diff --git a/Lib/site.py b/Lib/site.py
 index a84e3bb..ba0d3ea 100644
 --- a/Lib/site.py

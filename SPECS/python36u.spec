@@ -219,12 +219,11 @@ Patch1:         Python-3.1.1-rpath.patch
 # (where sys.getfilesystemencoding() == 'ascii')
 Patch55: 00055-systemtap.patch
 
-Patch102: 00102-lib64.patch
-
-# 00104 #
+# 00102 #
+# Change the various install paths to use /usr/lib64/ instead or /usr/lib
 # Only used when "%{_lib}" == "lib64"
-# Another lib64 fix, for distutils/tests/test_install.py; not upstream:
-Patch104: 00104-lib64-fix-for-test_install.patch
+# Not yet sent upstream.
+Patch102: 00102-lib64.patch
 
 # 00111 #
 # Patch the Makefile.pre.in so that the generated Makefile doesn't try to build
@@ -533,7 +532,6 @@ cp -a %{SOURCE21} Lib/ensurepip/_bundled/
 
 %if "%{_lib}" == "lib64"
 %patch102 -p1
-%patch104 -p1
 %endif
 %patch111 -p1
 %patch132 -p1
@@ -1451,6 +1449,7 @@ CheckPython optimized
 - Use a larger stack size on EL6
 - Conditionalize systemtap-devel BuildRequires (Fedora)
 - Drop patches 157 and 188
+- Merge lib64 patches (104 into 102) (Fedora)
 
 * Tue Jul 18 2017 Carl George <carl.george@rackspace.com> - 3.6.2-1.ius
 - Latest upstream
