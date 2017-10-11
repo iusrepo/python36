@@ -306,32 +306,19 @@ Patch170: 00170-gc-assertions.patch
 # Does not affect python2 AFAICS (different sysconfig values initialization)
 Patch178: 00178-dont-duplicate-flags-in-sysconfig.patch
 
-# 00180 #
-# Enable building on ppc64p7
-# Not appropriate for upstream, Fedora-specific naming
-Patch180: 00180-python-add-support-for-ppc64p7.patch
-
 # 00205 #
 # LIBPL variable in makefile takes LIBPL from configure.ac
 # but the LIBPL variable defined there doesn't respect libdir macro
 Patch205: 00205-make-libpl-respect-lib64.patch
 
-# 00206 #
-# Remove hf flag from arm triplet which is used
-# by debian but fedora infra uses only eabi without hf
-Patch206: 00206-remove-hf-from-arm-triplet.patch
-
-# 00243 #
-# Fix the triplet used on 64-bit MIPS
-# rhbz#1322526: https://bugzilla.redhat.com/show_bug.cgi?id=1322526
-# Upstream uses Debian-like style mips64-linux-gnuabi64
-# Fedora needs the default mips64-linux-gnu
-Patch243: 00243-fix-mips64-triplet.patch
-
 # 00252
 # Add executable option to install.py command to make it work for
 # scripts specified as an entry_points
 Patch252: 00252-add-executable-option.patch
+
+# 00274 #
+# Upstream uses Debian-style architecture naming. Change to match Fedora.
+Patch274: 00274-fix-arch-names.patch
 
 # 00277 #
 # Fix test_exception_errpipe_bad_data() and
@@ -357,10 +344,6 @@ Patch900: 00900-skip-tan0064-32bit.patch
 # More information, and a patch number catalog, is at:
 #
 #     https://fedoraproject.org/wiki/SIGs/Python/PythonPatches
-
-# add correct arch for ppc64/ppc64le
-# it should be ppc64le-linux-gnu/ppc64-linux-gnu instead powerpc64le-linux-gnu/powerpc64-linux-gnu
-Patch5001: python3-powerppc-arch.patch
 
 
 # ======================================================
@@ -541,12 +524,11 @@ cp -a %{SOURCE21} Lib/ensurepip/_bundled/
 %patch163 -p1
 %patch170 -p1
 %patch178 -p1
-%patch180 -p1
 
 %patch205 -p1
-%patch206 -p1
-%patch243 -p1
 %patch252 -p1
+
+%patch274 -p1
 %patch277 -p1
 %patch279 -p1
 %patch900 -p1
@@ -561,7 +543,6 @@ sed --in-place \
     --expression="s|http://docs.python.org/library|http://docs.python.org/%{pybasever}/library|g" \
     Lib/pydoc.py || exit 1
 
-%patch5001 -p1
 
 # ======================================================
 # Configuring and building the code:
@@ -1450,6 +1431,7 @@ CheckPython optimized
 - Conditionalize systemtap-devel BuildRequires (Fedora)
 - Drop patches 157 and 188
 - Merge lib64 patches (104 into 102) (Fedora)
+- Merge patches 180, 206, 243, 5001 (architecture naming) into new patch 274 (Fedora)
 
 * Tue Jul 18 2017 Carl George <carl.george@rackspace.com> - 3.6.2-1.ius
 - Latest upstream
