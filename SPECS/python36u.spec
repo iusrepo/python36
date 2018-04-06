@@ -200,7 +200,7 @@ Patch1:         00001-rpath.patch
 
 # 00102 #
 # Change the various install paths to use /usr/lib64/ instead or /usr/lib
-# Only used when "%{_lib}" == "lib64"
+# Only used when "%%{_lib}" == "lib64"
 # Not yet sent upstream.
 Patch102: 00102-lib64.patch
 
@@ -298,7 +298,7 @@ Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 # The description used both for the SRPM and the main `python3` subpackage:
 %description
 Python is an accessible, high-level, dynamically typed, interpreted programming
-language, designed with an emphasis on code readibility.
+language, designed with an emphasis on code readability.
 It includes an extensive standard library, and has a vast ecosystem of
 third-party libraries.
 
@@ -380,7 +380,7 @@ you should use the unittest module from %{name}-libs, or a library such as
 Summary: Debug version of the Python runtime
 
 # The debug build is an all-in-one package version of the regular build, and
-# shares the same .py/.pyc files and directories as the regular build.  Hence
+# shares the same .py/.pyc files and directories as the regular build. Hence
 # we depend on all of the subpackages of the regular build:
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
@@ -405,7 +405,7 @@ separately.
 The debug build shares installation directories with the standard Python
 runtime, so that .py and .pyc files can be shared.
 Compiled extension modules use a special ABI flag ("d") in the filename,
-so extensions for both verisons can co-exist in the same directory.
+so extensions for both versions can co-exist in the same directory.
 %endif # with_debug_build
 
 
@@ -1017,7 +1017,6 @@ CheckPython optimized
 %{dynload_dir}/spwd.%{SOABI_optimized}.so
 %{dynload_dir}/syslog.%{SOABI_optimized}.so
 %{dynload_dir}/termios.%{SOABI_optimized}.so
-#%{dynload_dir}/time.%{SOABI_optimized}.so
 %{dynload_dir}/_testmultiphase.%{SOABI_optimized}.so
 %{dynload_dir}/unicodedata.%{SOABI_optimized}.so
 %{dynload_dir}/xxlimited.%{SOABI_optimized}.so
@@ -1233,7 +1232,6 @@ CheckPython optimized
 %{dynload_dir}/spwd.%{SOABI_debug}.so
 %{dynload_dir}/syslog.%{SOABI_debug}.so
 %{dynload_dir}/termios.%{SOABI_debug}.so
-#%{dynload_dir}/time.%{SOABI_debug}.so
 %{dynload_dir}/_testmultiphase.%{SOABI_debug}.so
 %{dynload_dir}/unicodedata.%{SOABI_debug}.so
 %{dynload_dir}/zlib.%{SOABI_debug}.so
@@ -1269,7 +1267,7 @@ CheckPython optimized
 # We put the debug-gdb.py file inside /usr/lib/debug to avoid noise from ldconfig
 # See https://bugzilla.redhat.com/show_bug.cgi?id=562980
 #
-# The /usr/lib/rpm/redhat/macros defines %__debug_package to use
+# The /usr/lib/rpm/redhat/macros defines %%__debug_package to use
 # debugfiles.list, and it appears that everything below /usr/lib/debug and
 # (/usr/src/debug) gets added to this file (via LISTFILES) in
 # /usr/lib/rpm/find-debuginfo.sh
@@ -1367,7 +1365,7 @@ porting ssl and hashlib modules to OpenSSL 1.1.0
 - Obsolete and Provide python35 package
 
 * Mon Sep 12 2016 Charalampos Stratakis <cstratak@redhat.com> - 3.5.2-3
-- Update %py_byte_compile macro
+- Update %%py_byte_compile macro
 - Remove unused configure flags (rhbz#1374357)
 
 * Fri Sep 09 2016 Tomas Orsava <torsava@redhat.com> - 3.5.2-2
