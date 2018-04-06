@@ -30,9 +30,6 @@ License: Python
 # Support for the GDB debugger
 %global with_gdb_hooks 1
 
-# Support for systemtap instrumentation
-%global with_systemtap 0
-
 # The dbm.gnu module (key-value database)
 %global with_gdbm 1
 
@@ -154,12 +151,6 @@ BuildRequires: pkgconfig
 BuildRequires: readline-devel
 BuildRequires: sqlite-devel
 
-%if 0%{?with_systemtap}
-BuildRequires: systemtap-devel
-BuildRequires: systemtap-sdt-devel
-%global tapsetdir      /usr/share/systemtap/tapset
-%endif
-
 BuildRequires: tar
 BuildRequires: tcl-devel
 BuildRequires: tix-devel
@@ -186,19 +177,6 @@ Source: https://www.python.org/ftp/python/%{version}/Python-%{version}.tar.xz
 # with different Python runtimes as necessary:
 Source3: macros.pybytecompile%{pybasever}
 
-# Systemtap tapset to make it easier to use the systemtap static probes
-# (actually a template; LIBRARY_PATH will get fixed up during install)
-# Written by dmalcolm; not yet sent upstream
-Source5: libpython.stp
-
-# Example systemtap script using the tapset
-# Written by wcohen, mjw, dmalcolm; not yet sent upstream
-Source6: systemtap-example.stp
-
-# Another example systemtap script that uses the tapset
-# Written by dmalcolm; not yet sent upstream
-Source7: pyfuntop.stp
-
 # A simple script to check timestamps of bytecode files
 # Run in check section with Python that is currently being built
 # Written by bkabrda
@@ -219,13 +197,6 @@ Source21: https://files.pythonhosted.org/packages/py2.py3/p/pip/pip-%{pip_versio
 # Fixup distutils/unixccompiler.py to remove standard library path from rpath:
 # Was Patch0 in ivazquez' python3000 specfile:
 Patch1:         00001-rpath.patch
-
-# 00055 #
-# Systemtap support: add statically-defined probe points
-# Patch sent upstream as http://bugs.python.org/issue14776
-# with some subsequent reworking to cope with LANG=C in an rpmbuild
-# (where sys.getfilesystemencoding() == 'ascii')
-Patch55: 00055-systemtap.patch
 
 # 00102 #
 # Change the various install paths to use /usr/lib64/ instead or /usr/lib
@@ -445,12 +416,6 @@ so extensions for both verisons can co-exist in the same directory.
 %prep
 %setup -q -n Python-%{version}%{?prerel}
 
-%if 0%{?with_systemtap}
-# Provide an example of usage of the tapset:
-cp -a %{SOURCE6} .
-cp -a %{SOURCE7} .
-%endif # with_systemtap
-
 # Remove bundled libraries to ensure that we're using the system copy.
 %if 0%{?with_system_expat}
 rm -r Modules/expat
@@ -472,10 +437,6 @@ cp -a %{SOURCE21} Lib/ensurepip/_bundled/
 # Apply patches:
 #
 %patch1 -p1
-
-%if 0%{?with_systemtap}
-%patch55 -p1 -b .systemtap
-%endif
 
 %if "%{_lib}" == "lib64"
 %patch102 -p1
@@ -553,9 +514,6 @@ BuildPython() {
   --with-system-ffi \
   --enable-loadable-sqlite-extensions \
   --with-dtrace \
-%if 0%{?with_systemtap}
-  --with-systemtap \
-%endif
 %if 0%{?with_valgrind}
   --with-valgrind \
 %endif
@@ -806,39 +764,6 @@ ln -s \
   %{_bindir}/python%{LDVERSION_debug} \
   %{buildroot}%{_bindir}/python%{pybasever}-debug
 %endif
-
-#
-# Systemtap hooks:
-#
-%if 0%{?with_systemtap}
-# Install a tapset for this libpython into tapsetdir, fixing up the path to the
-# library:
-mkdir -p %{buildroot}%{tapsetdir}
-%ifarch %{power64} s390x x86_64 ia64 alpha sparc64 aarch64 %{mips64}
-%global libpython_stp_optimized libpython%{pybasever}-64.stp
-%global libpython_stp_debug     libpython%{pybasever}-debug-64.stp
-%else
-%global libpython_stp_optimized libpython%{pybasever}-32.stp
-%global libpython_stp_debug     libpython%{pybasever}-debug-32.stp
-%endif
-
-sed \
-   -e "s|LIBRARY_PATH|%{_libdir}/%{py_INSTSONAME_optimized}|" \
-   %{_sourcedir}/libpython.stp \
-   > %{buildroot}%{tapsetdir}/%{libpython_stp_optimized}
-
-%if 0%{?with_debug_build}
-# In Python 3, python3 and python3-debug don't point to the same binary,
-# so we have to replace "python3" with "python3.X-debug" to get systemtap
-# working with debug build
-sed \
-   -e "s|LIBRARY_PATH|%{_libdir}/%{py_INSTSONAME_debug}|" \
-   -e 's|"python3"|"python%{pybasever}-debug"|' \
-   %{_sourcedir}/libpython.stp \
-   > %{buildroot}%{tapsetdir}/%{libpython_stp_debug}
-%endif # with_debug_build
-
-%endif # with_systemtap
 
 # Rename the script that differs on different arches to arch specific name
 mv %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-{,`uname -m`-}config
@@ -1182,12 +1107,6 @@ CheckPython optimized
 %{_includedir}/python%{LDVERSION_optimized}/%{_pyconfig_h}
 
 %{_libdir}/%{py_INSTSONAME_optimized}
-%if 0%{?with_systemtap}
-%dir %(dirname %{tapsetdir})
-%dir %{tapsetdir}
-%{tapsetdir}/%{libpython_stp_optimized}
-%doc systemtap-example.stp pyfuntop.stp
-%endif
 
 %files devel
 %{pylibdir}/config-%{LDVERSION_optimized}-%{_arch}-linux%{_gnu}/*
@@ -1325,11 +1244,6 @@ CheckPython optimized
 
 %{_libdir}/libpython%{LDVERSION_debug}.so
 %{_libdir}/%{py_INSTSONAME_debug}
-%if 0%{?with_systemtap}
-%dir %(dirname %{tapsetdir})
-%dir %{tapsetdir}
-%{tapsetdir}/%{libpython_stp_debug}
-%endif
 
 # Analog of the -devel subpackage's files:
 %{pylibdir}/config-%{LDVERSION_debug}-%{_arch}-linux%{_gnu}
