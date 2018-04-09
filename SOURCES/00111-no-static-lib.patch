@@ -1,9 +1,9 @@
 diff --git a/Makefile.pre.in b/Makefile.pre.in
-index 70e5927..04c8e3d 100644
+index 4b093e3..1088435 100644
 --- a/Makefile.pre.in
 +++ b/Makefile.pre.in
-@@ -556,7 +556,7 @@ clinic: $(BUILDPYTHON) $(srcdir)/Modules/_blake2/blake2s_impl.c
- 	$(RUNSHARED) $(PYTHON_FOR_BUILD) ./Tools/clinic/clinic.py --make
+@@ -543,7 +543,7 @@ clinic: check-clean-src $(srcdir)/Modules/_blake2/blake2s_impl.c
+ 	$(PYTHON_FOR_REGEN) ./Tools/clinic/clinic.py --make
  
  # Build the interpreter
 -$(BUILDPYTHON):	Programs/python.o $(LIBRARY) $(LDLIBRARY) $(PY3LIBRARY)
@@ -11,7 +11,7 @@ index 70e5927..04c8e3d 100644
  	$(LINKCC) $(PY_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/python.o $(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
  
  platform: $(BUILDPYTHON) pybuilddir.txt
-@@ -601,18 +601,6 @@ sharedmods: $(BUILDPYTHON) pybuilddir.txt Modules/_math.o
+@@ -588,18 +588,6 @@ sharedmods: $(BUILDPYTHON) pybuilddir.txt Modules/_math.o
  		$(PYTHON_FOR_BUILD) $(srcdir)/setup.py $$quiet build
  
  
@@ -30,7 +30,7 @@ index 70e5927..04c8e3d 100644
  libpython$(LDVERSION).so: $(LIBRARY_OBJS)
  	if test $(INSTSONAME) != $(LDLIBRARY); then \
  		$(BLDSHARED) -Wl,-h$(INSTSONAME) -o $(INSTSONAME) $(LIBRARY_OBJS) $(MODLIBS) $(SHLIBS) $(LIBC) $(LIBM) $(LDLAST); \
-@@ -702,7 +690,7 @@ Modules/Setup: $(srcdir)/Modules/Setup.dist
+@@ -689,7 +677,7 @@ Modules/Setup: $(srcdir)/Modules/Setup.dist
  		echo "-----------------------------------------------"; \
  	fi
  
@@ -39,7 +39,7 @@ index 70e5927..04c8e3d 100644
  	$(LINKCC) $(PY_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/_testembed.o $(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
  
  ############################################################################
-@@ -1382,18 +1370,6 @@ libainstall:	all python-config
+@@ -1425,18 +1413,6 @@ libainstall:	@DEF_MAKE_RULE@ python-config
  		else	true; \
  		fi; \
  	done

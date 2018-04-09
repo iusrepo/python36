@@ -110,7 +110,7 @@ index f698927..bc977b5 100644
 @@ -248,8 +248,8 @@ class HelperFunctionsTests(unittest.TestCase):
              self.assertEqual(dirs[1], wanted)
          elif os.sep == '/':
-             # OS X non-framwework builds, Linux, FreeBSD, etc
+             # OS X non-framework builds, Linux, FreeBSD, etc
 -            self.assertEqual(len(dirs), 1)
 -            wanted = os.path.join('xoxo', 'lib',
 +            self.assertEqual(len(dirs), 2)

@@ -11,7 +11,7 @@ URL: https://www.python.org/
 # pybasever without the dot:
 %global pyshortver 36
 
-Version: %{pybasever}.4
+Version: %{pybasever}.5
 Release: 1.ius%{?dist}
 License: Python
 
@@ -51,8 +51,8 @@ License: Python
 %endif
 
 # Bundle latest wheels of setuptools and/or pip.
-#global setuptools_version 28.8.0
-#global pip_version 9.0.1
+#global setuptools_version 39.0.1
+#global pip_version 9.0.3
 
 
 # =====================
@@ -1283,6 +1283,9 @@ CheckPython optimized
 # ======================================================
 
 %changelog
+* Mon Apr 09 2018 Carl George <carl@george.computer> - 3.6.5-1.ius
+- Latest upstream
+
 * Tue Dec 19 2017 Ben Harper <ben.harper@rackspace.com> - 3.6.4-1.ius
 - Latest upstream
 - Remove Patch277 and Patch279, fixed upstream
