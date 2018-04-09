@@ -1,11 +1,12 @@
 """Checks if all *.pyc and *.pyo files have later mtime than their *.py files."""
 
-import imp
+import importlib.util
 import os
 import sys
 
 # list of test and other files that we expect not to have bytecode
 not_compiled = [
+    '/usr/bin/pathfix.py',
     'test/bad_coding.py',
     'test/bad_coding2.py',
     'test/badsyntax_3131.py',
@@ -36,16 +37,18 @@ not_compiled = [
 ]
 failed = 0
 
+
 def bytecode_expected(source):
     for f in not_compiled:
         if source.endswith(f):
             return False
     return True
 
+
 compiled = filter(lambda f: bytecode_expected(f), sys.argv[1:])
 for f in compiled:
     # check both pyo and pyc
-    to_check = map(lambda b: imp.cache_from_source(f, b), (True, False))
+    to_check = map(lambda b: importlib.util.cache_from_source(f, b), (True, False))
     f_mtime = os.path.getmtime(f)
     for c in to_check:
         c_mtime = os.path.getmtime(c)

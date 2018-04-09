@@ -1285,6 +1285,7 @@ CheckPython optimized
 %changelog
 * Mon Apr 09 2018 Carl George <carl@george.computer> - 3.6.5-1.ius
 - Latest upstream
+- Fix deprecation warning on using imp in check-pyc-and-pyo-timestamps.py (Fedora)
 
 * Tue Dec 19 2017 Ben Harper <ben.harper@rackspace.com> - 3.6.4-1.ius
 - Latest upstream
