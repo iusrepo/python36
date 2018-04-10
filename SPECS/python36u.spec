@@ -855,6 +855,9 @@ CheckPython() {
     --verbose --findleaks \
     -x test_distutils \
     -x test_bdist_rpm \
+    %if 0%{?rhel} && 0%{?rhel} < 7
+    -x test_zlib \
+    %endif
     %ifarch ppc64le aarch64
     -x test_faulthandler \
     %endif
@@ -1286,6 +1289,7 @@ CheckPython optimized
 * Mon Apr 09 2018 Carl George <carl@george.computer> - 3.6.5-1.ius
 - Latest upstream
 - Fix deprecation warning on using imp in check-pyc-and-pyo-timestamps.py (Fedora)
+- Skip test_zlib on el6
 
 * Tue Dec 19 2017 Ben Harper <ben.harper@rackspace.com> - 3.6.4-1.ius
 - Latest upstream
