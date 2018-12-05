@@ -11,7 +11,7 @@ URL: https://www.python.org/
 # pybasever without the dot:
 %global pyshortver 36
 
-Version: %{pybasever}.5
+Version: %{pybasever}.7
 Release: 1.ius%{?dist}
 License: Python
 
@@ -1286,6 +1286,9 @@ CheckPython optimized
 # ======================================================
 
 %changelog
+* Wed Dec 05 2018 Carl George <carl@george.computer> - 3.6.7-1.ius
+- Latest upstream
+
 * Mon Apr 09 2018 Carl George <carl@george.computer> - 3.6.5-1.ius
 - Latest upstream
 - Fix deprecation warning on using imp in check-pyc-and-pyo-timestamps.py (Fedora)
