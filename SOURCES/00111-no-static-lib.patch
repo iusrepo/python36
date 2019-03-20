@@ -1,45 +1,39 @@
 diff --git a/Makefile.pre.in b/Makefile.pre.in
-index 4b093e3..1088435 100644
+index 9cd482f..b074b26 100644
 --- a/Makefile.pre.in
 +++ b/Makefile.pre.in
-@@ -543,7 +543,7 @@ clinic: check-clean-src $(srcdir)/Modules/_blake2/blake2s_impl.c
+@@ -549,7 +549,7 @@ clinic: check-clean-src $(srcdir)/Modules/_blake2/blake2s_impl.c
  	$(PYTHON_FOR_REGEN) ./Tools/clinic/clinic.py --make
  
  # Build the interpreter
 -$(BUILDPYTHON):	Programs/python.o $(LIBRARY) $(LDLIBRARY) $(PY3LIBRARY)
 +$(BUILDPYTHON):	Programs/python.o $(LDLIBRARY) $(PY3LIBRARY)
- 	$(LINKCC) $(PY_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/python.o $(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
+ 	$(LINKCC) $(PY_CORE_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/python.o $(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
  
  platform: $(BUILDPYTHON) pybuilddir.txt
-@@ -588,18 +588,6 @@ sharedmods: $(BUILDPYTHON) pybuilddir.txt Modules/_math.o
+@@ -597,12 +597,6 @@ sharedmods: $(BUILDPYTHON) pybuilddir.txt Modules/_math.o
+ 		_TCLTK_INCLUDES='$(TCLTK_INCLUDES)' _TCLTK_LIBS='$(TCLTK_LIBS)' \
  		$(PYTHON_FOR_BUILD) $(srcdir)/setup.py $$quiet build
  
- 
+-
 -# Build static library
--# avoid long command lines, same as LIBRARY_OBJS
 -$(LIBRARY): $(LIBRARY_OBJS)
 -	-rm -f $@
--	$(AR) $(ARFLAGS) $@ Modules/getbuildinfo.o
--	$(AR) $(ARFLAGS) $@ $(PARSER_OBJS)
--	$(AR) $(ARFLAGS) $@ $(OBJECT_OBJS)
--	$(AR) $(ARFLAGS) $@ $(PYTHON_OBJS) Python/frozen.o
--	$(AR) $(ARFLAGS) $@ $(MODULE_OBJS)
--	$(AR) $(ARFLAGS) $@ $(MODOBJS)
--	$(RANLIB) $@
+-	$(AR) $(ARFLAGS) $@ $(LIBRARY_OBJS)
 -
  libpython$(LDVERSION).so: $(LIBRARY_OBJS)
  	if test $(INSTSONAME) != $(LDLIBRARY); then \
  		$(BLDSHARED) -Wl,-h$(INSTSONAME) -o $(INSTSONAME) $(LIBRARY_OBJS) $(MODLIBS) $(SHLIBS) $(LIBC) $(LIBM) $(LDLAST); \
-@@ -689,7 +677,7 @@ Modules/Setup: $(srcdir)/Modules/Setup.dist
+@@ -692,7 +686,7 @@ Modules/Setup: $(srcdir)/Modules/Setup.dist
  		echo "-----------------------------------------------"; \
  	fi
  
 -Programs/_testembed: Programs/_testembed.o $(LIBRARY) $(LDLIBRARY) $(PY3LIBRARY)
 +Programs/_testembed: Programs/_testembed.o $(LDLIBRARY) $(PY3LIBRARY)
- 	$(LINKCC) $(PY_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/_testembed.o $(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
+ 	$(LINKCC) $(PY_CORE_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/_testembed.o $(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
  
  ############################################################################
-@@ -1425,18 +1413,6 @@ libainstall:	@DEF_MAKE_RULE@ python-config
+@@ -1428,17 +1422,6 @@ libainstall:	@DEF_MAKE_RULE@ python-config
  		else	true; \
  		fi; \
  	done
@@ -49,7 +43,6 @@ index 4b093e3..1088435 100644
 -				$(INSTALL_DATA) $(LDLIBRARY) $(DESTDIR)$(LIBPL) ; \
 -			else \
 -				$(INSTALL_DATA) $(LIBRARY) $(DESTDIR)$(LIBPL)/$(LIBRARY) ; \
--				$(RANLIB) $(DESTDIR)$(LIBPL)/$(LIBRARY) ; \
 -			fi; \
 -		else \
 -			echo Skip install of $(LIBRARY) - use make frameworkinstall; \
