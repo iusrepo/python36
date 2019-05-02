@@ -7,6 +7,7 @@ task:
   container:
     image: centos:$RELEASEVER
     cpu: 4
+  timeout_in: 120m
   epel_script:      yum --assumeyes install https://dl.fedoraproject.org/pub/epel/epel-release-latest-$(rpm -E %rhel).noarch.rpm
   toolchain_script: yum --assumeyes install yum-utils rpmdevtools @buildsys-build
   sources_script:   spectool --get-files $CIRRUS_REPO_NAME.spec
