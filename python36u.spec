@@ -12,7 +12,7 @@ URL: https://www.python.org/
 %global pyshortver 36
 
 Version: %{pybasever}.8
-Release: 1.ius%{?dist}
+Release: 1%{?dist}
 License: Python
 
 
@@ -1292,7 +1292,7 @@ CheckPython optimized
 # ======================================================
 
 %changelog
-* Wed Mar 20 2019 evitalis <evitalis@users.noreply.github.com> - 3.6.8-1.ius
+* Wed Mar 20 2019 evitalis <evitalis@users.noreply.github.com> - 3.6.8-1
 - Latest upstream
 - Add patch317 for CVE-2019-5010 (Fedora)
 
