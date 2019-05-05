@@ -1,4 +1,5 @@
 task:
+  only_if: $CIRRUS_TAG == ''
   env:
     matrix:
       - RELEASEVER: 6
@@ -8,12 +9,19 @@ task:
     image: centos:$RELEASEVER
     cpu: 4
   timeout_in: 120m
+  macros_script:
+    - cat > $HOME/.rpmmacros << EOF
+    - "%_sourcedir $PWD"
+    - "%_specdir $PWD"
+    - "%dist .el$RELEASEVER.ius"
+    - "%vendor IUS"
+    - EOF
   epel_script:      yum --assumeyes install https://dl.fedoraproject.org/pub/epel/epel-release-latest-$(rpm -E %rhel).noarch.rpm
   toolchain_script: yum --assumeyes install yum-utils rpmdevtools @buildsys-build
   sources_script:   spectool --get-files $CIRRUS_REPO_NAME.spec
-  srpm_script:      rpmbuild -bs --define "_sourcedir $PWD" --define "_specdir $PWD" --define "dist .el$RELEASEVER.ius" --define "vendor IUS" $CIRRUS_REPO_NAME.spec
+  srpm_script:      rpmbuild -bs $CIRRUS_REPO_NAME.spec
   builddep_script:  yum-builddep --assumeyes $HOME/rpmbuild/SRPMS/$CIRRUS_REPO_NAME-*.src.rpm
-  rpm_script:       rpmbuild -bb --define "_sourcedir $PWD" --define "_specdir $PWD" --define "dist .el$RELEASEVER.ius" --define "vendor IUS" $CIRRUS_REPO_NAME.spec
+  rpm_script:       rpmbuild -bb $CIRRUS_REPO_NAME.spec
   gather_script:
     - mv --verbose $HOME/rpmbuild/SRPMS/*.src.rpm .
     - mv --verbose $HOME/rpmbuild/RPMS/*/*.rpm .
