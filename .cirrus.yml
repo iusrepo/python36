@@ -9,13 +9,13 @@ task:
     image: centos:$RELEASEVER
     cpu: 4
   timeout_in: 120m
-  macros_script:
-    - cat > $HOME/.rpmmacros << EOF
-    - "%_sourcedir $PWD"
-    - "%_specdir $PWD"
-    - "%dist .el$RELEASEVER.ius"
-    - "%vendor IUS"
-    - EOF
+  macros_script: |
+    cat > $HOME/.rpmmacros << EOF
+    %_sourcedir $PWD
+    %_specdir $PWD
+    %dist .el$RELEASEVER.ius
+    %vendor IUS
+    EOF
   epel_script:      yum --assumeyes install https://dl.fedoraproject.org/pub/epel/epel-release-latest-$(rpm -E %rhel).noarch.rpm
   toolchain_script: yum --assumeyes install yum-utils rpmdevtools @buildsys-build
   sources_script:   spectool --get-files $CIRRUS_REPO_NAME.spec
