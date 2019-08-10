@@ -829,6 +829,10 @@ sed -i -e "s/'pyconfig.h'/'%{_pyconfig_h}'/" \
   %{buildroot}%{pylibdir}/distutils/sysconfig.py \
   %{buildroot}%{pylibdir}/sysconfig.py
 
+# Install pathfix.py to bindir
+# See https://github.com/fedora-python/python-rpm-porting/issues/24
+cp -p Tools/scripts/pathfix.py %{buildroot}%{_bindir}/
+
 # Switch all shebangs to refer to the specific Python version.
 # This currently only covers files matching ^[a-zA-Z0-9_]+\.py$,
 # so handle files named using other naming scheme separately.
@@ -867,6 +871,9 @@ find %{buildroot} -type f -a -name "*.py" -print0 | \
     LD_LIBRARY_PATH="%{buildroot}%{dynload_dir}/:%{buildroot}%{_libdir}" \
     PYTHONPATH="%{buildroot}%{_libdir}/python%{pybasever} %{buildroot}%{_libdir}/python%{pybasever}/site-packages" \
     xargs -0 %{buildroot}%{_bindir}/python%{pybasever} -O -c 'import py_compile, sys; [py_compile.compile(f, dfile=f.partition("%{buildroot}")[2], optimize=opt) for opt in range(3) for f in sys.argv[1:]]' || :
+
+# Since we have pathfix.py in bindir, this is created, but we don't want it
+rm -rf %{buildroot}%{_bindir}/__pycache__
 
 # Fixup permissions for shared libraries from non-standard 555 to standard 755:
 find %{buildroot} -perm 555 -exec chmod 755 {} \;
@@ -1257,6 +1264,7 @@ CheckPython optimized
 %{_bindir}/python%{pybasever}-config
 %{_bindir}/python%{LDVERSION_optimized}-config
 %{_bindir}/python%{LDVERSION_optimized}-*-config
+%{_bindir}/pathfix.py
 %{_libdir}/libpython%{LDVERSION_optimized}.so
 %{_libdir}/pkgconfig/python-%{LDVERSION_optimized}.pc
 %{_libdir}/pkgconfig/python-%{pybasever}.pc
@@ -1445,6 +1453,7 @@ CheckPython optimized
 - Remove the python36-tools package and add python36-idle
 - Use EPEL's main_python3 setup
 - Add desktop entry and appdata.xml file for IDLE 3
+- Add pathfix.py to python36-devel
 
 * Wed Mar 20 2019 evitalis <evitalis@users.noreply.github.com> - 3.6.8-1
 - Latest upstream
