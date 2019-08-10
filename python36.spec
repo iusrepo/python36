@@ -56,10 +56,6 @@ License: Python
 %bcond_with valgrind
 %endif
 
-# Bundle latest wheels of setuptools and/or pip.
-#global setuptools_version 39.0.1
-#global pip_version 9.0.3
-
 
 # =====================
 # General global macros
@@ -199,13 +195,6 @@ Source: https://www.python.org/ftp/python/%{version}/Python-%{version}.tar.xz
 # Written by bkabrda
 Source8: check-pyc-and-pyo-timestamps.py
 
-%if %{defined setuptools_version}
-Source20: https://files.pythonhosted.org/packages/py2.py3/s/setuptools/setuptools-%{setuptools_version}-py2.py3-none-any.whl
-%endif
-%if %{defined pip_version}
-Source21: https://files.pythonhosted.org/packages/py2.py3/p/pip/pip-%{pip_version}-py2.py3-none-any.whl
-%endif
-
 # 00001 #
 # Fixup distutils/unixccompiler.py to remove standard library path from rpath:
 # Was Patch0 in ivazquez' python3000 specfile:
@@ -309,6 +298,10 @@ Patch900: 00900-skip-tan0064-32bit.patch
 # Packages with Python modules in standard locations automatically
 # depend on python(abi). Provide that here.
 Provides: python(abi) = %{pybasever}
+
+# We keep those inside on purpose
+Provides: bundled(python3-pip) = 18.1
+Provides: bundled(python3-setuptools) = 40.6.2
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 
@@ -496,17 +489,6 @@ so extensions for both versions can co-exist in the same directory.
 # Remove bundled libraries to ensure that we're using the system copy.
 rm -r Modules/expat
 rm -r Modules/zlib
-
-%if %{defined setuptools_version}
-sed -r -e '/^_SETUPTOOLS_VERSION =/ s/"[0-9.]+"/"%{setuptools_version}"/' -i Lib/ensurepip/__init__.py
-rm Lib/ensurepip/_bundled/setuptools-*.whl
-cp -a %{SOURCE20} Lib/ensurepip/_bundled/
-%endif
-%if %{defined pip_version}
-sed -r -e '/^_PIP_VERSION =/ s/"[0-9.]+"/"%{pip_version}"/' -i Lib/ensurepip/__init__.py
-rm Lib/ensurepip/_bundled/pip-*.whl
-cp -a %{SOURCE21} Lib/ensurepip/_bundled/
-%endif
 
 #
 # Apply patches:
