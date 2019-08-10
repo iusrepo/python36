@@ -331,6 +331,14 @@ Obsoletes: python36u < 3.6.8-2
 Obsoletes: python34 < 3.4.9-3
 %endif
 
+# This prevents ALL subpackages built from this spec to require
+# /usr/bin/python3*. Granularity per subpackage is impossible.
+# It's intended for the libs package not to drag in the interpreter, see
+# https://bugzilla.redhat.com/show_bug.cgi?id=1547131
+# All others require %%{name} anyway.
+%global __requires_exclude ^/usr/bin/python3
+
+
 # The description used both for the SRPM and the main `python3` subpackage:
 %description
 Python is an accessible, high-level, dynamically typed, interpreted programming
@@ -1454,6 +1462,7 @@ CheckPython optimized
 - Use EPEL's main_python3 setup
 - Add desktop entry and appdata.xml file for IDLE 3
 - Add pathfix.py to python36-devel
+- Filter out automatic /usr/bin/python3.X requirement
 
 * Wed Mar 20 2019 evitalis <evitalis@users.noreply.github.com> - 3.6.8-1
 - Latest upstream
