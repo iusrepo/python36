@@ -11,6 +11,13 @@ URL: https://www.python.org/
 # pybasever without the dot:
 %global pyshortver 36
 
+# is this the EPEL 7 main Python 3?
+%if "%python3_pkgversion" == "%pyshortver"
+%global main_python3 1
+%else
+%global main_python3 0
+%endif
+
 Version: %{pybasever}.8
 Release: 2%{?dist}
 License: Python
@@ -101,7 +108,7 @@ License: Python
 # python3 binary.
 #
 # Unfortunately, rpmbuild's infrastructure requires us to jump through some
-# hoops to avoid byte-compiling with the system python 2 version:
+# hoops to avoid byte-compiling with the system python version:
 #   /usr/lib/rpm/redhat/macros sets up build policy that (amongst other things)
 # defines __os_install_post.  In particular, "brp-python-bytecompile" is
 # invoked without an argument thus using the wrong version of python
@@ -307,6 +314,10 @@ Provides: python36u = %{version}-%{release}
 Provides: python36u%{?_isa} = %{version}-%{release}
 Obsoletes: python36u < 3.6.8-2
 
+%if 0%{?main_python3}
+# /usr/bin/python3 was moved from here:
+Obsoletes: python34 < 3.4.9-3
+%endif
 
 # The description used both for the SRPM and the main `python3` subpackage:
 %description
@@ -315,7 +326,7 @@ language, designed with an emphasis on code readability.
 It includes an extensive standard library, and has a vast ecosystem of
 third-party libraries.
 
-The %{name} package provides the "python%{pybasever}" executable: the reference
+The %{name} package provides the "python3" executable: the reference
 interpreter for the Python language, version 3.
 The majority of its standard library is provided in the %{name}-libs package,
 which should be installed automatically along with %{name}.
@@ -348,6 +359,11 @@ Provides: python36u-libs = %{version}-%{release}
 Provides: python36u-libs%{?_isa} = %{version}-%{release}
 Obsoletes: python36u-libs < 3.6.8-2
 
+%if 0%{?main_python3}
+# libpython3.so was moved from here:
+Obsoletes: python34-libs < 3.4.9-3
+%endif
+
 
 %description libs
 This package contains runtime libraries for use by Python:
@@ -379,6 +395,14 @@ Provides: %{name}-2to3 = %{version}-%{release}
 
 Conflicts: %{name} < %{version}-%{release}
 
+%if 0%{?main_python3}
+# /usr/bin/2to3-3 was moved from here:
+Obsoletes: python34-tools < 3.4.9-3
+# /usr/bin/python3-config was moved from here:
+Obsoletes: python34-devel < 3.4.9-3
+%endif
+
+
 %description devel
 This package contains the header files and configuration needed to compile
 Python extension modules (typically written in C or C++), to embed Python
@@ -401,6 +425,11 @@ Obsoletes: %{name}-tools < %{version}-%{release}
 Provides: python36u-tools = %{version}-%{release}
 Provides: python36u-tools%{?_isa} = %{version}-%{release}
 Obsoletes: python36u-tools < 3.6.8-2
+
+%if 0%{?main_python3}
+# /usr/bin/idle3 was moved from here:
+Obsoletes: python34-tools < 3.4.9-3
+%endif
 
 
 %description idle
@@ -432,7 +461,7 @@ the Python programming language.
 
 
 %package test
-Summary: The self-test suite for the main %{name} package
+Summary: The self-test suite for the main python3 package
 Requires: %{name} = %{version}-%{release}
 
 # Rename from python36u-test
@@ -468,9 +497,14 @@ Provides: python36u-debug = %{version}-%{release}
 Provides: python36u-debug%{?_isa} = %{version}-%{release}
 Obsoletes: python36u-debug < 3.6.8-2
 
+%if 0%{?main_python3}
+# /usr/bin/python3-debug was moved from here:
+Obsoletes: python34-debug < 3.4.9-3
+%endif
+
 
 %description debug
-%{name}-debug provides a version of the Python runtime with numerous debugging
+python3-debug provides a version of the Python runtime with numerous debugging
 features enabled, aimed at advanced Python users such as developers of Python
 extension modules.
 
@@ -677,7 +711,11 @@ InstallPython() {
     DESTDIR=%{buildroot} \
     INSTALL="install -p" \
     EXTRA_CFLAGS="$MoreCFlags" \
-    altinstall
+%if 0%{?main_python3}
+    install
+%else
+	altinstall
+%endif
 
   popd
 
@@ -721,11 +759,13 @@ InstallPython debug \
   -O0 \
   %{LDVERSION_debug}
 
-# altinstall only creates pkgconfig/python-3.X.pc, not the version with ABIFAGS,
+%if ! 0%{?main_python3}
+# altinstall only creates pkgconfig/python-3.6.pc, not the version with ABIFAGS,
 #  so we need to move the debug .pc file to not overwrite it by optimized install
 mv \
   %{buildroot}%{_libdir}/pkgconfig/python-%{pybasever}.pc \
   %{buildroot}%{_libdir}/pkgconfig/python-%{LDVERSION_debug}.pc
+%endif
 
 %endif # with debug_build
 
@@ -744,6 +784,10 @@ install -d -m 0755 %{buildroot}%{pylibdir}/site-packages/__pycache__
 # Note that rpmlint will complain about hardcoded library path;
 # this is intentional.
 install -d -m 0755 %{buildroot}%{_prefix}/lib/python%{pybasever}/site-packages/__pycache__
+%endif
+
+%if 0%{main_python3}
+mv %{buildroot}%{_bindir}/2to3 %{buildroot}%{_bindir}/2to3-3
 %endif
 
 # Make sure distutils looks at the right pyconfig.h file
@@ -807,20 +851,37 @@ find %{buildroot} -perm 555 -exec chmod 755 {} \;
 ln -s \
   %{_bindir}/python%{LDVERSION_debug} \
   %{buildroot}%{_bindir}/python%{pybasever}-debug
+
+%if 0%{main_python3}
+ln -s \
+  %{_bindir}/python%{pybasever}-debug \
+  %{buildroot}%{_bindir}/python3-debug
+%endif
 %endif
 
+%if ! 0%{?main_python3}
 # make altinstall doesn't create python3.X-config, but we want it
 #  (we don't want to have just python3.Xm-config, that's a bit confusing)
 ln -s \
   %{_bindir}/python%{LDVERSION_optimized}-config \
   %{buildroot}%{_bindir}/python%{pybasever}-config
-# make altinstall doesn't create python-3.Xm.pc, only python-3.X.pc, but we want both
+# make altinstall doesn't create python-3.6m.pc, only python-3.6.pc, but we want both
 ln -s \
   %{_libdir}/pkgconfig/python-%{pybasever}.pc \
   %{buildroot}%{_libdir}/pkgconfig/python-%{LDVERSION_optimized}.pc
+%endif
 
-# remove libpython3.so non-main python to not cause collision
+# remove libpython3.so in EPEL non-main python to not cause collision
+# between python3X and python3X+1(or+2) stacks...
+%if ! 0%{?main_python3}
 rm -f %{buildroot}%{_libdir}/libpython3.so
+%endif
+
+# Provide the python36 binary symlink.
+ln -s \
+    %{_bindir}/python%{pybasever} \
+    %{buildroot}%{_bindir}/python%{pyshortver}
+
 
 # ======================================================
 # Checks for packaging issues
@@ -930,8 +991,15 @@ CheckPython optimized
 %license LICENSE
 %doc README.rst
 %{_bindir}/pydoc*
+%if 0%{?main_python3}
+%{_bindir}/python3
+%endif
+%{_bindir}/python%{pyshortver}
 %{_bindir}/python%{pybasever}
 %{_bindir}/python%{pybasever}m
+%if 0%{?main_python3}
+%{_bindir}/pyvenv
+%endif
 %{_bindir}/pyvenv-%{pybasever}
 %{_mandir}/*/*
 
@@ -1141,8 +1209,14 @@ CheckPython optimized
 %{_includedir}/python%{LDVERSION_optimized}/%{_pyconfig_h}
 
 %{_libdir}/%{py_INSTSONAME_optimized}
+%if 0%{?main_python3}
+%{_libdir}/libpython3.so
+%endif
 
 %files devel
+%if 0%{?main_python3}
+%{_bindir}/2to3-3
+%endif
 %{_bindir}/2to3-%{pybasever}
 %{pylibdir}/config-%{LDVERSION_optimized}-%{_arch}-linux%{_gnu}/*
 %exclude %{pylibdir}/config-%{LDVERSION_optimized}-%{_arch}-linux%{_gnu}/Makefile
@@ -1150,12 +1224,18 @@ CheckPython optimized
 %{_includedir}/python%{LDVERSION_optimized}/*.h
 %exclude %{_includedir}/python%{LDVERSION_optimized}/%{_pyconfig_h}
 %doc Misc/README.valgrind Misc/valgrind-python.supp Misc/gdbinit
+%if 0%{?main_python3}
+%{_bindir}/python3-config
+%endif
 %{_bindir}/python%{pybasever}-config
 %{_bindir}/python%{LDVERSION_optimized}-config
 %{_bindir}/python%{LDVERSION_optimized}-*-config
 %{_libdir}/libpython%{LDVERSION_optimized}.so
 %{_libdir}/pkgconfig/python-%{LDVERSION_optimized}.pc
 %{_libdir}/pkgconfig/python-%{pybasever}.pc
+%if 0%{?main_python3}
+%{_libdir}/pkgconfig/python3.pc
+%endif
 
 %files idle
 %{_bindir}/idle*
@@ -1198,6 +1278,9 @@ CheckPython optimized
 
 # Analog of the core subpackage's files:
 %{_bindir}/python%{LDVERSION_debug}
+%if 0%{?main_python3}
+%{_bindir}/python3-debug
+%endif
 %{_bindir}/python%{pybasever}-debug
 
 # Analog of the -libs subpackage's files:
@@ -1272,13 +1355,14 @@ CheckPython optimized
 # do for the regular build above (bug 531901), since they're all in one package
 # now; they're listed below, under "-devel":
 
-%{_libdir}/libpython%{LDVERSION_debug}.so
 %{_libdir}/%{py_INSTSONAME_debug}
 
 # Analog of the -devel subpackage's files:
 %{pylibdir}/config-%{LDVERSION_debug}-%{_arch}-linux%{_gnu}
 %{_includedir}/python%{LDVERSION_debug}
 %{_bindir}/python%{LDVERSION_debug}-config
+%{_bindir}/python%{LDVERSION_debug}-*-config
+%{_libdir}/libpython%{LDVERSION_debug}.so
 %{_libdir}/pkgconfig/python-%{LDVERSION_debug}.pc
 
 # Analog of the -tools subpackage's files:
@@ -1325,6 +1409,7 @@ CheckPython optimized
 - Use macros from python-rpm-macros and python3-rpm-macros
 - Sync tests with EPEL package
 - Remove the python36-tools package and add python36-idle
+- Use EPEL's main_python3 setup
 
 * Wed Mar 20 2019 evitalis <evitalis@users.noreply.github.com> - 3.6.8-1
 - Latest upstream
