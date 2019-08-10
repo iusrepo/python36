@@ -23,6 +23,15 @@ License: Python
 # Note that the bcond macros are named for the CLI option they create.
 # "%%bcond_without" means "ENABLE by default and create a --without option"
 
+# Expensive optimizations (mainly, profile-guided optimizations)
+%ifarch %{ix86} x86_64
+%bcond_without optimizations
+%else
+# On some architectures, the optimized build takes tens of hours, possibly
+# longer than Koji's 24-hour timeout. Disable optimizations here.
+%bcond_with optimizations
+%endif
+
 # Run the test suite in %%check
 %bcond_without tests
 
@@ -103,14 +112,24 @@ License: Python
 # (/usr/bin/python, rather than the freshly built python), thus leading to
 # numerous syntax errors, and incorrect magic numbers in the .pyc files.  We
 # thus override __os_install_post to avoid invoking this script:
-%global __os_install_post /usr/lib/rpm%{?rhel:/redhat}/brp-compress \
-  %{!?__debug_package:/usr/lib/rpm%{?rhel:/redhat}/brp-strip %{__strip}} \
-  %{!?__debug_package:/usr/lib/rpm%{?rhel:/redhat}/brp-strip-comment-note %{__strip} %{__objdump}} \
-  /usr/lib/rpm%{?rhel:/redhat}/brp-strip-static-archive %{__strip} \
-  /usr/lib/rpm%{?rhel:/redhat}/brp-python-hardlink
+%global __os_install_post /usr/lib/rpm/brp-compress \
+  %{!?__debug_package:/usr/lib/rpm/brp-strip %{__strip}} \
+  /usr/lib/rpm/brp-strip-static-archive %{__strip} \
+  /usr/lib/rpm/brp-strip-comment-note %{__strip} %{__objdump} \
+  /usr/lib/rpm%{?el6:/redhat}/brp-python-hardlink
 # to remove the invocation of brp-python-bytecompile, whilst keeping the
 # invocation of brp-python-hardlink (since this should still work for python3
-# pyc/pyo files)
+# pyc files)
+
+# For multilib support, files that are different between 32- and 64-bit arches
+# need different filenames. Use "64" or "32" according to the word size.
+# Currently, the best way to determine an architecture's word size happens to
+# be checking %%{_lib}.
+%if "%{_lib}" == "lib64"
+%global wordsize 64
+%else
+%global wordsize 32
+%endif
 
 
 # =======================
@@ -144,12 +163,12 @@ BuildRequires: libffi-devel
 BuildRequires: libGL-devel
 BuildRequires: libX11-devel
 BuildRequires: ncurses-devel
-# workaround http://bugs.python.org/issue19804 (test_uuid requires ifconfig)
-BuildRequires: net-tools
+
 BuildRequires: openssl-devel
 BuildRequires: pkgconfig
 BuildRequires: readline-devel
 BuildRequires: sqlite-devel
+BuildRequires: gdb
 
 BuildRequires: tar
 BuildRequires: tcl-devel
@@ -164,6 +183,9 @@ BuildRequires: xz-devel
 BuildRequires: zlib-devel
 
 BuildRequires: /usr/bin/dtrace
+
+# workaround http://bugs.python.org/issue19804 (test_uuid requires ifconfig)
+BuildRequires: net-tools
 
 
 # =======================
@@ -358,6 +380,12 @@ Summary: Libraries and header files needed for Python development
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 
+# https://bugzilla.redhat.com/show_bug.cgi?id=1217376
+# https://bugzilla.redhat.com/show_bug.cgi?id=1496757
+# https://bugzilla.redhat.com/show_bug.cgi?id=1218294
+# TODO change to a specific subpackage once available (#1218294)
+Requires: redhat-rpm-config
+
 # Rename from python36u-devel
 Provides: python36u-devel = %{version}-%{release}
 Provides: python36u-devel%{?_isa} = %{version}-%{release}
@@ -534,6 +562,12 @@ topdir=$(pwd)
 %global computed_gotos_flag no
 %endif
 
+%if %{with optimizations}
+%global optimizations_flag "--enable-optimizations"
+%else
+%global optimizations_flag "--disable-optimizations"
+%endif
+
 # Set common compiler/linker flags
 export CFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC -fwrapv"
 export CXXFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC -fwrapv"
@@ -541,21 +575,18 @@ export CPPFLAGS="$(pkg-config --cflags-only-I libffi)"
 export OPT="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC -fwrapv"
 export LINKCC="gcc"
 export CFLAGS="$CFLAGS $(pkg-config --cflags openssl)"
-export LDFLAGS="$RPM_LD_FLAGS $(pkg-config --libs-only-L openssl)"
+export LDFLAGS="$RPM_LD_FLAGS -g $(pkg-config --libs-only-L openssl)"
 
 # We can build several different configurations of Python: regular and debug.
 # Define a common function that does one build:
 BuildPython() {
   ConfName=$1
-  BinaryName=$2
-  SymlinkName=$3
-  ExtraConfigArgs=$4
-  PathFixWithThisBinary=$5
-  MoreCFlags=$6
+  ExtraConfigArgs=$2
+  MoreCFlags=$3
 
   # Each build is done in its own directory
   ConfDir=build/$ConfName
-  echo STARTING: BUILD OF PYTHON FOR CONFIGURATION: $ConfName - %{_bindir}/$BinaryName
+  echo STARTING: BUILD OF PYTHON FOR CONFIGURATION: $ConfName
   mkdir -p $ConfDir
   pushd $ConfDir
 
@@ -583,25 +614,21 @@ BuildPython() {
   make EXTRA_CFLAGS="$CFLAGS $MoreCFlags" %{?_smp_mflags}
 
   popd
-  echo FINISHED: BUILD OF PYTHON FOR CONFIGURATION: $ConfDir
+  echo FINISHED: BUILD OF PYTHON FOR CONFIGURATION: $ConfName
 }
 
 # Call the above to build each configuration.
 
 %if %{with debug_build}
 BuildPython debug \
-  python-debug \
-  python%{pybasever}-debug \
   "--without-ensurepip --with-pydebug" \
-  false \
   "-O0"
 %endif # with debug_build
 
 BuildPython optimized \
-  python \
-  python%{pybasever} \
-  "--without-ensurepip" \
-  true
+  "--without-ensurepip %{optimizations_flag}" \
+  ""
+
 
 # ======================================================
 # Installing the built code:
@@ -636,12 +663,24 @@ DirHoldingGdbPy=%{_prefix}/lib/debug/%{_libdir}
 mkdir -p %{buildroot}$DirHoldingGdbPy
 %endif # with gdb_hooks
 
+# Multilib support for pyconfig.h
+# 32- and 64-bit versions of pyconfig.h are different. For multilib support
+# (making it possible to install 32- and 64-bit versions simultaneously),
+# we need to install them under different filenames, and to make the common
+# "pyconfig.h" include the right file based on architecture.
+# See https://bugzilla.redhat.com/show_bug.cgi?id=192747
+# Filanames are defined here:
+%global _pyconfig32_h pyconfig-32.h
+%global _pyconfig64_h pyconfig-64.h
+%global _pyconfig_h pyconfig-%{wordsize}.h
+
 # Use a common function to do an install for all our configurations:
 InstallPython() {
 
   ConfName=$1
   PyInstSoName=$2
   MoreCFlags=$3
+  LDVersion=$4
 
   # Switch to the directory with this configuration's built files
   ConfDir=build/$ConfName
@@ -663,6 +702,29 @@ InstallPython() {
   cp Tools/gdb/libpython.py %{buildroot}$PathOfGdbPy
 %endif # with gdb_hooks
 
+  # Rename the -devel script that differs on different arches to arch specific name
+  mv %{buildroot}%{_bindir}/python${LDVersion}-{,`uname -m`-}config
+  echo -e '#!/bin/sh\nexec `dirname $0`/python'${LDVersion}'-`uname -m`-config "$@"' > \
+    %{buildroot}%{_bindir}/python${LDVersion}-config
+  echo '[ $? -eq 127 ] && echo "Could not find python'${LDVersion}'-`uname -m`-config. Look around to see available arches." >&2' >> \
+    %{buildroot}%{_bindir}/python${LDVersion}-config
+    chmod +x %{buildroot}%{_bindir}/python${LDVersion}-config
+
+  # Make python3-devel multilib-ready
+  mv %{buildroot}%{_includedir}/python${LDVersion}/pyconfig.h \
+     %{buildroot}%{_includedir}/python${LDVersion}/%{_pyconfig_h}
+  cat > %{buildroot}%{_includedir}/python${LDVersion}/pyconfig.h << EOF
+#include <bits/wordsize.h>
+
+#if __WORDSIZE == 32
+#include "%{_pyconfig32_h}"
+#elif __WORDSIZE == 64
+#include "%{_pyconfig64_h}"
+#else
+#error "Unknown word size"
+#endif
+EOF
+
   echo FINISHED: INSTALL OF PYTHON FOR CONFIGURATION: $ConfName
 }
 
@@ -671,7 +733,8 @@ InstallPython() {
 %if %{with debug_build}
 InstallPython debug \
   %{py_INSTSONAME_debug} \
-  -O0
+  -O0 \
+  %{LDVERSION_debug}
 
 # altinstall only creates pkgconfig/python-3.X.pc, not the version with ABIFAGS,
 #  so we need to move the debug .pc file to not overwrite it by optimized install
@@ -683,7 +746,9 @@ mv \
 
 # Now the optimized build:
 InstallPython optimized \
-  %{py_INSTSONAME_optimized}
+  %{py_INSTSONAME_optimized} \
+  "" \
+  %{LDVERSION_optimized}
 
 # Install directories for additional packages
 install -d -m 0755 %{buildroot}%{pylibdir}/site-packages/__pycache__
@@ -711,49 +776,6 @@ cp -ar Doc/tools %{buildroot}%{pylibdir}/Doc/
 # Demo scripts
 cp -ar Tools/demo %{buildroot}%{pylibdir}/Tools/
 
-# Make python3-devel multilib-ready (bug #192747, #139911)
-%global _pyconfig32_h pyconfig-32.h
-%global _pyconfig64_h pyconfig-64.h
-
-%ifarch %{power64} s390x x86_64 ia64 alpha sparc64 aarch64 %{mips64} riscv64
-%global _pyconfig_h %{_pyconfig64_h}
-%else
-%global _pyconfig_h %{_pyconfig32_h}
-%endif
-
-# ABIFLAGS, LDVERSION and SOABI are in the upstream Makefile
-%global ABIFLAGS_optimized m
-%global ABIFLAGS_debug     dm
-
-%global LDVERSION_optimized %{pybasever}%{ABIFLAGS_optimized}
-%global LDVERSION_debug     %{pybasever}%{ABIFLAGS_debug}
-
-%global SOABI_optimized cpython-%{pyshortver}%{ABIFLAGS_optimized}-%{_arch}-linux%{_gnu}
-%global SOABI_debug     cpython-%{pyshortver}%{ABIFLAGS_debug}-%{_arch}-linux%{_gnu}
-
-%if %{with debug_build}
-%global PyIncludeDirs python%{LDVERSION_optimized} python%{LDVERSION_debug}
-
-%else
-%global PyIncludeDirs python%{LDVERSION_optimized}
-%endif
-
-for PyIncludeDir in %{PyIncludeDirs} ; do
-  mv %{buildroot}%{_includedir}/$PyIncludeDir/pyconfig.h \
-     %{buildroot}%{_includedir}/$PyIncludeDir/%{_pyconfig_h}
-  cat > %{buildroot}%{_includedir}/$PyIncludeDir/pyconfig.h << EOF
-#include <bits/wordsize.h>
-
-#if __WORDSIZE == 32
-#include "%{_pyconfig32_h}"
-#elif __WORDSIZE == 64
-#include "%{_pyconfig64_h}"
-#else
-#error "Unknown word size"
-#endif
-EOF
-done
-
 # Make sure distutils looks at the right pyconfig.h file
 # See https://bugzilla.redhat.com/show_bug.cgi?id=201434
 # Similar for sysconfig: sysconfig.get_config_h_filename tries to locate
@@ -771,11 +793,9 @@ sed -i -e "s/'pyconfig.h'/'%{_pyconfig_h}'/" \
 # so handle files named using other naming scheme separately.
 LD_LIBRARY_PATH=./build/optimized ./build/optimized/python \
   Tools/scripts/pathfix.py \
-  -i "%{_bindir}/python%{pybasever}" \
-  %{buildroot} %{buildroot}%{pylibdir}/Tools/scripts/*-*.py \
-  %{buildroot}%{pylibdir}/Tools/pynche/{pynche,pynche.pyw}
-# not covered, also redundant and useless:
-rm %{buildroot}%{pylibdir}/Tools/scripts/{2to3,idle3,pydoc3,pyvenv}
+  -i "%{_bindir}/python%{pybasever}" -pn \
+  %{buildroot} \
+  %{?with_gdb_hooks:%{buildroot}$DirHoldingGdbPy/*.py}
 
 # Remove shebang lines from .py files that aren't executable, and
 # remove executability from .py files that don't have a shebang line:
@@ -824,14 +844,6 @@ ln -s \
   %{buildroot}%{_bindir}/python%{pybasever}-debug
 %endif
 
-# Rename the script that differs on different arches to arch specific name
-mv %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-{,`uname -m`-}config
-echo -e '#!/bin/sh\nexec `dirname $0`/python%{LDVERSION_optimized}-`uname -m`-config "$@"' > \
-  %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
-echo '[ $? -eq 127 ] && echo "Could not find python%{LDVERSION_optimized}-`uname -m`-config. Look around to see available arches." >&2' >> \
-  %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
-  chmod +x %{buildroot}%{_bindir}/python%{LDVERSION_optimized}-config
-
 # make altinstall doesn't create python3.X-config, but we want it
 #  (we don't want to have just python3.Xm-config, that's a bit confusing)
 ln -s \
@@ -879,6 +891,7 @@ for Module in %{buildroot}/%{dynload_dir}/*.so ; do
         ;;
     esac
 done
+
 
 # ======================================================
 # Running the upstream test suite
@@ -1339,6 +1352,9 @@ CheckPython optimized
 # (if it doesn't, then the rpmbuild ought to fail since the debug-gdb.py
 # payload file would be unpackaged)
 
+# Workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1476593
+%undefine _debuginfo_subpackages
+
 
 # ======================================================
 # Finally, the changelog:
@@ -1348,6 +1364,7 @@ CheckPython optimized
 * Fri Aug 09 2019 Carl George <carl@george.computer> - 3.6.8-2
 - Rename to python36
 - Always use system expat
+- Sync build process with EPEL package
 
 * Wed Mar 20 2019 evitalis <evitalis@users.noreply.github.com> - 3.6.8-1
 - Latest upstream
