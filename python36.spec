@@ -2,7 +2,7 @@
 # Top-level metadata
 # ==================
 
-Name: python36u
+Name: python36
 Summary: Interpreter of the Python programming language
 URL: https://www.python.org/
 
@@ -12,7 +12,7 @@ URL: https://www.python.org/
 %global pyshortver 36
 
 Version: %{pybasever}.8
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: Python
 
 
@@ -299,6 +299,11 @@ Provides: python(abi) = %{pybasever}
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 
+# Rename from python36u
+Provides: python36u = %{version}-%{release}
+Provides: python36u%{?_isa} = %{version}-%{release}
+Obsoletes: python36u < 3.6.8-2
+
 
 # The description used both for the SRPM and the main `python3` subpackage:
 %description
@@ -324,6 +329,11 @@ the "%{name}-" prefix.
 %package libs
 Summary:        Python runtime libraries
 
+# Rename from python36u-libs
+Provides: python36u-libs = %{version}-%{release}
+Provides: python36u-libs%{?_isa} = %{version}-%{release}
+Obsoletes: python36u-libs < 3.6.8-2
+
 
 %description libs
 This package contains runtime libraries for use by Python:
@@ -336,6 +346,12 @@ This package contains runtime libraries for use by Python:
 Summary: Libraries and header files needed for Python development
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
+
+# Rename from python36u-devel
+Provides: python36u-devel = %{version}-%{release}
+Provides: python36u-devel%{?_isa} = %{version}-%{release}
+Obsoletes: python36u-devel < 3.6.8-2
+
 Conflicts: %{name} < %{version}-%{release}
 
 %description devel
@@ -351,6 +367,12 @@ Summary: A collection of tools included with Python including 2to3 and idle
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-tkinter = %{version}-%{release}
 
+# Rename from python36u-tools
+Provides: python36u-tools = %{version}-%{release}
+Provides: python36u-tools%{?_isa} = %{version}-%{release}
+Obsoletes: python36u-tools < 3.6.8-2
+
+
 %description tools
 This package contains several tools included with Python, including:
 - 2to3, an automatic source converter from Python 2.X
@@ -361,6 +383,12 @@ This package contains several tools included with Python, including:
 Summary: A GUI toolkit for Python
 Requires: %{name} = %{version}-%{release}
 
+# Rename from python36u-tkinter
+Provides: python36u-tkinter = %{version}-%{release}
+Provides: python36u-tkinter%{?_isa} = %{version}-%{release}
+Obsoletes: python36u-tkinter < 3.6.8-2
+
+
 %description tkinter
 The Tkinter (Tk interface) library is a graphical user interface toolkit for
 the Python programming language.
@@ -370,6 +398,11 @@ the Python programming language.
 Summary: The self-test suite for the main %{name} package
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-tools = %{version}-%{release}
+
+# Rename from python36u-test
+Provides: python36u-test = %{version}-%{release}
+Provides: python36u-test%{?_isa} = %{version}-%{release}
+Obsoletes: python36u-test < 3.6.8-2
 
 
 %description test
@@ -393,6 +426,12 @@ Requires: %{name}-devel%{?_isa} = %{version}-%{release}
 Requires: %{name}-test%{?_isa} = %{version}-%{release}
 Requires: %{name}-tkinter%{?_isa} = %{version}-%{release}
 Requires: %{name}-tools%{?_isa} = %{version}-%{release}
+
+# Rename from python36u-debug
+Provides: python36u-debug = %{version}-%{release}
+Provides: python36u-debug%{?_isa} = %{version}-%{release}
+Obsoletes: python36u-debug < 3.6.8-2
+
 
 %description debug
 %{name}-debug provides a version of the Python runtime with numerous debugging
@@ -1292,6 +1331,9 @@ CheckPython optimized
 # ======================================================
 
 %changelog
+* Fri Aug 09 2019 Carl George <carl@george.computer> - 3.6.8-2
+- Rename to python36
+
 * Wed Mar 20 2019 evitalis <evitalis@users.noreply.github.com> - 3.6.8-1
 - Latest upstream
 - Add patch317 for CVE-2019-5010 (Fedora)
