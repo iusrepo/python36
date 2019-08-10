@@ -145,6 +145,9 @@ BuildRequires: autoconf%{?el6:268}
 BuildRequires: bluez-libs-devel
 BuildRequires: bzip2
 BuildRequires: bzip2-devel
+%if 0%{?main_python3}
+BuildRequires: desktop-file-utils
+%endif
 
 # expat 2.1.0 added the symbol XML_SetHashSalt without bumping SONAME.  We use
 # it (in pyexpat) in order to enable the fix in Python-3.2.3 for CVE-2012-0876:
@@ -162,6 +165,9 @@ BuildRequires: gdbm-devel
 %endif
 BuildRequires: glibc-devel
 BuildRequires: gmp-devel
+%if 0%{?main_python3} && %{undefined el6}
+BuildRequires: libappstream-glib
+%endif
 BuildRequires: libffi-devel
 BuildRequires: libGL-devel
 BuildRequires: libX11-devel
@@ -201,6 +207,12 @@ Source: https://www.python.org/ftp/python/%{version}/Python-%{version}.tar.xz
 # Run in check section with Python that is currently being built
 # Written by bkabrda
 Source8: check-pyc-and-pyo-timestamps.py
+
+# Desktop menu entry for idle3
+Source10: idle3.desktop
+
+# AppData file for idle3
+Source11: idle3.appdata.xml
 
 # 00001 #
 # Fixup distutils/unixccompiler.py to remove standard library path from rpath:
@@ -787,6 +799,21 @@ install -d -m 0755 %{buildroot}%{_prefix}/lib/python%{pybasever}/site-packages/_
 %endif
 
 %if 0%{main_python3}
+# add idle3 to menu if that is the main python3 in EPEL
+install -D -m 0644 Lib/idlelib/Icons/idle_16.png %{buildroot}%{_datadir}/icons/hicolor/16x16/apps/idle3.png
+install -D -m 0644 Lib/idlelib/Icons/idle_32.png %{buildroot}%{_datadir}/icons/hicolor/32x32/apps/idle3.png
+install -D -m 0644 Lib/idlelib/Icons/idle_48.png %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/idle3.png
+desktop-file-install --dir=%{buildroot}%{_datadir}/applications %{SOURCE10}
+
+%if %{undefined el6}
+# Install and validate appdata file
+mkdir -p %{buildroot}%{_datadir}/appdata
+cp -a %{SOURCE11} %{buildroot}%{_datadir}/appdata
+appstream-util validate-relax --nonet %{buildroot}%{_datadir}/appdata/idle3.appdata.xml
+%endif
+%endif
+
+%if 0%{main_python3}
 mv %{buildroot}%{_bindir}/2to3 %{buildroot}%{_bindir}/2to3-3
 %endif
 
@@ -1240,6 +1267,13 @@ CheckPython optimized
 %files idle
 %{_bindir}/idle*
 %{pylibdir}/idlelib
+%if 0%{?main_python3}
+%if %{undefined el6}
+%{_datadir}/appdata/idle3.appdata.xml
+%endif
+%{_datadir}/applications/idle3.desktop
+%{_datadir}/icons/hicolor/*/apps/idle3.*
+%endif
 
 %files tkinter
 %{pylibdir}/tkinter
@@ -1410,6 +1444,7 @@ CheckPython optimized
 - Sync tests with EPEL package
 - Remove the python36-tools package and add python36-idle
 - Use EPEL's main_python3 setup
+- Add desktop entry and appdata.xml file for IDLE 3
 
 * Wed Mar 20 2019 evitalis <evitalis@users.noreply.github.com> - 3.6.8-1
 - Latest upstream
