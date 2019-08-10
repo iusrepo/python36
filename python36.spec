@@ -194,19 +194,10 @@ BuildRequires: net-tools
 
 Source: https://www.python.org/ftp/python/%{version}/Python-%{version}.tar.xz
 
-# Supply an RPM macro "py_byte_compile" for the python3-devel subpackage
-# to enable specfiles to selectively byte-compile individual files and paths
-# with different Python runtimes as necessary:
-Source3: macros.pybytecompile%{pybasever}
-
 # A simple script to check timestamps of bytecode files
 # Run in check section with Python that is currently being built
 # Written by bkabrda
 Source8: check-pyc-and-pyo-timestamps.py
-
-# Supply various useful macros for building python 3.X modules:
-#  __python3Xu, python3Xu_sitelib, python3Xu_sitearch
-Source10: macros.python%{pybasever}
 
 %if %{defined setuptools_version}
 Source20: https://files.pythonhosted.org/packages/py2.py3/s/setuptools/setuptools-%{setuptools_version}-py2.py3-none-any.whl
@@ -379,6 +370,9 @@ This package contains runtime libraries for use by Python:
 Summary: Libraries and header files needed for Python development
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
+BuildRequires: python-rpm-macros
+Requires: python-rpm-macros
+Requires: python3-rpm-macros
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1217376
 # https://bugzilla.redhat.com/show_bug.cgi?id=1496757
@@ -830,11 +824,6 @@ find %{buildroot} -type f -a -name "*.py" -print0 | \
 # Fixup permissions for shared libraries from non-standard 555 to standard 755:
 find %{buildroot} -perm 555 -exec chmod 755 {} \;
 
-# Install macros for rpm:
-mkdir -p %{buildroot}/%{rpmmacrodir}
-install -m 644 %{SOURCE3} %{buildroot}/%{rpmmacrodir}
-install -m 644 %{SOURCE10} %{buildroot}/%{rpmmacrodir}
-
 # Create "/usr/bin/python3-debug", a symlink to the python3 debug binary, to
 # avoid the user having to know the precise version and ABI flags.
 # See e.g. https://bugzilla.redhat.com/show_bug.cgi?id=676748
@@ -1195,8 +1184,6 @@ CheckPython optimized
 %{_libdir}/libpython%{LDVERSION_optimized}.so
 %{_libdir}/pkgconfig/python-%{LDVERSION_optimized}.pc
 %{_libdir}/pkgconfig/python-%{pybasever}.pc
-%{rpmmacrodir}/macros.pybytecompile%{pybasever}
-%{rpmmacrodir}/macros.python%{pybasever}
 
 %files tools
 %{_bindir}/2to3-%{pybasever}
@@ -1365,6 +1352,7 @@ CheckPython optimized
 - Rename to python36
 - Always use system expat
 - Sync build process with EPEL package
+- Use macros from python-rpm-macros and python3-rpm-macros
 
 * Wed Mar 20 2019 evitalis <evitalis@users.noreply.github.com> - 3.6.8-1
 - Latest upstream
