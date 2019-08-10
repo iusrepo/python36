@@ -577,6 +577,10 @@ so extensions for both versions can co-exist in the same directory.
 
 %prep
 %setup -q -n Python-%{version}%{?prerel}
+# Remove all exe files to ensure we are not shipping prebuilt binaries
+# note that those are only used to create Microsoft Windows installers
+# and that functionality is broken on Linux anyway
+find -name '*.exe' -print -delete
 
 # Remove bundled libraries to ensure that we're using the system copy.
 rm -r Modules/expat
@@ -1229,7 +1233,6 @@ CheckPython optimized
 %{pylibdir}/distutils/__pycache__/*%{bytecode_suffixes}
 %{pylibdir}/distutils/README
 %{pylibdir}/distutils/command
-%exclude %{pylibdir}/distutils/command/wininst-*.exe
 
 %dir %{pylibdir}/email/
 %dir %{pylibdir}/email/__pycache__/
@@ -1293,7 +1296,6 @@ CheckPython optimized
 %{_bindir}/2to3-%{pybasever}
 %{pylibdir}/config-%{LDVERSION_optimized}-%{_arch}-linux%{_gnu}/*
 %exclude %{pylibdir}/config-%{LDVERSION_optimized}-%{_arch}-linux%{_gnu}/Makefile
-%{pylibdir}/distutils/command/wininst-*.exe
 %{_includedir}/python%{LDVERSION_optimized}/*.h
 %exclude %{_includedir}/python%{LDVERSION_optimized}/%{_pyconfig_h}
 %doc Misc/README.valgrind Misc/valgrind-python.supp Misc/gdbinit
@@ -1498,6 +1500,7 @@ CheckPython optimized
 - Backport of PEP 538: Coercing the legacy C locale to a UTF-8 based locale
 - Restore the PyExc_RecursionErrorInst public symbol
 - Define TLS cipher suite on build time
+- Make sure we don't ship any exe files (not needed an prebuilt)
 
 * Wed Mar 20 2019 evitalis <evitalis@users.noreply.github.com> - 3.6.8-1
 - Latest upstream
