@@ -375,6 +375,8 @@ Provides: python36u-devel = %{version}-%{release}
 Provides: python36u-devel%{?_isa} = %{version}-%{release}
 Obsoletes: python36u-devel < 3.6.8-2
 
+Provides: %{name}-2to3 = %{version}-%{release}
+
 Conflicts: %{name} < %{version}-%{release}
 
 %description devel
@@ -382,13 +384,18 @@ This package contains the header files and configuration needed to compile
 Python extension modules (typically written in C or C++), to embed Python
 into other programs, and to make binary distributions for Python libraries.
 
-It also contains the necessary macros to build RPM packages with Python modules.
+It also contains the necessary macros to build RPM packages with Python modules
+and 2to3 tool, an automatic source converter from Python 2.X.
 
 
-%package tools
-Summary: A collection of tools included with Python including 2to3 and idle
+%package idle
+Summary: A basic graphical development environment for Python
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-tkinter = %{version}-%{release}
+
+Provides: %{name}-tools = %{version}-%{release}
+Provides: %{name}-tools%{?_isa} = %{version}-%{release}
+Obsoletes: %{name}-tools < %{version}-%{release}
 
 # Rename from python36u-tools
 Provides: python36u-tools = %{version}-%{release}
@@ -396,10 +403,17 @@ Provides: python36u-tools%{?_isa} = %{version}-%{release}
 Obsoletes: python36u-tools < 3.6.8-2
 
 
-%description tools
-This package contains several tools included with Python, including:
-- 2to3, an automatic source converter from Python 2.X
-- idle, a basic graphical development environment
+%description idle
+IDLE is Python’s Integrated Development and Learning Environment.
+
+IDLE has the following features: Python shell window (interactive
+interpreter) with colorizing of code input, output, and error messages;
+multi-window text editor with multiple undo, Python colorizing,
+smart indent, call tips, auto completion, and other features;
+search within any window, replace within editor windows, and
+search through multiple files (grep); debugger with persistent
+breakpoints, stepping, and viewing of global and local namespaces;
+configuration, browsers, and other dialogs.
 
 
 %package tkinter
@@ -420,7 +434,6 @@ the Python programming language.
 %package test
 Summary: The self-test suite for the main %{name} package
 Requires: %{name} = %{version}-%{release}
-Requires: %{name}-tools = %{version}-%{release}
 
 # Rename from python36u-test
 Provides: python36u-test = %{version}-%{release}
@@ -448,7 +461,7 @@ Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: %{name}-devel%{?_isa} = %{version}-%{release}
 Requires: %{name}-test%{?_isa} = %{version}-%{release}
 Requires: %{name}-tkinter%{?_isa} = %{version}-%{release}
-Requires: %{name}-tools%{?_isa} = %{version}-%{release}
+Requires: %{name}-idle%{?_isa} = %{version}-%{release}
 
 # Rename from python36u-debug
 Provides: python36u-debug = %{version}-%{release}
@@ -733,21 +746,6 @@ install -d -m 0755 %{buildroot}%{pylibdir}/site-packages/__pycache__
 install -d -m 0755 %{buildroot}%{_prefix}/lib/python%{pybasever}/site-packages/__pycache__
 %endif
 
-# Development tools
-install -m755 -d %{buildroot}%{pylibdir}/Tools
-install Tools/README %{buildroot}%{pylibdir}/Tools/
-cp -ar Tools/freeze %{buildroot}%{pylibdir}/Tools/
-cp -ar Tools/i18n %{buildroot}%{pylibdir}/Tools/
-cp -ar Tools/pynche %{buildroot}%{pylibdir}/Tools/
-cp -ar Tools/scripts %{buildroot}%{pylibdir}/Tools/
-
-# Documentation tools
-install -m755 -d %{buildroot}%{pylibdir}/Doc
-cp -ar Doc/tools %{buildroot}%{pylibdir}/Doc/
-
-# Demo scripts
-cp -ar Tools/demo %{buildroot}%{pylibdir}/Tools/
-
 # Make sure distutils looks at the right pyconfig.h file
 # See https://bugzilla.redhat.com/show_bug.cgi?id=201434
 # Similar for sysconfig: sysconfig.get_config_h_filename tries to locate
@@ -769,6 +767,10 @@ LD_LIBRARY_PATH=./build/optimized ./build/optimized/python \
   %{buildroot} \
   %{?with_gdb_hooks:%{buildroot}$DirHoldingGdbPy/*.py}
 
+# Remove tests for python3-tools which was removed in
+# https://bugzilla.redhat.com/show_bug.cgi?id=1312030
+rm -rf %{buildroot}%{pylibdir}/test/test_tools
+
 # Remove shebang lines from .py files that aren't executable, and
 # remove executability from .py files that don't have a shebang line:
 find %{buildroot} -name \*.py \
@@ -776,10 +778,6 @@ find %{buildroot} -name \*.py \
   -print -exec sed -i '1d' {} \; \) -o \( \
   -perm /u+x,g+x,o+x ! -exec grep -m 1 -q '^#!' {} \; \
   -exec chmod a-x {} \; \) \)
-
-# Remove executable flag from files that shouldn't have it:
-chmod a-x \
-  %{buildroot}%{pylibdir}/Tools/README
 
 # Get rid of DOS batch files:
 find %{buildroot} -name \*.bat -exec rm {} \;
@@ -972,8 +970,6 @@ CheckPython optimized
 %{pylibdir}/ensurepip/__pycache__/*%{bytecode_suffixes}
 %{pylibdir}/ensurepip/_bundled
 
-%{pylibdir}/idlelib
-
 %dir %{pylibdir}/test/
 %dir %{pylibdir}/test/__pycache__/
 %dir %{pylibdir}/test/support/
@@ -1147,6 +1143,7 @@ CheckPython optimized
 %{_libdir}/%{py_INSTSONAME_optimized}
 
 %files devel
+%{_bindir}/2to3-%{pybasever}
 %{pylibdir}/config-%{LDVERSION_optimized}-%{_arch}-linux%{_gnu}/*
 %exclude %{pylibdir}/config-%{LDVERSION_optimized}-%{_arch}-linux%{_gnu}/Makefile
 %{pylibdir}/distutils/command/wininst-*.exe
@@ -1160,11 +1157,9 @@ CheckPython optimized
 %{_libdir}/pkgconfig/python-%{LDVERSION_optimized}.pc
 %{_libdir}/pkgconfig/python-%{pybasever}.pc
 
-%files tools
-%{_bindir}/2to3-%{pybasever}
+%files idle
 %{_bindir}/idle*
-%{pylibdir}/Tools
-%doc %{pylibdir}/Doc
+%{pylibdir}/idlelib
 
 %files tkinter
 %{pylibdir}/tkinter
@@ -1329,6 +1324,7 @@ CheckPython optimized
 - Sync build process with EPEL package
 - Use macros from python-rpm-macros and python3-rpm-macros
 - Sync tests with EPEL package
+- Remove the python36-tools package and add python36-idle
 
 * Wed Mar 20 2019 evitalis <evitalis@users.noreply.github.com> - 3.6.8-1
 - Latest upstream
