@@ -295,6 +295,13 @@ Patch205: 00205-make-libpl-respect-lib64.patch
 # Fedora Change: https://fedoraproject.org/wiki/Changes/Making_sudo_pip_safe
 Patch251: 00251-change-user-install-location.patch
 
+# 00262 #
+# Backport of PEP 538: Coercing the legacy C locale to a UTF-8 based locale
+# https://www.python.org/dev/peps/pep-0538/
+# Fedora Change: https://fedoraproject.org/wiki/Changes/python3_c.utf-8_locale
+# Original proposal: https://bugzilla.redhat.com/show_bug.cgi?id=1404918
+Patch262: 00262-pep538_coerce_legacy_c_locale.patch
+
 # 00274 #
 # Upstream uses Debian-style architecture naming. Change to match Fedora.
 Patch274: 00274-fix-arch-names.patch
@@ -576,9 +583,9 @@ rm -r Modules/zlib
 %patch163 -p1
 %patch170 -p1
 %patch178 -p1
-
 %patch205 -p1
 %patch251 -p1
+%patch262 -p1
 %patch274 -p1
 %patch317 -p1
 
@@ -1471,6 +1478,7 @@ CheckPython optimized
 - Add pathfix.py to python36-devel
 - Filter out automatic /usr/bin/python3.X requirement
 - Make pip and distutils in user environment install into separate location
+- Backport of PEP 538: Coercing the legacy C locale to a UTF-8 based locale
 
 * Wed Mar 20 2019 evitalis <evitalis@users.noreply.github.com> - 3.6.8-1
 - Latest upstream
