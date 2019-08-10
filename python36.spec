@@ -20,28 +20,31 @@ License: Python
 # Conditionals controlling the build
 # ==================================
 
+# Note that the bcond macros are named for the CLI option they create.
+# "%%bcond_without" means "ENABLE by default and create a --without option"
+
 # Run the test suite in %%check
-%global run_selftest_suite 1
+%bcond_without tests
 
 # Extra build for debugging the interpreter or C-API extensions
 # (the -debug subpackages)
-%global with_debug_build 1
+%bcond_without debug_build
 
 # Support for the GDB debugger
-%global with_gdb_hooks 1
+%bcond_without gdb_hooks
 
 # The dbm.gnu module (key-value database)
-%global with_gdbm 1
+%bcond_without gdbm
 
-# Change from yes to no to turn this off
-%global with_computed_gotos yes
+# Main interpreter loop optimization
+%bcond_without computed_gotos
 
 # Support for the Valgrind debugger/profiler
 %ifnarch s390 %{mips} riscv64
-%global with_valgrind 1
+%bcond_without valgrind
 %else
 # Some arches don't have valgrind, disable support for it there.
-%global with_valgrind 0
+%bcond_with valgrind
 %endif
 
 # Bundle latest wheels of setuptools and/or pip.
@@ -132,7 +135,7 @@ BuildRequires: expat-devel >= 2.1.0
 
 BuildRequires: findutils
 BuildRequires: gcc-c++
-%if 0%{?with_gdbm}
+%if %{with gdbm}
 BuildRequires: gdbm-devel
 %endif
 BuildRequires: glibc-devel
@@ -153,7 +156,7 @@ BuildRequires: tcl-devel
 BuildRequires: tix-devel
 BuildRequires: tk-devel
 
-%if 0%{?with_valgrind}
+%if %{with valgrind}
 BuildRequires: valgrind-devel
 %endif
 
@@ -421,7 +424,7 @@ you should use the unittest module from %{name}-libs, or a library such as
 %{name}-pytest or %{name}-nose.
 
 
-%if 0%{?with_debug_build}
+%if %{with debug_build}
 %package debug
 Summary: Debug version of the Python runtime
 
@@ -458,7 +461,7 @@ The debug build shares installation directories with the standard Python
 runtime, so that .py and .pyc files can be shared.
 Compiled extension modules use a special ABI flag ("d") in the filename,
 so extensions for both versions can co-exist in the same directory.
-%endif # with_debug_build
+%endif # with debug_build
 
 
 # ======================================================
@@ -524,6 +527,13 @@ autoheader%{?el6:268}
 # so we can refer to it after we "cd" elsewhere.
 topdir=$(pwd)
 
+# Get proper option names from bconds
+%if %{with computed_gotos}
+%global computed_gotos_flag yes
+%else
+%global computed_gotos_flag no
+%endif
+
 # Set common compiler/linker flags
 export CFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC -fwrapv"
 export CXXFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE -fPIC -fwrapv"
@@ -557,13 +567,13 @@ BuildPython() {
 %configure \
   --enable-ipv6 \
   --enable-shared \
-  --with-computed-gotos=%{with_computed_gotos} \
+  --with-computed-gotos=%{computed_gotos_flag} \
   --with-dbmliborder=gdbm:ndbm:bdb \
   --with-system-expat \
   --with-system-ffi \
   --enable-loadable-sqlite-extensions \
   --with-dtrace \
-%if 0%{?with_valgrind}
+%if %{with valgrind}
   --with-valgrind \
 %endif
   $ExtraConfigArgs \
@@ -578,14 +588,14 @@ BuildPython() {
 
 # Call the above to build each configuration.
 
-%if 0%{?with_debug_build}
+%if %{with debug_build}
 BuildPython debug \
   python-debug \
   python%{pybasever}-debug \
   "--without-ensurepip --with-pydebug" \
   false \
   "-O0"
-%endif # with_debug_build
+%endif # with debug_build
 
 BuildPython optimized \
   python \
@@ -621,10 +631,10 @@ topdir=$(pwd)
 # See https://fedoraproject.org/wiki/Features/EasierPythonDebugging for more
 # information
 
-%if 0%{?with_gdb_hooks}
+%if %{with gdb_hooks}
 DirHoldingGdbPy=%{_prefix}/lib/debug/%{_libdir}
 mkdir -p %{buildroot}$DirHoldingGdbPy
-%endif # with_gdb_hooks
+%endif # with gdb_hooks
 
 # Use a common function to do an install for all our configurations:
 InstallPython() {
@@ -647,18 +657,18 @@ InstallPython() {
 
   popd
 
-%if 0%{?with_gdb_hooks}
+%if %{with gdb_hooks}
   # See comment on $DirHoldingGdbPy above
   PathOfGdbPy=$DirHoldingGdbPy/$PyInstSoName-%{version}-%{release}.%{_arch}.debug-gdb.py
   cp Tools/gdb/libpython.py %{buildroot}$PathOfGdbPy
-%endif # with_gdb_hooks
+%endif # with gdb_hooks
 
   echo FINISHED: INSTALL OF PYTHON FOR CONFIGURATION: $ConfName
 }
 
 # Install the "debug" build first; any common files will be overridden with
 # later builds
-%if 0%{?with_debug_build}
+%if %{with debug_build}
 InstallPython debug \
   %{py_INSTSONAME_debug} \
   -O0
@@ -669,7 +679,7 @@ mv \
   %{buildroot}%{_libdir}/pkgconfig/python-%{pybasever}.pc \
   %{buildroot}%{_libdir}/pkgconfig/python-%{LDVERSION_debug}.pc
 
-%endif # with_debug_build
+%endif # with debug_build
 
 # Now the optimized build:
 InstallPython optimized \
@@ -721,7 +731,7 @@ cp -ar Tools/demo %{buildroot}%{pylibdir}/Tools/
 %global SOABI_optimized cpython-%{pyshortver}%{ABIFLAGS_optimized}-%{_arch}-linux%{_gnu}
 %global SOABI_debug     cpython-%{pyshortver}%{ABIFLAGS_debug}-%{_arch}-linux%{_gnu}
 
-%if 0%{?with_debug_build}
+%if %{with debug_build}
 %global PyIncludeDirs python%{LDVERSION_optimized} python%{LDVERSION_debug}
 
 %else
@@ -808,7 +818,7 @@ install -m 644 %{SOURCE10} %{buildroot}/%{rpmmacrodir}
 # Create "/usr/bin/python3-debug", a symlink to the python3 debug binary, to
 # avoid the user having to know the precise version and ABI flags.
 # See e.g. https://bugzilla.redhat.com/show_bug.cgi?id=676748
-%if 0%{?with_debug_build}
+%if %{with debug_build}
 ln -s \
   %{_bindir}/python%{LDVERSION_debug} \
   %{buildroot}%{_bindir}/python%{pybasever}-debug
@@ -921,15 +931,15 @@ CheckPython() {
 
 }
 
-%if 0%{run_selftest_suite}
+%if %{with tests}
 
 # Check each of the configurations:
-%if 0%{?with_debug_build}
+%if %{with debug_build}
 CheckPython debug
-%endif # with_debug_build
+%endif # with debug_build
 CheckPython optimized
 
-%endif # run_selftest_suite
+%endif # with tests
 
 
 # ======================================================
@@ -1032,7 +1042,7 @@ CheckPython optimized
 %{dynload_dir}/_dbm.%{SOABI_optimized}.so
 %{dynload_dir}/_decimal.%{SOABI_optimized}.so
 %{dynload_dir}/_elementtree.%{SOABI_optimized}.so
-%if 0%{?with_gdbm}
+%if %{with gdbm}
 %{dynload_dir}/_gdbm.%{SOABI_optimized}.so
 %endif
 %{dynload_dir}/_hashlib.%{SOABI_optimized}.so
@@ -1213,7 +1223,7 @@ CheckPython optimized
 # Hence the manifest is the combination of analogous files in the manifests of
 # all of the other subpackages
 
-%if 0%{?with_debug_build}
+%if %{with debug_build}
 %files debug
 
 # Analog of the core subpackage's files:
@@ -1247,7 +1257,7 @@ CheckPython optimized
 %{dynload_dir}/_dbm.%{SOABI_debug}.so
 %{dynload_dir}/_decimal.%{SOABI_debug}.so
 %{dynload_dir}/_elementtree.%{SOABI_debug}.so
-%if 0%{?with_gdbm}
+%if %{with gdbm}
 %{dynload_dir}/_gdbm.%{SOABI_debug}.so
 %endif
 %{dynload_dir}/_hashlib.%{SOABI_debug}.so
@@ -1314,7 +1324,7 @@ CheckPython optimized
 %{dynload_dir}/_testcapi.%{SOABI_debug}.so
 %{dynload_dir}/_testimportmultiple.%{SOABI_debug}.so
 
-%endif # with_debug_build
+%endif # with debug_build
 
 # We put the debug-gdb.py file inside /usr/lib/debug to avoid noise from ldconfig
 # See https://bugzilla.redhat.com/show_bug.cgi?id=562980
